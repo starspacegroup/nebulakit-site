@@ -39,6 +39,14 @@ describe('Home Page Hero', () => {
 		expect(title).toBeTruthy();
 	});
 
+	it('should declare a canonical url for the landing page', () => {
+		render(Page);
+		// This is the page most likely to be linked and shared, so it needs to say
+		// which URL is the real one.
+		const canonical = document.querySelector('link[rel="canonical"]');
+		expect(canonical?.getAttribute('href')).toBe('https://nebulakit.starspace.group');
+	});
+
 	it('should render the subtitle with correct text', () => {
 		render(Page);
 		// The subhead is broken up by inline tech icons, so match the container's

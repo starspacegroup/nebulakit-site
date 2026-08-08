@@ -67,6 +67,7 @@
 <SharingMeta
 	title={site.name}
 	description={site.description}
+	url={site.url}
 	image="/og-image.png"
 	imageAlt={`${site.name} — ${site.tagline}`}
 	imageWidth={1200}
