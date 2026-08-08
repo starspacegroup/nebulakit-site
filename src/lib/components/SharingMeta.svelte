@@ -44,7 +44,9 @@
 	/** Height of the share image in pixels */
 	export let imageHeight: number = 0;
 
-	$: fullTitle = siteName ? `${title} - ${siteName}` : title;
+	// The landing page's title IS the site name, so the plain suffix rule renders
+	// "NebulaKit - NebulaKit". Suffix only when it actually adds something.
+	$: fullTitle = siteName && title !== siteName ? `${title} - ${siteName}` : title;
 	// Resolve root-relative image paths to absolute URLs for OG/Twitter compliance
 	$: absoluteImage = image && image.startsWith('/') ? `${$page.url.origin}${image}` : image;
 </script>
