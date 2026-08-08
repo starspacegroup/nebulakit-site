@@ -10,10 +10,20 @@ vi.mock('$app/navigation', () => ({
 	goto: vi.fn()
 }));
 
-// NOTE: These tests are skipped due to SvelteKit's page store issue in vitest.
-// The page store cannot be subscribed to outside a Svelte component context.
-// See: https://svelte.dev/docs/kit/state-management#avoid-shared-state-on-the-server
-describe.skip('Home Page Hero', () => {
+// The page reads `$page.url.searchParams` to surface auth error toasts. Outside a
+// SvelteKit runtime there is no page store to subscribe to, which is what kept this
+// whole file skipped. A plain readable store satisfies the contract the component
+// actually uses, so the landing page can be tested like any other component.
+vi.mock('$app/stores', async () => {
+	const { readable } = await import('svelte/store');
+	return {
+		page: readable({ url: new URL('http://localhost/') })
+	};
+});
+
+// This is the marketing site's front door — the copy here is the product pitch, so
+// it is asserted rather than left to drift.
+describe('Home Page Hero', () => {
 	beforeEach(() => {
 		// Reset the command palette store before each test
 		showCommandPalette.set(false);
@@ -31,8 +41,29 @@ describe.skip('Home Page Hero', () => {
 
 	it('should render the subtitle with correct text', () => {
 		render(Page);
-		const subtitle = screen.getByText(/A full-stack SvelteKit \+ Cloudflare starter/i);
-		expect(subtitle).toBeTruthy();
+		// The subhead is broken up by inline tech icons, so match the container's
+		// text rather than a single text node.
+		const subtitle = document.querySelector('.subtitle');
+		expect(subtitle?.textContent).toMatch(/A production-ready/i);
+		expect(subtitle?.textContent).toMatch(/SvelteKit template powered by/i);
+		expect(subtitle?.textContent).toMatch(/Cloudflare's full stack/i);
+	});
+
+	it('should lead with the "Use this template" call to action', () => {
+		render(Page);
+		const cta = screen.getAllByRole('link', { name: /Use this template/i })[0];
+		expect(cta).toBeTruthy();
+		// Must point at the template repo's generate flow, not this marketing repo —
+		// sending people here would hand them the site instead of the starter.
+		expect(cta.getAttribute('href')).toBe('https://github.com/starspacegroup/NebulaKit/generate');
+	});
+
+	it('should render the value propositions', () => {
+		render(Page);
+		expect(screen.getByText('Deploy in minutes')).toBeTruthy();
+		expect(screen.getByText('Real auth, not a stub')).toBeTruthy();
+		expect(screen.getByText('Tested by default')).toBeTruthy();
+		expect(screen.getByText('Complete, not a skeleton')).toBeTruthy();
 	});
 
 	it('should render the search input with placeholder', () => {

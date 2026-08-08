@@ -356,7 +356,7 @@
 
 			<!-- Subtitle -->
 			<p class="subtitle">
-				A full-stack
+				A production-ready
 				<svg
 					class="svelte-icon"
 					width="20"
@@ -374,7 +374,7 @@
 						fill="#FFF"
 					/>
 				</svg>
-				SvelteKit +
+				SvelteKit template powered by
 				<svg
 					class="cloudflare-icon"
 					width="20"
@@ -392,8 +392,7 @@
 						fill="#FAAD3F"
 					/>
 				</svg>
-				Cloudflare starter for building fast, scalable apps including users authentication, command palette,
-				themes, and
+				Cloudflare's full stack. Auth, database, theming, command palette, drag-and-drop, and an
 				<svg
 					class="ai-icon"
 					width="20"
@@ -450,7 +449,30 @@
 						</linearGradient>
 					</defs>
 				</svg>
-				AI realtime voice/text chat.
+				LLM chat UI — built in and tested from day one.
+			</p>
+
+			<!-- Primary CTAs. The template's whole pitch is "click Use this template
+			     and deploy", so the hero's first action is that, not a signup. -->
+			<div class="hero-ctas">
+				<a
+					class="cta cta-primary"
+					href="https://github.com/{site.repo.split('/')[0]}/NebulaKit/generate"
+					rel="noopener"
+				>
+					Use this template
+					<span aria-hidden="true">→</span>
+				</a>
+				<a
+					class="cta cta-secondary"
+					href="https://github.com/{site.repo.split('/')[0]}/NebulaKit"
+					rel="noopener"
+				>
+					Star on GitHub
+				</a>
+			</div>
+			<p class="hero-note">
+				Free and MIT-licensed. Deploy to Cloudflare in minutes — this site is built on it.
 			</p>
 			<!-- Command Palette Style Search -->
 			<div class="command-palette">
@@ -599,9 +621,9 @@
 <section class="features">
 	<div class="features-shell">
 		<div class="features-header">
-			<h2 class="features-title">Built for the Modern Web</h2>
+			<h2 class="features-title">Batteries included</h2>
 			<p class="features-subtitle">
-				A production-ready template with everything you need to build fast, scalable applications
+				Cloudflare-native from the ground up — not a generic starter with an adapter bolted on
 			</p>
 		</div>
 
@@ -1044,6 +1066,73 @@
 					support, and automatic validation for robust backend services.
 				</p>
 			</div>
+		</div>
+	</div>
+</section>
+
+<!-- Why it's worth using — the value props from the messaging doc, kept short
+     because the feature grid above already did the detail. -->
+<section class="value-props" aria-labelledby="value-props-title">
+	<div class="features-shell">
+		<div class="features-header">
+			<h2 class="features-title" id="value-props-title">Skip the plumbing</h2>
+			<p class="features-subtitle">
+				Every new project starts with the same weeks of setup. This one starts with it finished.
+			</p>
+		</div>
+
+		<ul class="value-grid">
+			<li class="value-item">
+				<h3>Deploy in minutes</h3>
+				<p>Cloudflare Workers with D1, KV, R2, and Queues pre-configured. No infra setup.</p>
+			</li>
+			<li class="value-item">
+				<h3>Real auth, not a stub</h3>
+				<p>Email/password plus Google and GitHub SSO, with account linking already handled.</p>
+			</li>
+			<li class="value-item">
+				<h3>Accessible &amp; themeable</h3>
+				<p>WCAG-AA colors, light and dark, CSS design tokens — and a contrast validator in CI.</p>
+			</li>
+			<li class="value-item">
+				<h3>Tested by default</h3>
+				<p>A TDD harness with a real coverage gate, not a token test file and good intentions.</p>
+			</li>
+			<li class="value-item">
+				<h3>Complete, not a skeleton</h3>
+				<p>Command palette, chat UI, and drag-and-drop are working features, not TODOs.</p>
+			</li>
+			<li class="value-item">
+				<h3>Type-safe end to end</h3>
+				<p>TypeScript throughout, including Cloudflare Workers types for the bindings.</p>
+			</li>
+		</ul>
+	</div>
+</section>
+
+<!-- Closing CTA. Repeats the hero action for anyone who read all the way down. -->
+<section class="closing-cta">
+	<div class="features-shell">
+		<h2 class="closing-title">Ship your idea to the edge</h2>
+		<p class="closing-sub">
+			In minutes, not days. Click "Use this template", run the one-time customization, and deploy.
+		</p>
+		<div class="hero-ctas closing-ctas">
+			<a
+				class="cta cta-primary"
+				href="https://github.com/{site.repo.split('/')[0]}/NebulaKit/generate"
+				rel="noopener"
+			>
+				Use this template
+				<span aria-hidden="true">→</span>
+			</a>
+			<a
+				class="cta cta-secondary"
+				href="https://github.com/{site.repo.split('/')[0]}/NebulaKit"
+				rel="noopener"
+			>
+				Read the docs
+			</a>
 		</div>
 	</div>
 </section>
@@ -2402,6 +2491,146 @@
 		to {
 			opacity: 1;
 			transform: translateX(0);
+		}
+	}
+
+	/* ---- Marketing CTAs & value props ------------------------------------- */
+
+	.hero-ctas {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-md);
+		justify-content: center;
+		margin-top: var(--spacing-xl);
+	}
+
+	.cta {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		padding: 0.875rem 1.75rem;
+		border-radius: var(--radius-md);
+		font-size: 1.0625rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition: var(--transition-base);
+	}
+
+	.cta-primary {
+		background: var(--color-primary);
+		color: white;
+		border: 1px solid var(--color-primary);
+	}
+
+	.cta-primary:hover {
+		background: var(--color-primary-hover);
+		border-color: var(--color-primary-hover);
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-lg);
+	}
+
+	.cta-secondary {
+		background: transparent;
+		color: var(--color-text);
+		border: 1px solid var(--color-border);
+	}
+
+	.cta-secondary:hover {
+		background: var(--color-surface-hover);
+		transform: translateY(-2px);
+	}
+
+	.cta:focus-visible {
+		outline: 2px solid var(--color-primary);
+		outline-offset: 3px;
+	}
+
+	.hero-note {
+		margin-top: var(--spacing-md);
+		font-size: 0.9375rem;
+		color: var(--color-text-secondary);
+	}
+
+	.value-props {
+		padding: var(--spacing-2xl) 0;
+		background: var(--color-background);
+	}
+
+	.value-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+		gap: var(--spacing-xl);
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.value-item {
+		padding: var(--spacing-xl);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+	}
+
+	.value-item h3 {
+		margin: 0 0 var(--spacing-sm);
+		font-size: 1.125rem;
+		font-weight: 700;
+		color: var(--color-text);
+	}
+
+	.value-item p {
+		margin: 0;
+		color: var(--color-text-secondary);
+		line-height: 1.6;
+	}
+
+	.closing-cta {
+		padding: var(--spacing-2xl) 0 calc(var(--spacing-2xl) * 2);
+		text-align: center;
+		background: var(--color-background);
+	}
+
+	.closing-title {
+		font-size: 2.25rem;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		color: var(--color-text);
+		margin: 0 0 var(--spacing-sm);
+	}
+
+	.closing-sub {
+		max-width: 46rem;
+		margin: 0 auto;
+		color: var(--color-text-secondary);
+		line-height: 1.6;
+	}
+
+	.closing-ctas {
+		margin-top: var(--spacing-xl);
+	}
+
+	@media (max-width: 640px) {
+		.hero-ctas {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.cta {
+			justify-content: center;
+		}
+
+		.closing-title {
+			font-size: 1.75rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.cta,
+		.cta-primary:hover,
+		.cta-secondary:hover {
+			transition: none;
+			transform: none;
 		}
 	}
 </style>

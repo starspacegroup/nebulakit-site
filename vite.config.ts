@@ -87,7 +87,12 @@ export default defineConfig({
 		unstubGlobals: true,
 		coverage: {
 			provider: 'v8',
-			reporter: ['text', 'json', 'html', 'lcov'],
+			// json-summary writes coverage/coverage-summary.json, which the CI
+			// coverage step reads. Without it that step cats a missing file, pipes
+			// nothing to bc, and the comparison silently evaluates false — so the
+			// gate passes no matter how low coverage goes. The real enforcement is
+			// `thresholds` below; this makes the CI check honest too.
+			reporter: ['text', 'json', 'json-summary', 'html', 'lcov'],
 			exclude: [
 				'node_modules/',
 				'tests/',
