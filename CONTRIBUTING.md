@@ -25,7 +25,7 @@ Thank you for your interest in contributing to NebulaKit! This guide will help y
 
 ```bash
 # Clone the repository
-git clone https://github.com/starspacegroup/NebulaKit.git
+git clone https://github.com/starspacegroup/nebulakit-site-site.git
 cd NebulaKit
 
 # Install dependencies
@@ -35,7 +35,7 @@ npm install
 npm run dev
 ```
 
-Visit `http://localhost:4277` to verify everything works.
+Visit `http://localhost:4278` to verify everything works.
 
 ## 🧪 Testing Requirements
 

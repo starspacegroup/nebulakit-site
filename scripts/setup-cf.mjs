@@ -153,7 +153,7 @@ if (check.status !== 0) process.exit(check.status ?? 1);
 console.log(`
   Next:
     bun run db:migrate      # create the tables
-    bun run dev             # http://localhost:4277
+    bun run dev             # http://localhost:4278
 
   R2 (only if you use it):  npx wrangler r2 bucket create ${slug}-files
 `);

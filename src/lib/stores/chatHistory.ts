@@ -32,7 +32,7 @@ export interface ChatHistoryState {
 	userId: string | null;
 }
 
-const STORAGE_KEY_PREFIX = 'nebulakit_chat_history';
+const STORAGE_KEY_PREFIX = 'nebulakit-site_chat_history';
 const MAX_TITLE_LENGTH = 50;
 
 function getStorageKey(userId: string | null): string {

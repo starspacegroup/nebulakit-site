@@ -120,15 +120,15 @@ describe('Documentation Page', () => {
 
 		expect(screen.getByRole('link', { name: /README/i })).toHaveAttribute(
 			'href',
-			'https://github.com/starspacegroup/NebulaKit/blob/main/README.md'
+			'https://github.com/starspacegroup/nebulakit-site-site/blob/main/README.md'
 		);
 		expect(screen.getByRole('link', { name: /Contributing Guide/i })).toHaveAttribute(
 			'href',
-			'https://github.com/starspacegroup/NebulaKit/blob/main/CONTRIBUTING.md'
+			'https://github.com/starspacegroup/nebulakit-site-site/blob/main/CONTRIBUTING.md'
 		);
 		expect(screen.getByRole('link', { name: /GitHub repository/i })).toHaveAttribute(
 			'href',
-			'https://github.com/starspacegroup/NebulaKit'
+			'https://github.com/starspacegroup/nebulakit-site-site'
 		);
 	});
 

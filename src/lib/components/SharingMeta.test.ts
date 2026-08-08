@@ -197,10 +197,10 @@ describe('SharingMeta', () => {
 
 	it('should render twitter:site when twitterSite is provided', () => {
 		render(SharingMeta, {
-			props: { title: 'Test', twitterSite: '@nebulakit' }
+			props: { title: 'Test', twitterSite: '@nebulakit-site' }
 		});
 		const twitterSite = document.querySelector('meta[name="twitter:site"]');
-		expect(twitterSite?.getAttribute('content')).toBe('@nebulakit');
+		expect(twitterSite?.getAttribute('content')).toBe('@nebulakit-site');
 	});
 
 	it('should render twitter:creator when twitterCreator is provided', () => {

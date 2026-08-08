@@ -7,7 +7,7 @@
 Apply database migrations to create all required tables:
 
 ```bash
-wrangler d1 execute nebulakit-db --local --file=migrations/schema.sql
+wrangler d1 execute nebulakit-site-db --local --file=migrations/schema.sql
 ```
 
 This creates:
@@ -20,7 +20,7 @@ This creates:
 Verify tables were created:
 
 ```bash
-wrangler d1 execute nebulakit-db --local --command="SELECT name FROM sqlite_master WHERE type='table';"
+wrangler d1 execute nebulakit-site-db --local --command="SELECT name FROM sqlite_master WHERE type='table';"
 ```
 
 ## KV Namespace Setup
@@ -42,12 +42,12 @@ wrangler kv:namespace create "KV" --preview
 After running the commands above, you'll get output like:
 
 ```
-🌀 Creating namespace with title "nebulakit-KV"
+🌀 Creating namespace with title "nebulakit-site-KV"
 ✨ Success!
 Add the following to your configuration file in your kv_namespaces array:
 { binding = "KV", id = "abc123..." }
 
-🌀 Creating namespace with title "nebulakit-KV_preview"
+🌀 Creating namespace with title "nebulakit-site-KV_preview"
 ✨ Success!
 Add the following to your configuration file in your kv_namespaces array:
 { binding = "KV", preview_id = "xyz789..." }
@@ -74,7 +74,7 @@ Now when you save GitHub OAuth credentials via `/setup`, they'll be stored in yo
 
 ### 4. Verify It's Working
 
-1. Go to `http://localhost:4277/setup`
+1. Go to `http://localhost:4278/setup`
 2. Enter your GitHub OAuth credentials
 3. Check the console - you should see: `✓ Saved auth config to KV`
 4. Try logging in with GitHub - it should work!

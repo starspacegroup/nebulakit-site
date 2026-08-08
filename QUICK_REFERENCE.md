@@ -4,7 +4,7 @@
 
 ```bash
 # Development
-npm run dev              # Start dev server (port 4277)
+npm run dev              # Start dev server (port 4278)
 npm run build            # Build for production
 npm run preview          # Preview production build
 npm run check            # TypeScript type checking

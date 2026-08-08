@@ -17,12 +17,12 @@ the same `database_id`, the same KV `id`, and the same KV `preview_id`:
 
 | project             | what it thought it had | what it actually bound |
 | ------------------- | ---------------------- | ---------------------- |
-| NebulaKit           | `nebulakit-db`         | `nebulakit-db`         |
-| Guides              | `guides-db`            | `nebulakit-db`         |
-| Atlas               | `nebulakit-db`         | `nebulakit-db`         |
-| arizona-nebulakit   | `nebulakit-db`         | `nebulakit-db`         |
-| convey.land/app     | `convey-land-db`       | `nebulakit-db`         |
-| convey.land/app-new | `convey-land-db`       | `nebulakit-db`         |
+| NebulaKit           | `nebulakit-site-db`         | `nebulakit-site-db`         |
+| Guides              | `guides-db`            | `nebulakit-site-db`         |
+| Atlas               | `nebulakit-site-db`         | `nebulakit-site-db`         |
+| arizona-nebulakit-site   | `nebulakit-site-db`         | `nebulakit-site-db`         |
+| convey.land/app     | `convey-land-db`       | `nebulakit-site-db`         |
+| convey.land/app-new | `convey-land-db`       | `nebulakit-site-db`         |
 
 The result: one D1 with 28 tables and four projects' migrations interleaved in a
 single `d1_migrations` table, numbering collided (two `0004`s, two `0005`s…).
@@ -80,7 +80,7 @@ bun run db:migrate
 ## The database name
 
 `db:migrate` reads `database_name` from `wrangler.toml` rather than hardcoding
-one. These scripts used to say `nebulakit-db` — the template's own database —
+one. These scripts used to say `nebulakit-site-db` — the template's own database —
 so a derived project either failed outright or, if it still had the leaked id in
 place, applied its migrations **into the shared database**. That is how one D1
 ended up with four projects' migrations interleaved. Name and id now come from

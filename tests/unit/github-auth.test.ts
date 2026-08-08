@@ -16,7 +16,7 @@ describe('GitHub OAuth Flow', () => {
 
 		it('should redirect to GitHub authorization URL with correct parameters', () => {
 			const clientId = 'test-client-id';
-			const redirectUri = 'http://localhost:4277/api/auth/github/callback';
+			const redirectUri = 'http://localhost:4278/api/auth/github/callback';
 			const scope = 'read:user user:email';
 
 			const params = new URLSearchParams({

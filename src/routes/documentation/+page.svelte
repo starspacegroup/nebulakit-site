@@ -147,7 +147,7 @@ npm run deploy`
 			</div>
 
 			<p class="template-hint">
-				Then clone your repository, run the commands below, and open http://localhost:4277.
+				Then clone your repository, run the commands below, and open http://localhost:4278.
 			</p>
 
 			<p class="quickstart-recommendation">
@@ -367,8 +367,8 @@ npm run deploy`
 				<div class="callout-card">
 					<h3>Development</h3>
 					<ul>
-						<li><code>npm run dev</code> runs on host 0.0.0.0, port 4277.</li>
-						<li><code>npm run preview</code> previews the production build on port 4277.</li>
+						<li><code>npm run dev</code> runs on host 0.0.0.0, port 4278.</li>
+						<li><code>npm run preview</code> previews the production build on port 4278.</li>
 						<li><code>npm run check</code> runs Svelte sync plus svelte-check.</li>
 					</ul>
 				</div>
@@ -396,7 +396,7 @@ npm run deploy`
 			<h2>Cloudflare Bindings</h2>
 			<p>NebulaKit is configured for Cloudflare Pages with these bindings in wrangler.toml:</p>
 			<ul>
-				<li><code>DB</code> as D1 database binding (database name: nebulakit-db).</li>
+				<li><code>DB</code> as D1 database binding (database name: nebulakit-site-db).</li>
 				<li><code>KV</code> as KV namespace for runtime config and flags.</li>
 				<li><code>BUCKET</code> as R2 bucket binding.</li>
 				<li>Queue producer binding is documented but commented out by default.</li>
@@ -707,35 +707,35 @@ npm run test:all</code
 			<ul>
 				<li>
 					<a
-						href="https://github.com/starspacegroup/NebulaKit"
+						href="https://github.com/starspacegroup/nebulakit-site-site"
 						target="_blank"
 						rel="noopener noreferrer">GitHub repository</a
 					>
 				</li>
 				<li>
 					<a
-						href="https://github.com/starspacegroup/NebulaKit/blob/main/README.md"
+						href="https://github.com/starspacegroup/nebulakit-site-site/blob/main/README.md"
 						target="_blank"
 						rel="noopener noreferrer">README</a
 					>
 				</li>
 				<li>
 					<a
-						href="https://github.com/starspacegroup/NebulaKit/blob/main/CONTRIBUTING.md"
+						href="https://github.com/starspacegroup/nebulakit-site-site/blob/main/CONTRIBUTING.md"
 						target="_blank"
 						rel="noopener noreferrer">Contributing Guide</a
 					>
 				</li>
 				<li>
 					<a
-						href="https://github.com/starspacegroup/NebulaKit/blob/main/docs/INITIAL_CUSTOMIZATION.md"
+						href="https://github.com/starspacegroup/nebulakit-site-site/blob/main/docs/INITIAL_CUSTOMIZATION.md"
 						target="_blank"
 						rel="noopener noreferrer">Initial Customization</a
 					>
 				</li>
 				<li>
 					<a
-						href="https://github.com/starspacegroup/NebulaKit/blob/main/docs/THEME_SYSTEM.md"
+						href="https://github.com/starspacegroup/nebulakit-site-site/blob/main/docs/THEME_SYSTEM.md"
 						target="_blank"
 						rel="noopener noreferrer">Theme System</a
 					>
@@ -767,7 +767,7 @@ npm run test:all</code
 		<footer class="docs-footer">
 			<p>
 				If NebulaKit helps your workflow, consider giving the project a star on <a
-					href="https://github.com/starspacegroup/NebulaKit"
+					href="https://github.com/starspacegroup/nebulakit-site-site"
 					target="_blank"
 					rel="noopener noreferrer">GitHub</a
 				>!

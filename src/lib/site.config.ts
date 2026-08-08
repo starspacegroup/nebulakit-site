@@ -18,21 +18,21 @@ export const site = {
 	/** Short name for tight spaces (browser tab, PWA `short_name`). */
 	shortName: 'NebulaKit',
 	/** One-line tagline for the footer and hero. */
-	tagline: 'A cosmic-grade SvelteKit starter powered by Cloudflare Workers.',
+	tagline: 'A cosmic-grade SvelteKit starter powered by Cloudflare\'s full stack.',
 	/** Longer description for the meta description and OG/Twitter cards. */
-	description: 'A cosmic-grade SvelteKit starter powered by Cloudflare. Built with SvelteKit, Cloudflare Workers, D1 database, Auth.js authentication, and AI chat capabilities.',
+	description: 'NebulaKit is a production-ready SvelteKit template powered by Cloudflare\'s full stack. Auth, database, theming, command palette, chat UI, and drag-and-drop — built in and tested from day one.',
 	/**
 	 * URL-safe slug. Drives the Cloudflare resource names in wrangler.toml
 	 * (`<slug>-db`, `<slug>-files`, `<slug>-queue`). Those files can't import this
 	 * module, so `bun run customize` keeps them in sync — don't edit them by hand.
 	 */
-	slug: 'nebulakit',
+	slug: 'nebulakit-site',
 	/** Local dev + preview port. Owned here; Vite and Playwright both read it. */
-	devPort: 4277,
+	devPort: 4278,
 	/** Production URL, no trailing slash. Used for canonical + OG URLs. */
-	url: 'https://nebulakit.pages.dev',
+	url: 'https://nebulakit.starspace.group',
 	/** GitHub repository in `owner/name` form. */
-	repo: 'starspacegroup/NebulaKit',
+	repo: 'starspacegroup/nebulakit-site',
 	/** Attribution shown in the footer. */
 	author: '*Space',
 	/** URL for the footer attribution link. */

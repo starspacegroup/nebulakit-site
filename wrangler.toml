@@ -1,4 +1,4 @@
-name = "nebulakit"
+name = "nebulakit-site"
 compatibility_date = "2024-01-01"
 pages_build_output_dir = ".svelte-kit/cloudflare"
 
@@ -32,15 +32,15 @@ binding = "KV"
 id = "REPLACE_ME_RUN_SETUP_CF"
 preview_id = "REPLACE_ME_RUN_SETUP_CF_PREVIEW"
 # R2 Bucket
-# Create with: wrangler r2 bucket create nebulakit-files
+# Create with: wrangler r2 bucket create nebulakit-site-files
 [[r2_buckets]]
 binding = "BUCKET"
-bucket_name = "nebulakit-files"
+bucket_name = "nebulakit-site-files"
 
 # Queue (disabled - enable Queues at https://dash.cloudflare.com before uncommenting)
 # [[queues.producers]]
 # binding = "QUEUE"
-# queue = "nebulakit-queue"
+# queue = "nebulakit-site-queue"
 
 # Note: queues.consumers is not supported by Cloudflare Pages
 # If you need queue consumers, use a separate Cloudflare Worker

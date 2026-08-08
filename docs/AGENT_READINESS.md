@@ -175,7 +175,7 @@ bun run test -- agent-readiness html-to-markdown markdown-negotiation webmcp
 Against a running site (`bun run dev`, or a deployed URL):
 
 ```sh
-BASE=http://localhost:4277
+BASE=http://localhost:4278
 
 curl -s $BASE/robots.txt | head -20
 curl -s $BASE/sitemap.xml | head -20

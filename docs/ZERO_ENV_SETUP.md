@@ -102,7 +102,7 @@ Once the designated admin user logs in for the first time, the setup page is per
 2. Click **"New OAuth App"**
 3. Fill in the form:
    - **Application name:** NebulaKit (or your choice)
-   - **Homepage URL:** `https://your-app.pages.dev` (or `http://localhost:4277` for local dev)
+   - **Homepage URL:** `https://your-app.pages.dev` (or `http://localhost:4278` for local dev)
    - **Authorization callback URL:** `https://your-app.pages.dev/api/auth/github/callback`
 4. Click **"Register application"**
 5. Copy the **Client ID**
@@ -217,7 +217,7 @@ if (resetDisabled === 'true') {
 1. **Apply database migrations:**
 
    ```bash
-   wrangler d1 execute nebulakit-db --local --file=migrations/schema.sql
+   wrangler d1 execute nebulakit-site-db --local --file=migrations/schema.sql
    ```
 
 2. **Create KV namespaces** (for persistent local storage):
@@ -241,11 +241,11 @@ if (resetDisabled === 'true') {
    npm run dev
    ```
 
-2. Navigate to `http://localhost:4277/setup`
+2. Navigate to `http://localhost:4278/setup`
 
 3. Create a GitHub OAuth App with:
-   - **Homepage URL:** `http://localhost:4277`
-   - **Callback URL:** `http://localhost:4277/api/auth/github/callback`
+   - **Homepage URL:** `http://localhost:4278`
+   - **Callback URL:** `http://localhost:4278/api/auth/github/callback`
 
 4. Complete the setup form and log in
 

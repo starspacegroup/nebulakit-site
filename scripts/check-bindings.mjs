@@ -36,7 +36,7 @@ const CONFIG = pathArg ? pathArg : join(root, 'wrangler.toml');
 
 // Ids that leaked through the template. Never legitimate in a derived project.
 const QUARANTINED = new Map([
-	['bd776be3-9823-4763-abb1-c18b40931456', 'shared nebulakit-db (D1)'],
+	['bd776be3-9823-4763-abb1-c18b40931456', 'shared nebulakit-site-db (D1)'],
 	['12a6576334dd4e16bf1e08d5cc1fac4a', 'shared KV namespace'],
 	['e9b0a93432b1406786dc7b9b334da90d', 'shared KV preview namespace']
 ]);

@@ -2,9 +2,9 @@
 /**
  * Run D1 migrations against THIS project's database.
  *
- * Why this exists: these scripts used to be hardcoded to `nebulakit-db`, the
+ * Why this exists: these scripts used to be hardcoded to `nebulakit-site-db`, the
  * template's own database name. Every derived project inherited that, so
- * `db:migrate` either failed ("no database named nebulakit-db") or — for anyone
+ * `db:migrate` either failed ("no database named nebulakit-site-db") or — for anyone
  * who still had the template's leaked id in place — applied the project's
  * migrations into the SHARED database. That is how one D1 ended up with 28
  * tables and four projects' migrations interleaved. See docs/CLOUDFLARE_SETUP.md.

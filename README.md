@@ -59,7 +59,7 @@ npm run build
 npm run deploy
 ```
 
-Visit `http://localhost:4277` to see your app!
+Visit `http://localhost:4278` to see your app!
 
 ### 🚇 Local Tunneling (Cloudflare Tunnel)
 
@@ -79,7 +79,7 @@ The tunnel URL (e.g. `https://random-words.trycloudflare.com`) is printed to the
 **Custom domain** (e.g. `myapp.yourdomain.com`):
 
 1. Go to [Cloudflare Zero Trust](https://one.dash.cloudflare.com/) → Networks → Tunnels
-2. Create a tunnel, add a public hostname pointing to `http://localhost:4277`
+2. Create a tunnel, add a public hostname pointing to `http://localhost:4278`
 3. Copy the tunnel token
 4. Add your domain to `vite.config.ts` → `server.allowedHosts` (e.g. `'.yourdomain.com'`)
 

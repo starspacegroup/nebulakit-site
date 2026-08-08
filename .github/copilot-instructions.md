@@ -10,10 +10,10 @@ All tool-agnostic rules (testing, migrations, theming, scratch files, customizat
 
 When using Copilot Chat locally:
 
-- Assume `npm run dev` is already running in a separate terminal on port 4277
+- Assume `npm run dev` is already running in a separate terminal on port 4278
 - Do NOT start the dev server when performing tasks
 - Do NOT run `npm run dev`, `vite dev`, or similar commands
-- When testing locally, assume the app is already accessible at `http://localhost:4277`
+- When testing locally, assume the app is already accessible at `http://localhost:4278`
 - If you need to verify the app is running, check the existing terminal output rather than starting a new instance
 
 When using the Copilot Coding Agent (remote):
