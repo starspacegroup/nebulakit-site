@@ -19,8 +19,8 @@ pages_build_output_dir = ".svelte-kit/cloudflare"
 # D1 Database — create with: wrangler d1 create <your-project>-db
 [[d1_databases]]
 binding = "DB"
-database_name = "REPLACE_ME-db"
-database_id = "REPLACE_ME_RUN_SETUP_CF"
+database_name = "nebulakit-site-db"
+database_id = "35de9b08-1291-4384-a165-3de6648f05b6"
 migrations_dir = "./migrations"
 
 # KV Namespace — create with:
@@ -29,8 +29,8 @@ migrations_dir = "./migrations"
 # preview_id MUST differ from id, or `wrangler dev` writes straight into prod.
 [[kv_namespaces]]
 binding = "KV"
-id = "REPLACE_ME_RUN_SETUP_CF"
-preview_id = "REPLACE_ME_RUN_SETUP_CF_PREVIEW"
+id = "593c0d029e164e5d992e39eede02308b"
+preview_id = "ad151f16156f4ef19a374f773bfc5165"
 # R2 Bucket
 # Create with: wrangler r2 bucket create nebulakit-site-files
 [[r2_buckets]]
