@@ -13,10 +13,15 @@
  * binding id comes from, so the two can no longer disagree.
  *
  * Usage (via package.json):
- *   bun run db:migrate          -> apply
+ *   bun run db:migrate          -> apply --remote
  *   bun run db:migrate:local    -> apply --local
- *   bun run db:migrate:list     -> list
+ *   bun run db:migrate:list     -> list --remote
  * Extra args are passed through to wrangler.
+ *
+ * `--remote` is passed EXPLICITLY. wrangler defaults `d1 migrations` to the local
+ * miniflare SQLite file, so omitting it made `bun run db:migrate` claim to migrate
+ * production while quietly writing to .wrangler/state — the schema never reached
+ * Cloudflare and nothing reported a problem.
  */
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -72,7 +77,10 @@ if (!name || (/REPLACE_ME/.test(name) && !LOCAL)) {
 	process.exit(1);
 }
 
-const args = ['wrangler', 'd1', 'migrations', action, name, ...rest];
+// Be explicit about which database is being touched. Without this, wrangler's
+// default (local) silently wins and a "production" migration goes nowhere.
+const target = LOCAL ? [] : ['--remote'];
+const args = ['wrangler', 'd1', 'migrations', action, name, ...target, ...rest];
 console.log(`db-migrate: ${args.join(' ')}\n`);
 const run = spawnSync('npx', args, {
 	cwd: root,
