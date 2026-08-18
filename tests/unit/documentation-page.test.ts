@@ -27,6 +27,19 @@ describe('Documentation Page', () => {
 		).toBeInTheDocument();
 	});
 
+	it('documents the drag-and-drop board and points at the live one', () => {
+		render(Page);
+
+		expect(screen.getByRole('heading', { name: /^Drag and Drop$/i })).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: /the showcase/i })).toHaveAttribute(
+			'href',
+			'/showcase'
+		);
+		expect(screen.getByRole('heading', { name: /keyboard control/i })).toBeInTheDocument();
+		expect(screen.getByText(/pick the widget up, and put it down again/i)).toBeInTheDocument();
+		expect(screen.getByText(/must be inert/i)).toBeInTheDocument();
+	});
+
 	it('documents core product features and operator workflows', () => {
 		render(Page);
 

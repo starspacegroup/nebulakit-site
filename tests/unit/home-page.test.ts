@@ -66,6 +66,21 @@ describe('Home Page Hero', () => {
 		expect(cta.getAttribute('href')).toBe('https://github.com/starspacegroup/NebulaKit/generate');
 	});
 
+	it('points at the live drag-and-drop board from the hero', () => {
+		render(Page);
+
+		expect(screen.getByRole('link', { name: /see it work/i })).toHaveAttribute('href', '/showcase');
+	});
+
+	it('gives drag-and-drop a feature card that is itself the link', () => {
+		render(Page);
+
+		const card = screen.getByRole('link', { name: /drag & drop/i });
+
+		expect(card).toHaveAttribute('href', '/showcase');
+		expect(card).toHaveTextContent(/try it live/i);
+	});
+
 	it('should render the value propositions', () => {
 		render(Page);
 		expect(screen.getByText('Deploy in minutes')).toBeTruthy();

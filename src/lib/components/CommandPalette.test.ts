@@ -47,6 +47,12 @@ describe('CommandPalette', () => {
 		expect(commands.length).toBeGreaterThan(0);
 	});
 
+	it('should offer the showcase, like every other top-level page', () => {
+		const { getByText } = render(CommandPalette, { props: { show: true } });
+		expect(getByText('Showcase')).toBeInTheDocument();
+		expect(getByText('Try the drag-and-drop widget board')).toBeInTheDocument();
+	});
+
 	it('should include chat command when AI providers are available', () => {
 		const { container } = render(CommandPalette, { props: { show: true, hasAIProviders: true } });
 		const commandLabels = Array.from(container.querySelectorAll('.command-label')).map(

@@ -30,6 +30,11 @@ describe('Footer', () => {
 		expect(screen.getByRole('heading', { name: /resources/i })).toBeInTheDocument();
 	});
 
+	it('should link to the component showcase', () => {
+		render(Footer);
+		expect(screen.getByRole('link', { name: /^showcase$/i })).toHaveAttribute('href', '/showcase');
+	});
+
 	it('should have legal links section', () => {
 		render(Footer);
 		expect(screen.getByRole('heading', { name: /legal/i })).toBeInTheDocument();

@@ -471,6 +471,7 @@
 				>
 					Star on GitHub
 				</a>
+				<a class="cta cta-secondary" href="/showcase"> See it work </a>
 			</div>
 			<p class="hero-note">
 				Free and MIT-licensed. Deploy to Cloudflare in minutes — this site is built on it.
@@ -1067,6 +1068,68 @@
 					support, and automatic validation for robust backend services.
 				</p>
 			</div>
+
+			<!-- Feature 13: Drag & Drop — the one feature you can try without
+			     leaving the site, so the card is the link to it. -->
+			<a class="feature-card feature-card--link" href="/showcase">
+				<div class="feature-header">
+					<div class="feature-icon">
+						<svg
+							width="40"
+							height="40"
+							viewBox="0 0 40 40"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<rect
+								x="5"
+								y="7"
+								width="13"
+								height="9"
+								rx="2"
+								stroke="var(--color-primary)"
+								stroke-width="2"
+							/>
+							<rect
+								x="5"
+								y="21"
+								width="13"
+								height="12"
+								rx="2"
+								stroke="var(--color-primary)"
+								stroke-width="2"
+							/>
+							<rect
+								x="23"
+								y="7"
+								width="13"
+								height="14"
+								rx="2"
+								fill="var(--color-secondary)"
+								opacity="0.35"
+							/>
+							<rect
+								x="23"
+								y="7"
+								width="13"
+								height="14"
+								rx="2"
+								stroke="var(--color-secondary)"
+								stroke-width="2"
+								stroke-dasharray="3 3"
+							/>
+							<circle cx="29.5" cy="28" r="1.5" fill="var(--color-primary)" />
+							<circle cx="29.5" cy="33" r="1.5" fill="var(--color-primary)" />
+						</svg>
+					</div>
+					<h3 class="feature-title">Drag &amp; Drop</h3>
+				</div>
+				<p class="feature-description">
+					A widget board with pointer, touch and keyboard dragging, a widget registry, and a reorder
+					engine that cannot corrupt its own ordering. Nothing here is a screenshot.
+				</p>
+				<span class="feature-link">Try it live <span aria-hidden="true">→</span></span>
+			</a>
 		</div>
 	</div>
 </section>
@@ -2496,6 +2559,28 @@
 	}
 
 	/* ---- Marketing CTAs & value props ------------------------------------- */
+
+	.feature-card--link {
+		display: flex;
+		flex-direction: column;
+		text-decoration: none;
+		transition:
+			border-color var(--transition-fast),
+			transform var(--transition-fast);
+	}
+
+	.feature-card--link:hover,
+	.feature-card--link:focus-visible {
+		border-color: var(--color-primary);
+		transform: translateY(-2px);
+	}
+
+	.feature-link {
+		margin-top: auto;
+		padding-top: var(--spacing-sm);
+		font-weight: 600;
+		color: var(--color-primary);
+	}
 
 	.hero-ctas {
 		display: flex;
