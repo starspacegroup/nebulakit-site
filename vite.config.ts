@@ -34,6 +34,11 @@ function staleDepsFix() {
 
 export default defineConfig({
 	plugins: [staleDepsFix(), sveltekit()],
+	// Resolve Svelte's browser build under Vitest. Without this, `svelte` resolves
+	// to its server export, where `onMount` is a no-op — component tests render
+	// fine but nothing that happens on mount ever runs, so a test asserting on
+	// mounted behaviour silently checks the pre-mount markup instead.
+	resolve: process.env.VITEST ? { conditions: ['browser'] } : {},
 	// Preview (vite preview) reuses the dev port so local URLs stay stable.
 	preview: {
 		port: site.devPort,
@@ -47,7 +52,7 @@ export default defineConfig({
 		// Leading "." matches any subdomain, so per-dev tunnels work without editing this.
 		// CUSTOMIZE: replace '.example.com' with your project's tunnel domain, or remove it
 		// if you only ever use the free trycloudflare.com quick tunnels.
-		allowedHosts: ['.trycloudflare.com', 'localhost'],
+		allowedHosts: ['.trycloudflare.com', '.starspace.group', 'localhost'],
 		// Disable HMR when running through a tunnel — WebSocket connections over cloudflared
 		// are unreliable and cause the page to hang. Set VITE_HMR=true to re-enable for
 		// purely local (no tunnel) development if you find watch-mode useful.
