@@ -1,10 +1,9 @@
 /**
  * Single source of truth for app identity, branding, and local-dev config.
  *
- * When you spin up a new app from this template, DO NOT hand-edit the scattered
- * references. Run `bun run customize` (see CUSTOMIZE.md at the repo root), which
- * rewrites this file and syncs the surfaces that cannot import it — wrangler.toml
- * (Cloudflare resource names), tests, and docs.
+ * Surfaces that cannot import this module — wrangler.toml, tests, docs,
+ * src/app.html, static/site.webmanifest — are updated by hand, in the same
+ * change. There is no rebranding script.
  *
  * Everything that runs (Vite, Playwright, and every Svelte component) imports its
  * name/port/URL from here, so these values live in exactly one place.
@@ -18,13 +17,14 @@ export const site = {
 	/** Short name for tight spaces (browser tab, PWA `short_name`). */
 	shortName: 'NebulaKit',
 	/** One-line tagline for the footer and hero. */
-	tagline: 'A cosmic-grade SvelteKit starter powered by Cloudflare\'s full stack.',
+	tagline: 'The home of NebulaKit — an independent Cloudflare-native platform.',
 	/** Longer description for the meta description and OG/Twitter cards. */
-	description: 'NebulaKit is a production-ready SvelteKit template powered by Cloudflare\'s full stack. Auth, database, theming, command palette, chat UI, and drag-and-drop — built in and tested from day one.',
+	description:
+		'The site for NebulaKit, an independent Cloudflare-native platform for content management, authentication, AI chat, first-party analytics, and agent-ready publishing.',
 	/**
 	 * URL-safe slug. Drives the Cloudflare resource names in wrangler.toml
-	 * (`<slug>-db`, `<slug>-files`, `<slug>-queue`). Those files can't import this
-	 * module, so `bun run customize` keeps them in sync — don't edit them by hand.
+	 * (`<slug>-db`, `<slug>-files`, `<slug>-queue`) and the credential form field
+	 * identifiers in utils/form-fields.ts.
 	 */
 	slug: 'nebulakit-site',
 	/** Local dev + preview port. Owned here; Vite and Playwright both read it. */

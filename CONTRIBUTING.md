@@ -25,7 +25,7 @@ Thank you for your interest in contributing to NebulaKit! This guide will help y
 
 ```bash
 # Clone the repository
-git clone https://github.com/starspacegroup/nebulakit-site-site.git
+git clone https://github.com/starspacegroup/nebulakit-site.git
 cd NebulaKit
 
 # Install dependencies

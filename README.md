@@ -11,7 +11,7 @@ NebulaKit is a production-ready SvelteKit template with everything you need to b
 
 ## Before Anything Else
 
-If this repository is being used as a starter template, complete [docs/INITIAL_CUSTOMIZATION.md](./docs/INITIAL_CUSTOMIZATION.md) before normal feature work. Track whether that cleanup is still pending in [INITIAL_CUSTOMIZATION_STATUS.md](./INITIAL_CUSTOMIZATION_STATUS.md).
+This repository is the site at [nebulakit.starspace.group](https://nebulakit.starspace.group). It was derived from NebulaKit and is no longer a template — see [AGENTS.md](./AGENTS.md) §5.
 
 ## 🌟 Features
 

@@ -4,10 +4,7 @@
 	const lastUpdated = 'January 1, 2026';
 </script>
 
-<SharingMeta
-	title="Terms of Service"
-	description="Terms of Service for NebulaKit"
-/>
+<SharingMeta title="Terms of Service" description="Terms of Service for NebulaKit" />
 
 <main class="legal-page">
 	<div class="legal-container">
@@ -141,7 +138,7 @@
 			<h2>Contact Us</h2>
 			<p>
 				If you have any questions about these Terms of Service, please contact us through our <a
-					href="https://github.com/starspacegroup/nebulakit-site-site"
+					href="https://github.com/starspacegroup/nebulakit-site"
 					target="_blank"
 					rel="noopener noreferrer">GitHub repository</a
 				>.

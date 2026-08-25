@@ -57,22 +57,19 @@
 - Temp file created → Move to `.llm-outputs/` before committing.
 - No `.llm-outputs/` folder → It exists; use it.
 
-### 5. Initial Customization Gate
+### 5. This Repo Is A Site, Not A Template
 
-**Failure mode:** New sessions recommend branding cleanup repeatedly.
+**Failure mode:** An agent finds template-shaped scaffolding, decides the repo is mid-onboarding, and recommends a rebranding pass that finished long ago — or restores the scripts that ran it.
 
-**Rule:** On first substantial request, check [INITIAL_CUSTOMIZATION_STATUS.md](INITIAL_CUSTOMIZATION_STATUS.md).
+**Rule:** This repository is the site at `nebulakit.starspace.group`. It was derived from NebulaKit, which is itself an independent product now, not a starter. The customization workflow is retired: `CUSTOMIZE.md`, `INITIAL_CUSTOMIZATION_STATUS.md`, `docs/INITIAL_CUSTOMIZATION.md`, `customize.config.example.json` and `scripts/customize.mjs` are gone. **Do not restore them.**
 
-- If `status: pending` → Recommend [docs/INITIAL_CUSTOMIZATION.md](docs/INITIAL_CUSTOMIZATION.md) workflow.
-- If `credential_fields_unique: false` → `site.slug` is still the template's, so this site's login field names collide with every other unconfigured site from it. Run `bun run customize`. See §9.
-- If `status: complete` → Proceed normally.
-- After completing customization → Update status to `complete` with real app name.
+[src/lib/site.config.ts](src/lib/site.config.ts) stays the single source of identity. Surfaces that cannot import it — `wrangler.toml`, tests, docs, `src/app.html`, `static/site.webmanifest` — are updated by hand, in the same change.
 
 ### 6. Web App Icons — Full Set Required, Not Just a Favicon
 
 **Failure mode:** A site ships with only `<link rel="icon">`, so phones show a generated letter-monogram tile (e.g. a colored "D") instead of the brand logo on the home screen / Chrome shortcuts. Discovered in production on davis9001.dev.
 
-**Rule:** Every site built on NebulaKit must ship a complete icon set, not just a tab favicon. A single small favicon is **not** enough — home-screen tiles and PWA installs pull from `apple-touch-icon` and web-manifest icons, which the base template does not provide.
+**Rule:** This site must ship a complete icon set, not just a tab favicon. A single small favicon is **not** enough — home-screen tiles and PWA installs pull from `apple-touch-icon` and web-manifest icons.
 
 Required, generated from the site's logo:
 
@@ -81,7 +78,7 @@ Required, generated from the site's logo:
 - Tab favicon **light + dark variants** via `<link rel="icon" media="(prefers-color-scheme: dark|light)">`, with `favicon.ico`/`.svg` as the no-media default. Default to dark unless the brand says otherwise.
 - `<link rel="apple-touch-icon">`, `<link rel="manifest">`, and `<meta name="apple-mobile-web-app-title">` in `src/app.html`.
 
-Tiles and installed-app icons are **static** — they cannot switch on `prefers-color-scheme`; only the tab favicon can. Pick one default (dark) for the static assets. See [docs/INITIAL_CUSTOMIZATION.md](docs/INITIAL_CUSTOMIZATION.md) → Share Metadata And Icons for the checklist.
+Tiles and installed-app icons are **static** — they cannot switch on `prefers-color-scheme`; only the tab favicon can. Pick one default (dark) for the static assets.
 
 ### 7. `/documentation` Must Match The Shipped App
 
@@ -131,7 +128,7 @@ Tiles and installed-app icons are **static** — they cannot switch on `prefers-
 
 **Failure mode:** Every site built from this template ships `id="password"` and `id="email"` on its login form. A password manager that matches on host rather than origin — two local projects on `localhost`, or sibling subdomains of one registrable domain — reads those forms as the same login and offers the wrong credentials.
 
-**Rule:** Give every credential or secret input an `id`/`name` from `fieldName()` in [src/lib/utils/form-fields.ts](src/lib/utils/form-fields.ts). It prefixes with `site.slug`, so a new site gets unique fields the moment `bun run customize` sets the slug. Covered today: login, signup, the profile password + merge fields, `/setup`, and the admin AI-key and auth-key forms.
+**Rule:** Give every credential or secret input an `id`/`name` from `fieldName()` in [src/lib/utils/form-fields.ts](src/lib/utils/form-fields.ts). It prefixes with `site.slug`, which is `nebulakit-site` here and differs in every sibling deployment. Covered today: login, signup, the profile password + merge fields, `/setup`, and the admin AI-key and auth-key forms.
 
 ```svelte
 const passwordField = fieldName('password');
@@ -142,7 +139,7 @@ const passwordField = fieldName('password');
 **When this breaks:**
 
 - **New form with an email, password, or key field** → Use `fieldName()` for `id` and `name`, keep `for` on the label in sync, and add the route to `CREDENTIAL_ROUTES` in [tests/unit/auth-field-names.test.ts](tests/unit/auth-field-names.test.ts). That test fails on any hardcoded `id`/`name`/`for` in those files.
-- **Setting up a new site from the template** → The fields are only unique once `site.slug` is yours. `bun run customize` handles it and flips `credential_fields_unique` in [INITIAL_CUSTOMIZATION_STATUS.md](INITIAL_CUSTOMIZATION_STATUS.md); a hand-rename does not — check the slug yourself. See §5.
+- **Changing `site.slug`** → Every credential field identifier changes with it, so saved logins stop matching. That is the correct trade; just know it happens, and see §5 before assuming the slug is up for grabs.
 - **Tempted to rename the `autocomplete` token too** → Don't. `email`, `name`, `current-password`, and `new-password` are the standard values that make autofill work _correctly_. Prefix the identifiers only.
 - **A field's value is a POST body key** (the contact form action) → Leave it alone. Renaming it breaks the server contract, and address autofill wants the plain `name`/`email` names there.
 

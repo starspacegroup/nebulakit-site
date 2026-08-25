@@ -17,7 +17,7 @@
 	let checkingConfig = true;
 
 	// Site-unique field identifiers so a password manager does not confuse these
-	// secret fields with another site built from the same template.
+	// secret fields with another NebulaKit deployment's.
 	const clientIdField = fieldName('client-id');
 	const clientSecretField = fieldName('client-secret');
 	const adminUsernameField = fieldName('admin-github-username');

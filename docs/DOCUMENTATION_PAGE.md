@@ -122,9 +122,8 @@ Then restore the `/documentation` link in `Footer.svelte` and the command palett
 test asserting the heading and at least one real instruction, so the page can never silently
 disappear again.
 
-## After Customization
+## What The Page Must Not Say
 
-Once [INITIAL_CUSTOMIZATION_STATUS.md](../INITIAL_CUSTOMIZATION_STATUS.md) is `complete`, the page
-must describe **your** app: your name, your features, your deploy target. No leftover NebulaKit
-references, no template repo links in `references`, no instructions for features you removed. From
-that point on this document's rule takes over — every feature ships with its docs.
+The page describes this site: its features, its deploy target, its repository. No instructions for
+features that were removed, and no links back to a template workflow this repo no longer has — see
+AGENTS.md §5. Every feature ships with its docs, in the same change.

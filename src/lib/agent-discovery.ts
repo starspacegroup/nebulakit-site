@@ -18,8 +18,8 @@
  * WHY REQUEST-ORIGIN URLS, NOT `site.config.url`: the sitemap protocol requires
  * every listed URL to share the sitemap's own host, and robots.txt is per-host
  * by definition. Deriving from the live request keeps preview deploys, custom
- * domains, and *.pages.dev all correct without anyone re-running
- * `bun run customize` — which is exactly why these files never go stale.
+ * domains, and *.pages.dev all correct with nothing to re-run — which is
+ * exactly why these files never go stale.
  *
  * This module must stay dependency-free (no `$app`, no Node APIs) so routes,
  * hooks, and tests can all import it.

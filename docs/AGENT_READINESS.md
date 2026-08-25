@@ -18,9 +18,9 @@ reasons, both of which matter to anyone using NebulaKit as a template:
    every entry to share the sitemap's host, so this is also the more correct
    reading of the spec. Practical effect: the files are right on `localhost`, on
    a `*.pages.dev` preview, and on a custom domain, with no configuration.
-2. **`bun run customize` can't reach static files.** The customize script
-   rewrites `.ts/.js/.svelte/.json/.toml/.md/.html`. A `static/robots.txt` would
-   keep the template's URL forever, silently.
+2. **A static file would go stale silently.** A `static/robots.txt` carries
+   whatever host was written into it, so a domain change leaves it pointing at
+   the old one with nothing to catch it.
 
 Policy and route data live in one module — [`src/lib/agent-discovery.ts`](../src/lib/agent-discovery.ts) —
 so the routes, the hooks, and the tests can never disagree.

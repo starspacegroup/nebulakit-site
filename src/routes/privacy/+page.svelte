@@ -4,10 +4,7 @@
 	const lastUpdated = 'January 1, 2026';
 </script>
 
-<SharingMeta
-	title="Privacy Policy"
-	description="Privacy Policy for NebulaKit"
-/>
+<SharingMeta title="Privacy Policy" description="Privacy Policy for NebulaKit" />
 
 <main class="legal-page">
 	<div class="legal-container">
@@ -166,7 +163,7 @@
 			<h2>Contact Us</h2>
 			<p>
 				If you have any questions about this Privacy Policy, please contact us through our <a
-					href="https://github.com/starspacegroup/nebulakit-site-site"
+					href="https://github.com/starspacegroup/nebulakit-site"
 					target="_blank"
 					rel="noopener noreferrer">GitHub repository</a
 				>.

@@ -114,13 +114,12 @@ npm run deploy`
 		<section id="start-here" class="docs-section">
 			<h2>Start Here</h2>
 			<p>
-				If this repo is being used as a template, first complete the customization workflow in
-				<code>docs/INITIAL_CUSTOMIZATION.md</code>. The current repository status file is still set
-				to
-				<code>pending</code>, which means template branding cleanup has not been finished yet.
+				This repository is the site at <code>nebulakit.starspace.group</code>. It runs on the
+				NebulaKit platform but is not a template, and there is no customization workflow to complete
+				— identity lives in <code>src/lib/site.config.ts</code> and nowhere else.
 			</p>
 			<ol>
-				<li>Create your repository from the template.</li>
+				<li>Clone the repository.</li>
 				<li>Install dependencies and run the app locally.</li>
 				<li>Apply database migrations locally.</li>
 				<li>Configure OAuth and owner access through the setup flow.</li>
@@ -760,35 +759,28 @@ npm run test:all</code
 			<ul>
 				<li>
 					<a
-						href="https://github.com/starspacegroup/nebulakit-site-site"
+						href="https://github.com/starspacegroup/nebulakit-site"
 						target="_blank"
 						rel="noopener noreferrer">GitHub repository</a
 					>
 				</li>
 				<li>
 					<a
-						href="https://github.com/starspacegroup/nebulakit-site-site/blob/main/README.md"
+						href="https://github.com/starspacegroup/nebulakit-site/blob/main/README.md"
 						target="_blank"
 						rel="noopener noreferrer">README</a
 					>
 				</li>
 				<li>
 					<a
-						href="https://github.com/starspacegroup/nebulakit-site-site/blob/main/CONTRIBUTING.md"
+						href="https://github.com/starspacegroup/nebulakit-site/blob/main/CONTRIBUTING.md"
 						target="_blank"
 						rel="noopener noreferrer">Contributing Guide</a
 					>
 				</li>
 				<li>
 					<a
-						href="https://github.com/starspacegroup/nebulakit-site-site/blob/main/docs/INITIAL_CUSTOMIZATION.md"
-						target="_blank"
-						rel="noopener noreferrer">Initial Customization</a
-					>
-				</li>
-				<li>
-					<a
-						href="https://github.com/starspacegroup/nebulakit-site-site/blob/main/docs/THEME_SYSTEM.md"
+						href="https://github.com/starspacegroup/nebulakit-site/blob/main/docs/THEME_SYSTEM.md"
 						target="_blank"
 						rel="noopener noreferrer">Theme System</a
 					>
@@ -820,7 +812,7 @@ npm run test:all</code
 		<footer class="docs-footer">
 			<p>
 				If NebulaKit helps your workflow, consider giving the project a star on <a
-					href="https://github.com/starspacegroup/nebulakit-site-site"
+					href="https://github.com/starspacegroup/nebulakit-site"
 					target="_blank"
 					rel="noopener noreferrer">GitHub</a
 				>!

@@ -13,7 +13,7 @@
 
 The easiest way to get started is to use the **"Use this template"** button on GitHub:
 
-1. Go to the [NebulaKit repository](https://github.com/starspacegroup/nebulakit-site-site)
+1. Go to the [NebulaKit repository](https://github.com/starspacegroup/nebulakit-site)
 2. Click the green **"Use this template"** button
 3. Choose one of:
    - **Create a new repository** - Creates your own copy of NebulaKit in your GitHub account
@@ -30,7 +30,7 @@ cd YOUR_REPO_NAME
 Alternatively, clone the repository directly:
 
 ```bash
-git clone https://github.com/starspacegroup/nebulakit-site-site.git
+git clone https://github.com/starspacegroup/nebulakit-site.git
 cd NebulaKit
 ```
 
