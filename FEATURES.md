@@ -59,6 +59,15 @@
 - Projects whether today will exhaust the free 100k/day allowance before UTC reset
 - Buffered in-isolate so the meter doesn't cost a D1 write per request
 
+### Optional Google Analytics connection
+
+- The owner connects a GA4 property at `/admin/analytics` — Measurement ID or the whole pasted
+  `gtag.js` snippet, whichever Google gave you
+- Off until connected; pause without discarding the ID, or disconnect entirely
+- Loads on public pages only (`/admin`, `/api`, `/setup` excluded), and sends a page view per
+  client-side navigation
+- Owner-only on every verb; additive to the first-party counters above, which are unchanged
+
 See [docs/ADMIN_STATS.md](./docs/ADMIN_STATS.md) for setup and design.
 
 ## 🤖 Agent Readiness
