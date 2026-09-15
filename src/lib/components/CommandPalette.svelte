@@ -35,6 +35,7 @@
 
 	let searchInput: HTMLInputElement;
 	let commandsContainer: HTMLDivElement;
+	let commandElements: HTMLButtonElement[] = [];
 	let query = '';
 	let selectedIndex = 0;
 	let previousShow = false;
@@ -237,6 +238,11 @@
 		}
 	}
 
+	async function scrollSelectedIntoView() {
+		await tick();
+		commandElements[selectedIndex]?.scrollIntoView?.({ block: 'nearest' });
+	}
+
 	function handleKeydown(e: KeyboardEvent) {
 		if (!show) {
 			if (e.key === 'Escape' && !e.defaultPrevented) {
@@ -257,6 +263,7 @@
 			if (selectedIndex >= 0 && selectedIndex < filteredCommands.length) {
 				filteredCommands[selectedIndex].onPreview?.();
 			}
+			scrollSelectedIntoView();
 		} else if (e.key === 'ArrowUp') {
 			e.preventDefault();
 			// End preview of previous command
@@ -268,6 +275,7 @@
 			if (selectedIndex >= 0 && selectedIndex < filteredCommands.length) {
 				filteredCommands[selectedIndex].onPreview?.();
 			}
+			scrollSelectedIntoView();
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
 			if (filteredCommands.length > 0) {
@@ -357,6 +365,7 @@
 			<div class="commands" bind:this={commandsContainer}>
 				{#each filteredCommands as command, i}
 					<button
+						bind:this={commandElements[i]}
 						class="command"
 						class:selected={i === selectedIndex}
 						on:click={() => executeCommand(command)}
