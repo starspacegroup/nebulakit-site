@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, tick } from 'svelte';
 	import { site } from '$lib/site.config';
 	import ThemeSwitcher from './ThemeSwitcher.svelte';
 	import ThemeToggle from './ThemeToggle.svelte';
@@ -49,6 +49,14 @@
 	function closeMobileMenu() {
 		mobileMenuOpen = false;
 		userDropdownOpen = false;
+	}
+
+	async function openCommandPaletteFromMenu() {
+		// Close first and let the body-overflow reaction flush, so the palette's
+		// own scroll lock is the one that survives.
+		closeMobileMenu();
+		await tick();
+		onCommandPaletteClick();
 	}
 
 	function toggleUserDropdown() {
@@ -114,6 +122,7 @@
 					aria-label="Open command palette"
 				>
 					<svg
+						class="command-palette-prompt-icon"
 						width="16"
 						height="16"
 						viewBox="0 0 24 24"
@@ -127,6 +136,7 @@
 						<line x1="12" y1="19" x2="20" y2="19"></line>
 					</svg>
 					<svg
+						class="command-palette-search-icon"
 						width="16"
 						height="16"
 						viewBox="0 0 24 24"
@@ -210,6 +220,24 @@
 					</div>
 					<div class="mobile-menu-content">
 						<div class="mobile-menu-items">
+							<button
+								type="button"
+								class="mobile-command-item"
+								on:click={openCommandPaletteFromMenu}
+							>
+								<svg
+									width="18"
+									height="18"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+								>
+									<circle cx="11" cy="11" r="8"></circle>
+									<path d="m21 21-4.35-4.35"></path>
+								</svg>
+								Search &amp; commands
+							</button>
 							{#if user}
 								{#if user.isOwner || user.isAdmin}
 									<a
@@ -460,7 +488,7 @@
 	}
 
 	.command-palette-btn {
-		display: none;
+		display: flex;
 		align-items: center;
 		gap: var(--spacing-xs);
 		padding: var(--spacing-xs) var(--spacing-sm);
@@ -505,9 +533,25 @@
 			transform: translate(-50%, -50%);
 			z-index: 1;
 		}
+	}
+
+	@media (max-width: 767px) {
+		/* The palette is how you reach most of this app, so it keeps a tap
+		   target in the bar rather than vanishing where there is no keyboard. */
+		.nav-actions {
+			margin-left: auto;
+		}
 
 		.command-palette-btn {
-			display: flex;
+			justify-content: center;
+			width: 40px;
+			height: 40px;
+			padding: 0;
+		}
+
+		.command-palette-prompt-icon,
+		.command-palette-kbd {
+			display: none;
 		}
 	}
 
@@ -532,6 +576,15 @@
 	@media (min-width: 768px) {
 		.mobile-menu-btn {
 			display: none;
+		}
+	}
+
+	@media (max-width: 767px) {
+		.mobile-menu-btn {
+			/* .nav-actions absorbs the free space instead; a second auto margin
+			   would split it and strand the palette button mid-bar. This has to
+			   sit after the base rule to win — a media query adds no specificity. */
+			margin-left: 0;
 		}
 	}
 
@@ -677,6 +730,31 @@
 	.nav-links a.active {
 		color: var(--color-primary);
 		background: var(--color-surface-hover);
+	}
+
+	.mobile-command-item {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-sm) var(--spacing-md);
+		background: var(--color-surface-hover);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		color: var(--color-text);
+		font-weight: 500;
+		cursor: pointer;
+		transition: all var(--transition-fast);
+	}
+
+	.mobile-command-item:hover {
+		border-color: var(--color-primary);
+	}
+
+	@media (min-width: 768px) {
+		.mobile-command-item {
+			display: none;
+		}
 	}
 
 	.user-dropdown-container {
