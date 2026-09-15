@@ -31,6 +31,16 @@
 					</svg>
 					<span>Powered by Cloudflare</span>
 				</div>
+				<a
+					class="starspace-badge"
+					href="https://starspace.group"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					<img src="/starspace-mark.png" alt="" width="16" height="16" />
+					<span>Built at</span>
+					<b>*Space</b>
+				</a>
 			</div>
 
 			<!-- Navigation Links -->
@@ -164,6 +174,53 @@
 
 	.footer-badge svg {
 		color: var(--color-primary);
+	}
+
+	/* The official *Space badge. Wording, link, and geometry come from the badge
+	   module in the starspace.group repo (variant "built"): a 999px pill, a 16px
+	   mark, an uppercase label and the brand in 600. Colours use this app's
+	   tokens rather than the module's literals — those literals exist so the
+	   badge survives on sites that never loaded our stylesheet; here it did.
+	   The mark is a local asset, not starspace.group/badge-mark.png, because the
+	   hosted badge endpoints are not deployed yet and a footer should not wait
+	   on them. */
+	.starspace-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		width: fit-content;
+		margin-top: var(--spacing-sm);
+		padding: 0.4rem 0.75rem;
+		background-color: var(--color-background);
+		border: 1px solid var(--color-border);
+		border-radius: 999px;
+		color: var(--color-text-secondary);
+		font-size: 0.75rem;
+		font-weight: 500;
+		line-height: 1;
+		text-decoration: none;
+		transition: border-color var(--transition-fast);
+	}
+
+	.starspace-badge:hover {
+		border-color: var(--color-primary);
+	}
+
+	.starspace-badge img {
+		flex: none;
+		width: 16px;
+		height: 16px;
+	}
+
+	.starspace-badge span {
+		font-size: 0.656rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.starspace-badge b {
+		font-weight: 600;
+		color: var(--color-text);
 	}
 
 	/* Navigation */

@@ -127,4 +127,20 @@ describe('Footer', () => {
 		render(Footer);
 		expect(screen.getByText('Powered by Cloudflare')).toBeInTheDocument();
 	});
+
+	it('should render the *Space badge linking to starspace.group', () => {
+		render(Footer);
+		const badge = screen.getByRole('link', { name: /built at \*space/i });
+		expect(badge).toHaveAttribute('href', 'https://starspace.group');
+		expect(badge).toHaveAttribute('target', '_blank');
+		expect(badge).toHaveAttribute('rel', 'noopener noreferrer');
+	});
+
+	it('should serve the badge mark locally, not from the undeployed badge endpoint', () => {
+		render(Footer);
+		const mark = document.querySelector('.starspace-badge img');
+		expect(mark).toHaveAttribute('src', '/starspace-mark.png');
+		// Decorative: the accessible name comes from the badge text beside it.
+		expect(mark).toHaveAttribute('alt', '');
+	});
 });
