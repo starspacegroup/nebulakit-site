@@ -701,7 +701,7 @@
 <style>
 	/* ─── Dashboard Layout ──────────────────────────────────────────────────── */
 	.cms-dashboard {
-		max-width: 800px;
+		max-width: var(--layout-page-max-width);
 	}
 
 	.cms-dashboard-header {

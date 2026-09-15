@@ -862,7 +862,7 @@ npm run test:all</code
 	}
 
 	.docs-container {
-		max-width: 900px;
+		max-width: var(--layout-prose-max-width);
 		margin: 0 auto;
 	}
 

@@ -29,10 +29,7 @@
 	}
 </script>
 
-<SharingMeta
-	title={contentType.name}
-	description={contentType.description || ''}
-/>
+<SharingMeta title={contentType.name} description={contentType.description || ''} />
 
 <div class="cms-list-page">
 	<header class="cms-list-header">
@@ -129,7 +126,7 @@
 
 <style>
 	.cms-list-page {
-		max-width: 1720px;
+		max-width: var(--layout-page-max-width);
 		margin: 0 auto;
 		padding: var(--spacing-xl) var(--spacing-md);
 	}
@@ -320,6 +317,14 @@
 	@media (min-width: 1400px) {
 		.cms-blog-grid {
 			grid-template-columns: repeat(4, 1fr);
+		}
+	}
+
+	/* Ultra-wide: the shell runs to 2560px, so add a column rather than let four
+	   cards stretch to 600px each. */
+	@media (min-width: 1920px) {
+		.cms-blog-grid {
+			grid-template-columns: repeat(5, 1fr);
 		}
 	}
 </style>
