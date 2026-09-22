@@ -248,17 +248,46 @@ describe('Home Page Lighthouse scores', () => {
 		expect(container.querySelectorAll('.lh-cat .ring')).toHaveLength(4);
 	});
 
-	it('names each category to a screen reader', () => {
+	it('names each category and its destination to a screen reader', () => {
+		// The name lives on the link, not on the dial inside it: with both, a
+		// screen reader reads the category twice. The label also has to say the
+		// link opens a LIVE analysis — the dial is our stored aggregate, and
+		// nobody should be told they are opening the number they just clicked.
 		const { container } = render(Page);
-		const named = [...container.querySelectorAll('.lh-cat .ring')].map((r) =>
-			r.getAttribute('aria-label')
+		const named = [...container.querySelectorAll('.lh-cat-link')].map((a) =>
+			a.getAttribute('aria-label')
 		);
-		expect(named).toEqual([
-			'Performance: 100 out of 100',
-			'Accessibility: 100 out of 100',
-			'Best practices: 100 out of 100',
-			'SEO: 100 out of 100'
-		]);
+		expect(named).toHaveLength(4);
+		for (const [i, category] of [
+			'Performance',
+			'Accessibility',
+			'Best practices',
+			'SEO'
+		].entries()) {
+			expect(named[i]).toContain(category);
+			expect(named[i]).toContain('out of 100');
+			expect(named[i]).toMatch(/live PageSpeed Insights/i);
+		}
+		// The dial itself stays silent, so the category is announced once.
+		for (const ring of container.querySelectorAll('.lh-cat .ring')) {
+			expect(ring.getAttribute('aria-label')).toBe('100 out of 100');
+		}
+	});
+
+	it('links every dial to a live PageSpeed Insights run of this origin', () => {
+		const { container } = render(Page);
+		const links = [...container.querySelectorAll('.lh-cat-link')];
+		expect(links).toHaveLength(4);
+		for (const link of links) {
+			const href = link.getAttribute('href') ?? '';
+			expect(href).toContain('https://pagespeed.web.dev/analysis');
+			// The origin the reader is on, so a preview links to itself.
+			expect(href).toContain(encodeURIComponent('http://localhost/'));
+			// The preset the stored run used, so what opens is comparable.
+			expect(href).toContain('form_factor=desktop');
+			expect(link).toHaveAttribute('target', '_blank');
+			expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+		}
 	});
 
 	it('carries no per-page links any more', () => {

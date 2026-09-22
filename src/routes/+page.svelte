@@ -50,6 +50,28 @@
 		};
 	});
 
+	/**
+	 * A live PageSpeed Insights analysis of a URL.
+	 *
+	 * The numbers above are ours; this is Google running Lighthouse on its own
+	 * infrastructure, right now, on a page the reader can watch it fetch.
+	 * Linking to it is the difference between "measured, not claimed" being a
+	 * heading and being checkable.
+	 *
+	 * `form_factor` carries the preset the stored run used, so what opens is
+	 * comparable to the number that was clicked rather than PSI's mobile
+	 * default.
+	 *
+	 * Only this site is linkable: the template's scores come from a local
+	 * production build, and PSI can only fetch a public URL. That is why the
+	 * link says whose home page it opens instead of implying it covers both.
+	 */
+	const psiUrl = (pageUrl: string) =>
+		`https://pagespeed.web.dev/analysis?url=${encodeURIComponent(pageUrl)}` +
+		`&form_factor=${lighthouse.formFactor}`;
+
+	$: psiHome = psiUrl(`${$page.url.origin}/`);
+
 	let mounted = false;
 	let searchInput = '';
 	let focusedOption = -1;
@@ -1156,19 +1178,33 @@
 				<ul class="lh-cat-list">
 					{#each lighthouseByCategory as category (category.key)}
 						<li class="lh-cat">
-							<ScoreRing value={category.lowest} label={category.label} />
-							<p class="lh-cat-name" aria-hidden="true">{category.label}</p>
-							<p class="lh-cat-note">
-								{category.uniform
-									? `on all ${lighthousePageCount} pages`
-									: `lowest of ${lighthousePageCount}`}
-							</p>
+							<!-- The dial is our stored aggregate; the link is Google's live
+							     run. The accessible name says which, so nobody is told they
+							     are about to open the exact number they just clicked. -->
+							<a
+								class="lh-cat-link"
+								href={psiHome}
+								target="_blank"
+								rel="noopener noreferrer"
+								aria-label={`${category.label}: ${category.lowest} out of 100. Opens a live PageSpeed Insights analysis of this site's home page.`}
+							>
+								<ScoreRing value={category.lowest} />
+								<p class="lh-cat-name" aria-hidden="true">{category.label}</p>
+								<p class="lh-cat-note" aria-hidden="true">
+									{category.uniform
+										? `on all ${lighthousePageCount} pages`
+										: `lowest of ${lighthousePageCount}`}
+								</p>
+							</a>
 						</li>
 					{/each}
 				</ul>
 				<p class="lh-coverage">
 					<strong>{lighthousePerfect}</strong> of {lighthouseAudits.length} audits at 100 —
 					{lighthousePageCount} public pages, four categories, every one of them measured.
+					<a class="lh-psi-link" href={psiHome} target="_blank" rel="noopener noreferrer"
+						>Run it yourself on PageSpeed Insights →</a
+					>
 				</p>
 			</div>
 		</div>
@@ -2779,11 +2815,32 @@
 	.lh-cat {
 		--ring-size: 5rem;
 		--ring-font: 1.5rem;
+		text-align: center;
+	}
+
+	.lh-cat-link {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: var(--spacing-xs);
-		text-align: center;
+		padding: var(--spacing-sm) var(--spacing-xs);
+		border-radius: var(--radius-lg);
+		text-decoration: none;
+		color: inherit;
+		transition:
+			background-color var(--transition-fast),
+			transform var(--transition-fast);
+	}
+
+	.lh-cat-link:hover,
+	.lh-cat-link:focus-visible {
+		background: var(--color-surface-hover);
+		transform: translateY(-2px);
+	}
+
+	.lh-cat-link:hover .lh-cat-name,
+	.lh-cat-link:focus-visible .lh-cat-name {
+		color: var(--color-primary);
 	}
 
 	.lh-cat-name {
@@ -2807,6 +2864,14 @@
 		line-height: 1.6;
 		color: var(--color-text-secondary);
 		text-align: center;
+	}
+
+	.lh-psi-link {
+		display: inline-block;
+		margin-left: var(--spacing-xs);
+		color: var(--color-primary);
+		font-weight: 600;
+		white-space: nowrap;
 	}
 
 	.lh-coverage strong {
@@ -2877,6 +2942,17 @@
 		.lh-floor {
 			padding-right: var(--spacing-2xl);
 			border-right: 1px solid var(--color-border);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.lh-cat-link {
+			transition: none;
+		}
+
+		.lh-cat-link:hover,
+		.lh-cat-link:focus-visible {
+			transform: none;
 		}
 	}
 
