@@ -80,7 +80,7 @@ describe('Home Page Hero', () => {
 	it('points at the component showcase from the hero', () => {
 		render(Page);
 
-		expect(screen.getByRole('link', { name: /included modules/i })).toHaveAttribute(
+		expect(screen.getByRole('link', { name: /see working modules/i })).toHaveAttribute(
 			'href',
 			'/showcase'
 		);
