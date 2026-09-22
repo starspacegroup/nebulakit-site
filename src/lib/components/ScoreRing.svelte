@@ -77,7 +77,9 @@
 
 	.num {
 		position: relative;
-		font-size: 0.875rem;
+		/* Scales with the dial: stroke-width is in viewBox units and follows the
+		   size on its own, but the number is real text and does not. */
+		font-size: var(--ring-font, 0.875rem);
 		font-weight: 700;
 		font-variant-numeric: tabular-nums;
 		color: var(--color-text);

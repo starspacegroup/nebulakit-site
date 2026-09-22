@@ -211,7 +211,7 @@ describe('Home Page Lighthouse scores', () => {
 		// "lighthouse" and renders the app's own 404. Typing the URL worked and
 		// clicking it did not — which is exactly what that mismatch looks like.
 		const { container } = render(Page);
-		const links = [...container.querySelectorAll('.lh-table a')];
+		const links = [...container.querySelectorAll('.lh-chip')];
 		expect(links.length).toBeGreaterThan(0);
 		for (const link of links) {
 			expect(link.getAttribute('href')).toMatch(/^\/lighthouse\//);
@@ -219,31 +219,58 @@ describe('Home Page Lighthouse scores', () => {
 		}
 	});
 
-	it('draws one dial per audited category', () => {
+	it('leads with the lowest score anywhere, not an average', () => {
+		// An average of 100 and a floor of 100 are the same number today. Only
+		// the floor stays honest the day one page slips, so that is the one the
+		// headline is wired to.
 		const { container } = render(Page);
-		const rows = container.querySelectorAll('.lh-table tbody tr');
-		const rings = container.querySelectorAll('.lh-table tbody .ring');
-		expect(rings.length).toBe(rows.length * 4);
+		const headline = container.querySelector('.lh-floor-num')?.textContent?.trim();
+		const dials = [...container.querySelectorAll('.lh-cat .ring')].map((r) =>
+			Number(r.textContent?.trim())
+		);
+		expect(Number(headline)).toBe(Math.min(...dials));
 	});
 
-	it('counts the perfect scores instead of asserting them in prose', () => {
-		// The banner is derived from the data. If a score drops it has to stop
-		// saying "perfect" on its own, without anyone remembering to edit copy.
+	it('draws one dial per category rather than one per cell', () => {
+		// The old version printed eleven pages times four categories as
+		// forty-four cells that all said 100. Four is the whole point.
 		const { container } = render(Page);
-		const verdict = container.querySelector('.lh-verdict');
-		const rings = container.querySelectorAll('.lh-table tbody .ring');
-		const perfect = [...rings].filter((r) => r.textContent?.trim() === '100').length;
-		expect(verdict?.textContent).toContain(String(perfect));
-		expect(verdict?.textContent).toContain(String(rings.length));
+		expect(container.querySelectorAll('.lh-cat .ring')).toHaveLength(4);
 	});
 
-	it('names each category for a screen reader, not just its abbreviation', () => {
+	it('names each category to a screen reader', () => {
 		const { container } = render(Page);
-		// One card per target, so scope to the first table — querying the whole
-		// section returns both header rows concatenated.
-		const table = container.querySelector('.lh-table');
-		const heads = [...(table?.querySelectorAll('thead th') ?? [])].slice(1);
-		const named = heads.map((h) => h.querySelector('.sr-only')?.textContent?.trim());
-		expect(named).toEqual(['Performance', 'Accessibility', 'Best practices', 'SEO']);
+		const named = [...container.querySelectorAll('.lh-cat .ring')].map((r) =>
+			r.getAttribute('aria-label')
+		);
+		expect(named).toEqual([
+			'Performance: 100 out of 100',
+			'Accessibility: 100 out of 100',
+			'Best practices: 100 out of 100',
+			'SEO: 100 out of 100'
+		]);
+	});
+
+	it('keeps every per-page number reachable, even though the chips show names', () => {
+		// The chips are the visual compromise that killed the wall of numbers.
+		// The numbers still have to exist for anyone listening rather than
+		// looking, so each link carries its own four scores.
+		const { container } = render(Page);
+		const chips = [...container.querySelectorAll('.lh-chip')];
+		expect(chips).toHaveLength(11);
+		const aria = chips[0].getAttribute('aria-label') ?? '';
+		expect(aria).toContain('Performance 100');
+		expect(aria).toContain('Accessibility 100');
+		expect(aria).toContain('Best practices 100');
+		expect(aria).toContain('SEO 100');
+	});
+
+	it('counts the audits instead of asserting them in prose', () => {
+		// If a score drops the sentence has to change on its own, without
+		// anyone remembering to edit the copy.
+		const { container } = render(Page);
+		const coverage = container.querySelector('.lh-coverage')?.textContent ?? '';
+		expect(coverage).toMatch(/\b44\b[\s\S]*\b44\b/);
+		expect(coverage).toContain('11 public pages');
 	});
 });
