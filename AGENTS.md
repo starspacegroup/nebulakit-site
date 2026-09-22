@@ -153,6 +153,16 @@ const passwordField = fieldName('password');
 - **Minimal dependencies:** Build features in-house. External packages only for complex/unsolvable cases.
 - **SvelteKit + TypeScript:** Always use types. Never suppress TypeScript errors.
 - **TDD cycle:** Red → Green → Refactor. Repeat for each feature.
+- **Hero decoration animates `transform` and `opacity` only**, and the nebula SVG is softened by one
+  `filter: blur()` on `.nebula-waves-svg`, never by per-path SVG filters. A `border-radius` in
+  `@keyframes blob-float` repaints two blurred 500x600 elements every frame; and because
+  `preserveAspectRatio="slice"` scales the 400-unit viewBox ~4x, a per-path `stdDeviation` of 40
+  rasterizes as a ~160px kernel. Either one alone cost ~10s of total blocking time and took the home
+  page from Lighthouse 100 to 60.
+- **Lighthouse reports are generated, never hand-edited.** `bun run lighthouse` writes both
+  `static/lighthouse/*.html` and `src/lib/lighthouse-results.json`, and exits non-zero below 100. The
+  extensionless twin of each report is listed in `svelte.config.js`; Pages redirects `/foo.html` to
+  `/foo`, and without that entry the redirect target reaches the worker and 404s.
 
 ---
 

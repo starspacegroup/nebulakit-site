@@ -5,6 +5,18 @@
 	import { site } from '$lib/site.config';
 	import { openCommandPalette } from '$lib/stores/commandPalette';
 	import { onMount } from 'svelte';
+	import lighthouse from '$lib/lighthouse-results.json';
+
+	/* Category keys as Lighthouse names them, with the label the table shows.
+	   The JSON carries the order; this only supplies the wording. */
+	type LighthouseCategory = keyof (typeof lighthouse.targets)[number]['pages'][number]['scores'];
+	const lighthouseCategories: Record<LighthouseCategory, string> = {
+		performance: 'Performance',
+		accessibility: 'Accessibility',
+		'best-practices': 'Best practices',
+		seo: 'SEO'
+	};
+	const lighthouseCategoryKeys = lighthouse.categories as LighthouseCategory[];
 
 	let mounted = false;
 	let searchInput = '';
@@ -112,7 +124,6 @@
 						<stop offset="75%" style="stop-color: var(--color-secondary); stop-opacity: 0.25" />
 						<stop offset="100%" style="stop-color: var(--color-primary); stop-opacity: 0" />
 					</radialGradient>
-
 
 					<!-- Glow effect. PERF: one blur, not a blur plus two composites and a
 					     merge. The ellipses this runs on are already filled with a radial
@@ -1077,6 +1088,68 @@
 				<p>TypeScript throughout, including Cloudflare Workers types for the bindings.</p>
 			</li>
 		</ul>
+	</div>
+</section>
+
+<!-- Lighthouse scores. The numbers and the report links both come from
+     src/lib/lighthouse-results.json, which scripts/lighthouse.mjs writes when it
+     runs the audits — so nothing here can drift away from the reports it links. -->
+<section class="lighthouse" aria-labelledby="lighthouse-title">
+	<div class="features-shell">
+		<div class="features-header">
+			<h2 class="features-title" id="lighthouse-title">Measured, not claimed</h2>
+			<p class="features-subtitle">
+				Every public page of the template and of this site scores 100 in all four Lighthouse
+				categories. Open any report and check.
+			</p>
+		</div>
+
+		{#each lighthouse.targets as target (target.key)}
+			<div class="lh-group">
+				<h3 class="lh-group-title">{target.label}</h3>
+				<p class="lh-group-note">{target.note}</p>
+
+				<table class="lh-table">
+					<caption class="sr-only">
+						Lighthouse scores for {target.label}, out of 100 in each category. Each page name links
+						to its full report.
+					</caption>
+					<thead>
+						<tr>
+							<th scope="col">Page</th>
+							{#each lighthouseCategoryKeys as category (category)}
+								<th scope="col">{lighthouseCategories[category]}</th>
+							{/each}
+						</tr>
+					</thead>
+					<tbody>
+						{#each target.pages as row (row.path)}
+							<tr>
+								<th scope="row">
+									<a href={row.report}>
+										{row.title}
+										<span class="lh-path">{row.path}</span>
+									</a>
+								</th>
+								{#each lighthouseCategoryKeys as category (category)}
+									<td>
+										<span class="lh-score">{row.scores[category]}</span>
+									</td>
+								{/each}
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{/each}
+
+		<p class="lh-footnote">
+			Lighthouse {lighthouse.lighthouseVersion}, {lighthouse.formFactor} preset, run on
+			<time datetime={lighthouse.generatedAt}>{lighthouse.generatedAt}</time>. Login and signup are
+			not listed: robots.txt keeps the auth flow out of search on purpose, and Lighthouse scores a
+			crawl block as an SEO failure. Reproduce any row with
+			<code>bun run lighthouse</code>.
+		</p>
 	</div>
 </section>
 
@@ -2569,6 +2642,143 @@
 		background: var(--color-background);
 	}
 
+	/* Lighthouse scores */
+	.lighthouse {
+		padding: var(--spacing-2xl) 0;
+		background: var(--color-background);
+	}
+
+	.lh-group + .lh-group {
+		margin-top: var(--spacing-2xl);
+	}
+
+	.lh-group-title {
+		margin: 0;
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: var(--color-text);
+	}
+
+	.lh-group-note {
+		margin: var(--spacing-xs) 0 var(--spacing-lg);
+		color: var(--color-text-secondary);
+	}
+
+	.lh-table {
+		width: 100%;
+		border-collapse: collapse;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+		overflow: hidden;
+		background: var(--color-surface);
+		font-size: 0.9375rem;
+	}
+
+	.lh-table th,
+	.lh-table td {
+		padding: var(--spacing-md) var(--spacing-lg);
+		text-align: left;
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.lh-table tbody tr:last-child th,
+	.lh-table tbody tr:last-child td {
+		border-bottom: 0;
+	}
+
+	.lh-table thead th {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--color-text-secondary);
+	}
+
+	.lh-table tbody th {
+		font-weight: 600;
+		color: var(--color-text);
+	}
+
+	.lh-table tbody th a {
+		color: var(--color-primary);
+		text-decoration: underline;
+		text-underline-offset: 0.15em;
+	}
+
+	.lh-path {
+		display: block;
+		font-family: var(--font-mono, monospace);
+		font-size: 0.8125rem;
+		font-weight: 400;
+		color: var(--color-text-secondary);
+	}
+
+	/* The score itself. Green reads as "pass" but is never the only carrier —
+	   the number is the value and the column header names the category.
+	   The number stays --color-text: green text on a green tint only reached
+	   4.09:1 in light mode, and any fixed darker green would be wrong in dark. */
+	.lh-score {
+		display: inline-block;
+		min-width: 2.75rem;
+		padding: 0.125rem 0.5rem;
+		border: 1px solid color-mix(in srgb, var(--color-success) 35%, transparent);
+		border-radius: var(--radius-sm);
+		background: color-mix(in srgb, var(--color-success) 12%, transparent);
+		color: var(--color-text);
+		font-variant-numeric: tabular-nums;
+		font-weight: 700;
+		text-align: center;
+	}
+
+	.lh-footnote {
+		margin: var(--spacing-xl) 0 0;
+		font-size: 0.875rem;
+		line-height: 1.7;
+		color: var(--color-text-secondary);
+	}
+
+	.lh-footnote code {
+		padding: 0.1em 0.35em;
+		border-radius: var(--radius-sm);
+		background: var(--color-surface-hover);
+		font-size: 0.9em;
+	}
+
+	/* Narrow screens: the four score columns stop fitting beside the page name,
+	   so the table becomes one block per page. */
+	@media (max-width: 640px) {
+		.lh-table,
+		.lh-table tbody,
+		.lh-table tbody tr,
+		.lh-table tbody th,
+		.lh-table tbody td {
+			display: block;
+		}
+
+		.lh-table thead {
+			display: none;
+		}
+
+		.lh-table tbody tr {
+			border-bottom: 1px solid var(--color-border);
+			padding: var(--spacing-sm) 0;
+		}
+
+		.lh-table tbody tr:last-child {
+			border-bottom: 0;
+		}
+
+		.lh-table tbody th,
+		.lh-table tbody td {
+			border-bottom: 0;
+			padding: var(--spacing-xs) var(--spacing-lg);
+		}
+
+		.lh-table tbody td {
+			display: inline-block;
+		}
+	}
+
 	.value-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -2646,5 +2856,4 @@
 			transform: none;
 		}
 	}
-
 </style>

@@ -184,6 +184,30 @@ npm run validate:contrast
 
 See the [Theme System Guide](./docs/THEME_SYSTEM.md) for complete documentation.
 
+## 🔦 Lighthouse
+
+Every public page of the template and of this site scores 100 in all four
+Lighthouse categories. The home page shows the table and links a full report per
+page; the reports are served from `static/lighthouse/`.
+
+Regenerate them with both apps built and served — this site on 8810 and the
+template on 8820:
+
+```bash
+bun run lighthouse
+```
+
+The script audits each page three times and publishes the median run, writes one
+HTML report per page, and writes the score table to
+`src/lib/lighthouse-results.json`, which the home page renders. It exits non-zero
+if any page drops below 100, so the numbers on the page cannot be edited into
+being true. Point it at production instead with
+`--site <origin> --template <origin>`.
+
+The auth routes are not audited. `robots.txt` disallows `/auth/`, and Lighthouse
+scores a crawl block as an SEO failure — correct for a login form, so the
+conflict is left alone rather than scored around.
+
 ## 🔐 Authentication
 
 Built-in auth pages with support for:

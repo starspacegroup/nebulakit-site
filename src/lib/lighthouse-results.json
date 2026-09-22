@@ -1,0 +1,149 @@
+{
+	"generatedAt": "2026-09-22",
+	"lighthouseVersion": "13.5.0",
+	"formFactor": "desktop",
+	"runsPerPage": 3,
+	"categories": [
+		"performance",
+		"accessibility",
+		"best-practices",
+		"seo"
+	],
+	"targets": [
+		{
+			"key": "template",
+			"label": "NebulaKit template",
+			"note": "What you get when you click \"Use this template\".",
+			"pages": [
+				{
+					"path": "/",
+					"title": "Home",
+					"report": "/lighthouse/template-home",
+					"scores": {
+						"performance": 100,
+						"accessibility": 100,
+						"best-practices": 100,
+						"seo": 100
+					}
+				},
+				{
+					"path": "/documentation",
+					"title": "Documentation",
+					"report": "/lighthouse/template-documentation",
+					"scores": {
+						"performance": 100,
+						"accessibility": 100,
+						"best-practices": 100,
+						"seo": 100
+					}
+				},
+				{
+					"path": "/contact",
+					"title": "Contact",
+					"report": "/lighthouse/template-contact",
+					"scores": {
+						"performance": 100,
+						"accessibility": 100,
+						"best-practices": 100,
+						"seo": 100
+					}
+				},
+				{
+					"path": "/privacy",
+					"title": "Privacy",
+					"report": "/lighthouse/template-privacy",
+					"scores": {
+						"performance": 100,
+						"accessibility": 100,
+						"best-practices": 100,
+						"seo": 100
+					}
+				},
+				{
+					"path": "/terms",
+					"title": "Terms",
+					"report": "/lighthouse/template-terms",
+					"scores": {
+						"performance": 100,
+						"accessibility": 100,
+						"best-practices": 100,
+						"seo": 100
+					}
+				}
+			]
+		},
+		{
+			"key": "site",
+			"label": "This site",
+			"note": "nebulakit.dev itself, built on the template.",
+			"pages": [
+				{
+					"path": "/",
+					"title": "Home",
+					"report": "/lighthouse/site-home",
+					"scores": {
+						"performance": 100,
+						"accessibility": 100,
+						"best-practices": 100,
+						"seo": 100
+					}
+				},
+				{
+					"path": "/showcase",
+					"title": "Showcase",
+					"report": "/lighthouse/site-showcase",
+					"scores": {
+						"performance": 100,
+						"accessibility": 100,
+						"best-practices": 100,
+						"seo": 100
+					}
+				},
+				{
+					"path": "/documentation",
+					"title": "Documentation",
+					"report": "/lighthouse/site-documentation",
+					"scores": {
+						"performance": 100,
+						"accessibility": 100,
+						"best-practices": 100,
+						"seo": 100
+					}
+				},
+				{
+					"path": "/contact",
+					"title": "Contact",
+					"report": "/lighthouse/site-contact",
+					"scores": {
+						"performance": 100,
+						"accessibility": 100,
+						"best-practices": 100,
+						"seo": 100
+					}
+				},
+				{
+					"path": "/privacy",
+					"title": "Privacy",
+					"report": "/lighthouse/site-privacy",
+					"scores": {
+						"performance": 100,
+						"accessibility": 100,
+						"best-practices": 100,
+						"seo": 100
+					}
+				},
+				{
+					"path": "/terms",
+					"title": "Terms",
+					"report": "/lighthouse/site-terms",
+					"scores": {
+						"performance": 100,
+						"accessibility": 100,
+						"best-practices": 100,
+						"seo": 100
+					}
+				}
+			]
+		}
+	]
+}
