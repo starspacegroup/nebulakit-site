@@ -27,6 +27,8 @@
  * import it without dragging `$app` or Node APIs into a Worker.
  */
 
+import lighthouse from './lighthouse-results.json';
+
 /** Where the badge points, and what it calls itself. */
 export const BADGE_HREF = 'https://nebulakit.starspace.group';
 export const BADGE_BRAND = 'NebulaKit';
@@ -231,6 +233,28 @@ export const BRAND_ADVANCE: Record<string, number> = {
 	K: 667,
 	i: 278,
 	t: 333
+};
+
+/**
+ * Digits and the separator, for the score badge.
+ *
+ * Helvetica gives every digit the same 556 advance on purpose — it is what
+ * makes tabular figures line up — so a score of 100 and a score of 89 reserve
+ * the same width and the pill does not resize as the number changes.
+ */
+export const DIGIT_ADVANCE: Record<string, number> = {
+	'0': 556,
+	'1': 556,
+	'2': 556,
+	'3': 556,
+	'4': 556,
+	'5': 556,
+	'6': 556,
+	'7': 556,
+	'8': 556,
+	'9': 556,
+	'·': 278,
+	' ': 278
 };
 
 /** Advance for a glyph no table names — the average of the ones they do. */
@@ -502,4 +526,187 @@ export function badgeElementScript(): string {
   );
 })();
 `;
+}
+
+/* ── The Lighthouse badge ──────────────────────────────────────────────────
+ *
+ * The same pill, the same mark, the same two grounds — saying the thing the
+ * home page says: every audited page scores 100.
+ *
+ * The number is NOT a constant. It is read out of lighthouse-results.json,
+ * which scripts/lighthouse.mjs writes, so the badge is the audit rather than a
+ * claim about it. If a score drops, every README carrying this badge starts
+ * showing the lower number in amber on the next fetch, without anyone
+ * remembering to go and change it. A badge that cannot become wrong is the
+ * only kind worth handing out.
+ */
+
+export const LIGHTHOUSE_LABEL = 'Lighthouse';
+
+/** Category keys in the order the audit reports them. */
+const LIGHTHOUSE_KEYS = lighthouse.categories as readonly string[];
+
+type Scores = Record<string, number>;
+
+/** Every audited score, flattened across both targets and all their pages. */
+function lighthouseScores(): number[] {
+	return lighthouse.targets.flatMap((target) =>
+		target.pages.flatMap((page) => LIGHTHOUSE_KEYS.map((key) => (page.scores as Scores)[key]))
+	);
+}
+
+/**
+ * The lowest score anywhere — what the badge shows.
+ *
+ * A floor, not an average, for the same reason the home page leads with one:
+ * an average of 100 and a floor of 100 are the same number until they are not,
+ * and only the floor cannot hide a single bad page behind ten good ones.
+ */
+export function lighthouseFloor(): number {
+	return Math.min(...lighthouseScores());
+}
+
+/** The lowest score in each category, in report order. */
+export function lighthouseCategoryFloors(): number[] {
+	return LIGHTHOUSE_KEYS.map((key) =>
+		Math.min(...lighthouse.targets.flatMap((t) => t.pages.map((p) => (p.scores as Scores)[key])))
+	);
+}
+
+export const LIGHTHOUSE_BADGE_VARIANTS = {
+	overall: 'the lowest score across every audited page and category',
+	categories: 'the lowest score in each of the four categories'
+} as const;
+
+export type LighthouseBadgeVariant = keyof typeof LIGHTHOUSE_BADGE_VARIANTS;
+
+export const LIGHTHOUSE_BADGE_VARIANT_KEYS = Object.keys(
+	LIGHTHOUSE_BADGE_VARIANTS
+) as readonly LighthouseBadgeVariant[];
+
+/** True for a value naming one of the two. `hasOwnProperty`, for the reason in {@link isBadgeVariant}. */
+export function isLighthouseBadgeVariant(value: unknown): value is LighthouseBadgeVariant {
+	return (
+		typeof value === 'string' &&
+		Object.prototype.hasOwnProperty.call(LIGHTHOUSE_BADGE_VARIANTS, value)
+	);
+}
+
+/**
+ * Lighthouse's own bands, and the same ones ScoreRing.svelte draws with: 90 and
+ * up is green, 50 to 89 amber, below that red. Literals rather than the theme's
+ * success/warning/error tokens, because this SVG renders on pages that never
+ * loaded our stylesheet.
+ */
+const SCORE_COLOURS = { good: '#0cce6b', average: '#ffa400', poor: '#ff4e42' };
+
+export function scoreColour(score: number): string {
+	if (score >= 90) return SCORE_COLOURS.good;
+	if (score >= 50) return SCORE_COLOURS.average;
+	return SCORE_COLOURS.poor;
+}
+
+/** What the badge prints as its value, for a given variant. */
+export function lighthouseBadgeValue(variant: LighthouseBadgeVariant): string {
+	return variant === 'categories'
+		? lighthouseCategoryFloors().join(' · ')
+		: String(lighthouseFloor());
+}
+
+/** The sentence the badge reads out to a screen reader. */
+export function lighthouseBadgeText(variant: LighthouseBadgeVariant): string {
+	if (variant === 'categories') {
+		const named = LIGHTHOUSE_KEYS.map(
+			(key, i) => `${key.replace(/-/g, ' ')} ${lighthouseCategoryFloors()[i]}`
+		);
+		return `Lighthouse: ${named.join(', ')}, out of 100`;
+	}
+	return `Lighthouse ${lighthouseFloor()} out of 100`;
+}
+
+/** Estimated pixel width of the score badge. */
+export function lighthouseBadgeWidth(variant: LighthouseBadgeVariant): number {
+	const label = LIGHTHOUSE_LABEL.toUpperCase();
+	const labelW = textWidth(label, SVG.labelSize, UPPERCASE_ADVANCE, SVG.labelTracking);
+	const valueW = textWidth(lighthouseBadgeValue(variant), SVG.brandSize, DIGIT_ADVANCE);
+	const content = SVG.markSize + SVG.gap + labelW + SVG.gap + valueW;
+	return Math.round(SVG.padX * 2 + content * SVG.slack);
+}
+
+/**
+ * The Lighthouse badge as a standalone SVG. Self-contained, like the brand
+ * badge: no external font, no external image, no CSS, no `id`.
+ */
+export function renderLighthouseBadgeSvg(
+	variant: LighthouseBadgeVariant = 'overall',
+	theme: BadgeTheme = 'dark'
+): string {
+	const c = BADGE_THEMES[theme];
+	const w = lighthouseBadgeWidth(variant);
+	const h = SVG.height;
+	const label = LIGHTHOUSE_LABEL.toUpperCase();
+	const value = lighthouseBadgeValue(variant);
+	const markX = SVG.padX;
+	const markY = (h - SVG.markSize) / 2;
+	const textStart = markX + SVG.markSize + SVG.gap;
+	const textX = textStart + (w - SVG.padX - textStart) / 2;
+	const font =
+		'-apple-system,BlinkMacSystemFont,&apos;Segoe UI&apos;,Roboto,Helvetica,Arial,sans-serif';
+	const alt = escapeXml(lighthouseBadgeText(variant));
+	// The worst of the printed numbers decides the colour, so a badge showing
+	// four scores goes amber on the strength of its weakest one.
+	const worst =
+		variant === 'categories' ? Math.min(...lighthouseCategoryFloors()) : lighthouseFloor();
+
+	return [
+		`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"`,
+		` role="img" aria-label="${alt}">`,
+		`<title>${alt}</title>`,
+		`<rect x="0.5" y="0.5" width="${w - 1}" height="${h - 1}" rx="${(h - 1) / 2}"`,
+		` fill="${c.background}" stroke="${c.border}"/>`,
+		nestedMark(markX, markY, SVG.markSize),
+		`<text x="${textX}" y="${h / 2}" text-anchor="middle" dominant-baseline="central"`,
+		` font-family="${font}">`,
+		`<tspan font-size="${SVG.labelSize}" letter-spacing="${SVG.labelTracking}"`,
+		` fill="${c.label}">${escapeXml(label)}</tspan>`,
+		`<tspan dx="${SVG.gap}" font-size="${SVG.brandSize}" font-weight="700"`,
+		` fill="${scoreColour(worst)}">${escapeXml(value)}</tspan>`,
+		`</text>`,
+		`</svg>`
+	].join('');
+}
+
+/** Absolute URL of the Lighthouse badge endpoint. */
+export function lighthouseBadgeUrl(
+	origin: string,
+	variant: LighthouseBadgeVariant,
+	theme: BadgeTheme
+): string {
+	return `${origin.replace(/\/$/, '')}/badge-lighthouse.svg?variant=${variant}&theme=${theme}`;
+}
+
+/**
+ * Snippets for the score badge.
+ *
+ * Two, not six. The brand badge offers a component for every framework because
+ * it is chrome that lives in a footer and should be real text; this one is a
+ * measurement, its value changes when the audit changes, and a README is where
+ * it belongs. A hand-copied component would freeze the number at the moment
+ * somebody pasted it, which is exactly the failure this badge exists to avoid.
+ */
+export function lighthouseBadgeSnippets(options: {
+	variant: LighthouseBadgeVariant;
+	theme: BadgeTheme;
+	origin: string;
+}): { markdown: string; html: string } {
+	const base = options.origin.replace(/\/$/, '');
+	const url = lighthouseBadgeUrl(base, options.variant, options.theme);
+	const alt = lighthouseBadgeText(options.variant);
+
+	return {
+		markdown: `[![${alt}](${url})](${BADGE_HREF})`,
+		html: `<a href="${BADGE_HREF}" target="_blank" rel="noopener">
+  <img src="${url}" alt="${alt}" height="28" />
+</a>`
+	};
 }

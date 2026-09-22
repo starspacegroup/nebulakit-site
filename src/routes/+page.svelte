@@ -1173,6 +1173,21 @@
 			</div>
 		</div>
 
+		<p class="lh-badge-offer">
+			<a class="lh-badge-link" href="/badge">
+				<!-- The live endpoint, not a copy of it: this is the same image a
+				     README gets, so a broken badge is visible here first. -->
+				<img
+					src="/badge-lighthouse.svg?variant=categories&theme=dark"
+					alt="Lighthouse badge: 100 in all four categories"
+					width="300"
+					height="28"
+					loading="lazy"
+				/>
+			</a>
+			<span>Built on NebulaKit? <a href="/badge">Take the badge.</a></span>
+		</p>
+
 		<p class="lh-footnote">
 			Lighthouse {lighthouse.lighthouseVersion}, {lighthouse.formFactor} preset, median of {lighthouse.runsPerPage}
 			runs per page, on
@@ -2788,6 +2803,36 @@
 	.lh-coverage strong {
 		color: var(--color-text);
 		font-variant-numeric: tabular-nums;
+	}
+
+	.lh-badge-offer {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-md);
+		max-width: 70rem;
+		margin: var(--spacing-2xl) auto 0;
+		font-size: 0.9375rem;
+		color: var(--color-text-secondary);
+	}
+
+	.lh-badge-link {
+		display: inline-flex;
+		line-height: 0;
+		border-radius: 999px;
+	}
+
+	/* The badge states its own size, so the height is pinned and the width lets
+	   it scale down rather than overflow a phone. */
+	.lh-badge-offer img {
+		height: 28px;
+		width: auto;
+		max-width: 100%;
+	}
+
+	.lh-badge-offer a {
+		color: var(--color-primary);
 	}
 
 	.lh-footnote {

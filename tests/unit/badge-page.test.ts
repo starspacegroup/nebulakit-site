@@ -61,16 +61,36 @@ describe('/badge', () => {
 		expect(markdown).toBeInTheDocument();
 	});
 
-	it('shows a snippet for every form it advertises', () => {
-		render(BadgePage);
-		for (const title of ['Markdown', 'HTML', 'Web component', 'React', 'Svelte', 'Vue']) {
-			expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
-		}
+	it('shows a snippet for every form the brand badge advertises', () => {
+		// Scoped to the brand section: the Lighthouse badge below has its own
+		// Markdown and HTML headings, so an unscoped query now matches twice.
+		const { container } = render(BadgePage);
+		const section = container.querySelector('section[aria-labelledby="forms-heading"]');
+		const titles = [...(section?.querySelectorAll('.form h3') ?? [])].map((h) =>
+			h.textContent?.trim()
+		);
+		expect(titles).toEqual(['Markdown', 'HTML', 'Web component', 'React', 'Svelte', 'Vue']);
 	});
 
 	it('gives every snippet its own copy button', () => {
-		render(BadgePage);
-		expect(screen.getAllByRole('button', { name: /copy/i })).toHaveLength(6);
+		const { container } = render(BadgePage);
+		const brand = container.querySelectorAll('section[aria-labelledby="forms-heading"] .copy');
+		const score = container.querySelectorAll('section[aria-labelledby="score-heading"] .copy');
+		expect(brand).toHaveLength(6);
+		expect(score).toHaveLength(2);
+	});
+
+	it('offers the Lighthouse badge, with its number taken from the audit', () => {
+		const { container } = render(BadgePage);
+		const section = container.querySelector('section[aria-labelledby="score-heading"]');
+		expect(section).toBeInTheDocument();
+		const preview = section?.querySelector('img');
+		expect(preview?.getAttribute('src')).toContain('/badge-lighthouse.svg');
+		// Both snippets point at the live endpoint rather than inlining a value:
+		// a pasted number would freeze at whatever it was when it was copied.
+		const codes = [...(section?.querySelectorAll('pre code') ?? [])].map((c) => c.textContent);
+		expect(codes).toHaveLength(2);
+		for (const code of codes) expect(code).toContain('/badge-lighthouse.svg');
 	});
 
 	it('says plainly that the badge is optional', () => {

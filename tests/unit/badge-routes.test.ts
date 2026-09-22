@@ -11,12 +11,15 @@ import { describe, expect, it } from 'vitest';
 import {
 	BADGE_VARIANT_KEYS,
 	badgeElementScript,
+	LIGHTHOUSE_BADGE_VARIANT_KEYS,
 	markSvg,
-	renderBadgeSvg
+	renderBadgeSvg,
+	renderLighthouseBadgeSvg
 } from '../../src/lib/badge';
 import { GET as badgeSvgGet } from '../../src/routes/badge.svg/+server';
 import { GET as badgeJsGet } from '../../src/routes/badge.js/+server';
 import { GET as badgeMarkGet } from '../../src/routes/badge-mark.svg/+server';
+import { GET as lighthouseGet } from '../../src/routes/badge-lighthouse.svg/+server';
 
 const ORIGIN = 'https://example.test';
 
@@ -145,5 +148,47 @@ describe('GET /badge-mark.svg', () => {
 		const body = await (await badgeMarkGet(event('/badge-mark.svg'))).text();
 		expect(body).toContain('role="img"');
 		expect(body).toContain('aria-label="NebulaKit"');
+	});
+});
+
+describe('GET /badge-lighthouse.svg', () => {
+	const svg = async (q = '') =>
+		await (await lighthouseGet(event(`/badge-lighthouse.svg${q}`))).text();
+
+	it('serves an SVG a README can embed', async () => {
+		expectEmbeddable(
+			await lighthouseGet(event('/badge-lighthouse.svg')),
+			'image/svg+xml; charset=utf-8'
+		);
+	});
+
+	it('caches for an hour, not a day', async () => {
+		// The brand badge is a constant and can sit in a proxy all day. This one
+		// is a measurement that is meant to move, and a stale perfect score is
+		// the single wrong answer worth avoiding.
+		const response = await lighthouseGet(event('/badge-lighthouse.svg'));
+		expect(response.headers.get('cache-control')).toBe('public, max-age=3600');
+	});
+
+	it('defaults to the single overall number on the dark ground', async () => {
+		expect(await svg()).toBe(renderLighthouseBadgeSvg('overall', 'dark'));
+	});
+
+	it('serves both levels of detail', async () => {
+		for (const key of LIGHTHOUSE_BADGE_VARIANT_KEYS) {
+			expect(await svg(`?variant=${key}`)).toBe(renderLighthouseBadgeSvg(key, 'dark'));
+		}
+	});
+
+	it('falls back rather than 400ing on a value it does not know', async () => {
+		expect(await svg('?variant=everything&theme=sepia')).toBe(
+			renderLighthouseBadgeSvg('overall', 'dark')
+		);
+	});
+
+	it('puts nothing from the request into the document', async () => {
+		const body = await svg('?variant=%3Cscript%3Ealert(1)%3C/script%3E');
+		expect(body).not.toContain('<script');
+		expect(body).toBe(renderLighthouseBadgeSvg('overall', 'dark'));
 	});
 });

@@ -9,8 +9,14 @@
 		badgeSnippets,
 		badgeSvgUrl,
 		badgeText,
+		lighthouseBadgeSnippets,
+		lighthouseBadgeText,
+		lighthouseBadgeUrl,
+		LIGHTHOUSE_BADGE_VARIANTS,
+		LIGHTHOUSE_BADGE_VARIANT_KEYS,
 		type BadgeTheme,
-		type BadgeVariant
+		type BadgeVariant,
+		type LighthouseBadgeVariant
 	} from '$lib/badge';
 
 	const description =
@@ -18,12 +24,29 @@
 
 	let variant: BadgeVariant = 'proudly';
 	let theme: BadgeTheme = 'dark';
+	let scoreVariant: LighthouseBadgeVariant = 'overall';
 
 	/* The origin of the request, not site.config.url, so a preview deployment
 	   hands out snippets that point at itself and can actually be tested. */
 	$: origin = $page.url.origin;
 	$: svgUrl = badgeSvgUrl(origin, variant, theme);
 	$: snippets = badgeSnippets({ variant, theme, origin });
+	$: scoreUrl = lighthouseBadgeUrl(origin, scoreVariant, theme);
+	$: scoreSnippets = lighthouseBadgeSnippets({ variant: scoreVariant, theme, origin });
+	$: scoreForms = [
+		{
+			id: 'lh-markdown',
+			title: 'Markdown',
+			note: 'For a README on GitHub. The image is fetched each time the page is viewed, so the number stays current on its own.',
+			code: scoreSnippets.markdown
+		},
+		{
+			id: 'lh-html',
+			title: 'HTML',
+			note: 'Same image, for anywhere Markdown is not an option.',
+			code: scoreSnippets.html
+		}
+	];
 
 	/* What each wording is honestly for. The badge offers three because a single
 	   one would have people editing the snippet to say something slightly untrue. */
@@ -160,6 +183,53 @@
 		</div>
 
 		{#each forms as form (form.id)}
+			<article class="form">
+				<div class="form-head">
+					<h3>{form.title}</h3>
+					<button type="button" class="copy" on:click={() => copy(form.id, form.code)}>
+						{copied === form.id ? 'Copied' : 'Copy'}
+					</button>
+				</div>
+				<p class="form-note">{form.note}</p>
+				<pre><code>{form.code}</code></pre>
+			</article>
+		{/each}
+	</section>
+
+	<section class="forms" aria-labelledby="score-heading">
+		<div class="section-head">
+			<h2 id="score-heading">The Lighthouse badge</h2>
+			<p class="section-lede">
+				The other badge says what you built with. This one says how it scores. The number is read
+				from the last audit rather than typed in, so it is the measurement rather than a claim about
+				it — and if a page ever slips, every README carrying this badge shows the lower number, in
+				amber, on its next fetch.
+			</p>
+		</div>
+
+		<fieldset class="control">
+			<legend>Detail</legend>
+			<div class="chips">
+				{#each LIGHTHOUSE_BADGE_VARIANT_KEYS as key (key)}
+					<label class="chip" class:selected={scoreVariant === key}>
+						<input type="radio" name="score-variant" value={key} bind:group={scoreVariant} />
+						<span>{key === 'categories' ? 'Four categories' : 'One number'}</span>
+					</label>
+				{/each}
+			</div>
+			<p class="control-help">{LIGHTHOUSE_BADGE_VARIANTS[scoreVariant]}</p>
+		</fieldset>
+
+		<div class="preview" style="background: {BADGE_THEMES[theme].background}">
+			<img src={scoreUrl} alt={lighthouseBadgeText(scoreVariant)} />
+		</div>
+
+		<p class="preview-note">
+			Served from <a href={scoreUrl}><code>/badge-lighthouse.svg</code></a>, on the ground you
+			picked above. Reproduce the run behind it with <code>bun run lighthouse</code>.
+		</p>
+
+		{#each scoreForms as form (form.id)}
 			<article class="form">
 				<div class="form-head">
 					<h3>{form.title}</h3>

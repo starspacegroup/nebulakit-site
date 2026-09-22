@@ -29,6 +29,17 @@ import {
 	BRAND_ADVANCE,
 	FALLBACK_ADVANCE,
 	UPPERCASE_ADVANCE,
+	DIGIT_ADVANCE,
+	isLighthouseBadgeVariant,
+	lighthouseBadgeSnippets,
+	lighthouseBadgeText,
+	lighthouseBadgeValue,
+	lighthouseBadgeWidth,
+	lighthouseCategoryFloors,
+	lighthouseFloor,
+	LIGHTHOUSE_BADGE_VARIANT_KEYS,
+	renderLighthouseBadgeSvg,
+	scoreColour,
 	type BadgeVariant
 } from './badge';
 
@@ -329,5 +340,76 @@ describe('badgeElementScript', () => {
 		// The mark is inlined, so the element works from a preview deployment, a
 		// cached copy or a self-hosted paste without a second request.
 		expect(script).not.toMatch(/src=|fetch\(/);
+	});
+});
+
+describe('the Lighthouse badge', () => {
+	it('reads its number from the audit rather than a constant', () => {
+		// The whole point. A hand-written 100 would keep saying 100 after the
+		// day it stopped being true, in every README that had ever copied it.
+		const floors = lighthouseCategoryFloors();
+		expect(floors.length).toBe(4);
+		expect(lighthouseFloor()).toBe(Math.min(...floors));
+		expect(lighthouseBadgeValue('overall')).toBe(String(lighthouseFloor()));
+		expect(lighthouseBadgeValue('categories')).toBe(floors.join(' · '));
+	});
+
+	it("colours the score by Lighthouse's own bands", () => {
+		// Same thresholds ScoreRing.svelte draws with, as literals rather than
+		// theme tokens — this lands on pages with no stylesheet of ours.
+		expect(scoreColour(100)).toBe('#0cce6b');
+		expect(scoreColour(90)).toBe('#0cce6b');
+		expect(scoreColour(89)).toBe('#ffa400');
+		expect(scoreColour(50)).toBe('#ffa400');
+		expect(scoreColour(49)).toBe('#ff4e42');
+		expect(scoreColour(0)).toBe('#ff4e42');
+	});
+
+	it('takes its colour from the worst number it prints', () => {
+		// A badge showing four scores must not look green on the strength of
+		// three of them.
+		const svg = renderLighthouseBadgeSvg('categories', 'dark');
+		expect(svg).toContain(scoreColour(Math.min(...lighthouseCategoryFloors())));
+	});
+
+	it('rejects an inherited property as a variant', () => {
+		for (const probe of ['toString', 'constructor', '__proto__', 'valueOf']) {
+			expect(isLighthouseBadgeVariant(probe)).toBe(false);
+		}
+		for (const key of LIGHTHOUSE_BADGE_VARIANT_KEYS) {
+			expect(isLighthouseBadgeVariant(key)).toBe(true);
+		}
+	});
+
+	it('states its own size and fetches nothing', () => {
+		for (const key of LIGHTHOUSE_BADGE_VARIANT_KEYS) {
+			const svg = renderLighthouseBadgeSvg(key, 'dark').replace(/xmlns="[^"]*"/g, '');
+			expect(svg).toContain(`width="${lighthouseBadgeWidth(key)}"`);
+			expect(svg).not.toMatch(/<image|@import|xlink:href|https?:\/\//);
+			expect(svg).not.toMatch(/\bid=/);
+		}
+	});
+
+	it('names every category to a screen reader, not just the digits', () => {
+		const alt = lighthouseBadgeText('categories');
+		for (const word of ['performance', 'accessibility', 'best practices', 'seo']) {
+			expect(alt.toLowerCase()).toContain(word);
+		}
+	});
+
+	it('reserves the same width whatever the digits are', () => {
+		// Helvetica gives every digit a 556 advance, which is what keeps the pill
+		// from resizing as the score moves.
+		expect(textWidth('100', 12, DIGIT_ADVANCE)).toBeCloseTo(textWidth('899', 12, DIGIT_ADVANCE), 5);
+	});
+
+	it('offers only the two forms a measurement belongs in', () => {
+		const s = lighthouseBadgeSnippets({ variant: 'overall', theme: 'dark', origin: ORIGIN });
+		expect(Object.keys(s).sort()).toEqual(['html', 'markdown']);
+		// Both fetch the live endpoint. A pasted component would freeze the
+		// number at the moment somebody copied it.
+		expect(s.markdown).toContain(`${ORIGIN}/badge-lighthouse.svg`);
+		expect(s.html).toContain(`${ORIGIN}/badge-lighthouse.svg`);
+		expect(s.markdown).toContain(BADGE_HREF);
 	});
 });
