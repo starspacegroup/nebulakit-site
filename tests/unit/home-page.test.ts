@@ -218,21 +218,6 @@ describe('Home Page Hero', () => {
  * asserted here rather than discovered in production again.
  */
 describe('Home Page Lighthouse scores', () => {
-	it('forces a real navigation on every report link', () => {
-		// Without data-sveltekit-reload the client router claims these: a path
-		// like /lighthouse/site-showcase has two segments and so matches the
-		// [contentType]/[slug] route, which finds no CMS item called
-		// "lighthouse" and renders the app's own 404. Typing the URL worked and
-		// clicking it did not — which is exactly what that mismatch looks like.
-		const { container } = render(Page);
-		const links = [...container.querySelectorAll('.lh-chip')];
-		expect(links.length).toBeGreaterThan(0);
-		for (const link of links) {
-			expect(link.getAttribute('href')).toMatch(/^\/lighthouse\//);
-			expect(link.hasAttribute('data-sveltekit-reload')).toBe(true);
-		}
-	});
-
 	it('computes the headline from the floor, not an average', () => {
 		// An average of 100 and a floor of 100 are the same number today. Only
 		// the floor stays honest the day one page slips, so that is the one the
@@ -276,18 +261,14 @@ describe('Home Page Lighthouse scores', () => {
 		]);
 	});
 
-	it('keeps every per-page number reachable, even though the chips show names', () => {
-		// The chips are the visual compromise that killed the wall of numbers.
-		// The numbers still have to exist for anyone listening rather than
-		// looking, so each link carries its own four scores.
+	it('carries no per-page links any more', () => {
+		// The eleven report chips were removed. The reports themselves are still
+		// deployed and still reachable by URL; nothing on this page points at
+		// them, and the footnote now says to reproduce the run rather than
+		// implying a row to click.
 		const { container } = render(Page);
-		const chips = [...container.querySelectorAll('.lh-chip')];
-		expect(chips).toHaveLength(11);
-		const aria = chips[0].getAttribute('aria-label') ?? '';
-		expect(aria).toContain('Performance 100');
-		expect(aria).toContain('Accessibility 100');
-		expect(aria).toContain('Best practices 100');
-		expect(aria).toContain('SEO 100');
+		expect(container.querySelectorAll('.lh-chip')).toHaveLength(0);
+		expect(container.querySelectorAll('a[href^="/lighthouse/"]')).toHaveLength(0);
 	});
 
 	it('counts the audits instead of asserting them in prose', () => {

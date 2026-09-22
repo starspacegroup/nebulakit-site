@@ -50,16 +50,6 @@
 		};
 	});
 
-	const pageFloor = (scores: Record<LighthouseCategory, number>) =>
-		Math.min(...lighthouseCategoryKeys.map((key) => scores[key]));
-
-	/* Everything a dropped score would need, spelled out for a screen reader —
-	   the chips show a name, so the numbers have to survive somewhere. */
-	const pageSummary = (title: string, scores: Record<LighthouseCategory, number>) =>
-		`${title} — ` +
-		lighthouseCategoryKeys.map((key) => `${lighthouseCategories[key]} ${scores[key]}`).join(', ') +
-		'. Opens the full report.';
-
 	let mounted = false;
 	let searchInput = '';
 	let focusedOption = -1;
@@ -1190,48 +1180,12 @@
 			</div>
 		</div>
 
-		<div class="lh-reports">
-			<h3 class="lh-reports-title">Check the runs yourself</h3>
-			{#each lighthouse.targets as target (target.key)}
-				<div class="lh-group">
-					<p class="lh-group-label">
-						<span class="lh-group-name">{target.label}</span>
-						<span class="lh-group-note">{target.note}</span>
-					</p>
-					<ul class="lh-chips">
-						{#each target.pages as row (row.path)}
-							<li>
-								<!-- data-sveltekit-reload, or the client router claims this link:
-								     /lighthouse/<slug> has two segments and so matches the
-								     [contentType]/[slug] route, which finds no CMS item named
-								     "lighthouse" and renders the app's own 404. The report is a
-								     static file served by Pages and needs a real navigation. -->
-								<a
-									class="lh-chip"
-									class:is-flagged={pageFloor(row.scores) < 100}
-									href={row.report}
-									data-sveltekit-reload
-									aria-label={pageSummary(row.title, row.scores)}
-								>
-									<span class="lh-chip-name" aria-hidden="true">{row.title}</span>
-									<code class="lh-chip-path" aria-hidden="true">{row.path}</code>
-									{#if pageFloor(row.scores) < 100}
-										<span class="lh-chip-score" aria-hidden="true">{pageFloor(row.scores)}</span>
-									{/if}
-								</a>
-							</li>
-						{/each}
-					</ul>
-				</div>
-			{/each}
-		</div>
-
 		<p class="lh-footnote">
 			Lighthouse {lighthouse.lighthouseVersion}, {lighthouse.formFactor} preset, median of {lighthouse.runsPerPage}
 			runs per page, on
 			<time datetime={lighthouse.generatedAt}>{lighthouse.generatedAt}</time>. Login and signup are
 			not listed: robots.txt keeps the auth flow out of search on purpose, and Lighthouse scores a
-			crawl block as an SEO failure. Reproduce any row with
+			crawl block as an SEO failure. Reproduce the whole run with
 			<code>bun run lighthouse</code>.
 		</p>
 	</div>
@@ -2838,101 +2792,6 @@
 		font-variant-numeric: tabular-nums;
 	}
 
-	.lh-reports {
-		max-width: 70rem;
-		margin: var(--spacing-2xl) auto 0;
-	}
-
-	.lh-reports-title {
-		margin: 0 0 var(--spacing-lg);
-		font-size: 1.125rem;
-		font-weight: 700;
-		color: var(--color-text);
-		text-align: center;
-	}
-
-	.lh-group + .lh-group {
-		margin-top: var(--spacing-xl);
-	}
-
-	.lh-group-label {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		gap: var(--spacing-xs) var(--spacing-sm);
-		margin: 0 0 var(--spacing-sm);
-	}
-
-	.lh-group-name {
-		font-size: 0.75rem;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--color-text);
-	}
-
-	.lh-group-note {
-		font-size: 0.875rem;
-		color: var(--color-text-secondary);
-	}
-
-	.lh-chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--spacing-sm);
-		list-style: none;
-		margin: 0;
-		padding: 0;
-	}
-
-	/* Eleven links, not forty-four cells. A page that is NOT perfect grows a
-	   number and an amber edge, so the exception is the thing that stands out
-	   rather than being one more 100 in a wall of them. */
-	.lh-chip {
-		display: inline-flex;
-		align-items: baseline;
-		gap: var(--spacing-xs);
-		padding: 0.5rem 0.85rem;
-		border: 1px solid var(--color-border);
-		border-radius: 999px;
-		background: var(--color-surface);
-		color: var(--color-text);
-		font-size: 0.875rem;
-		font-weight: 600;
-		text-decoration: none;
-		transition:
-			border-color var(--transition-fast),
-			color var(--transition-fast),
-			transform var(--transition-fast);
-	}
-
-	.lh-chip:hover,
-	.lh-chip:focus-visible {
-		border-color: var(--color-primary);
-		color: var(--color-primary);
-		transform: translateY(-1px);
-	}
-
-	.lh-chip-path {
-		font-family: var(--font-mono, monospace);
-		font-size: 0.75rem;
-		font-weight: 400;
-		color: var(--color-text-secondary);
-	}
-
-	.lh-chip.is-flagged {
-		border-color: color-mix(in srgb, var(--color-warning) 55%, transparent);
-	}
-
-	.lh-chip-score {
-		padding: 0 0.4rem;
-		border-radius: 999px;
-		background: color-mix(in srgb, var(--color-warning) 20%, transparent);
-		font-size: 0.75rem;
-		font-variant-numeric: tabular-nums;
-		color: var(--color-text);
-	}
-
 	.lh-footnote {
 		max-width: 70rem;
 		margin: var(--spacing-xl) auto 0;
@@ -2973,17 +2832,6 @@
 
 		.lh-verdict {
 			padding: var(--spacing-xl) var(--spacing-md);
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.lh-chip {
-			transition: none;
-		}
-
-		.lh-chip:hover,
-		.lh-chip:focus-visible {
-			transform: none;
 		}
 	}
 
