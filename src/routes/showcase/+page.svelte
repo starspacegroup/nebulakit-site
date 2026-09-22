@@ -315,7 +315,7 @@
 	}
 
 	.showcase__shell {
-		max-width: 1100px;
+		max-width: var(--layout-page-max-width);
 		margin: 0 auto;
 	}
 

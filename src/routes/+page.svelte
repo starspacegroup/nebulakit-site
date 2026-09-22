@@ -299,7 +299,7 @@
 		<div class="comet"></div>
 	</div>
 
-	<div class="container">
+	<div class="hero-shell">
 		<div class="hero-content" class:mounted>
 			<!-- Main Title -->
 			<h1 class="main-title">{site.name}</h1>
@@ -1703,8 +1703,13 @@
 		opacity: 0.7;
 	}
 
-	/* Content */
-	.container {
+	/* The hero's reading measure — NOT the shared `.container`, which this used
+	   to be called. app.css defines a global `.container` at
+	   --layout-page-max-width (2560px), and Svelte's scoping quietly shadowed it
+	   here with 960px. Anyone reading `class="container"` in this file got the
+	   opposite of the width that name means everywhere else. The 960px is right
+	   for centred hero copy; only the name was wrong. */
+	.hero-shell {
 		position: relative;
 		z-index: 1;
 		width: 100%;
