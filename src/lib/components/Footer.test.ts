@@ -10,6 +10,17 @@ describe('Footer', () => {
 		expect(footer).toBeInTheDocument();
 	});
 
+	it('should mark the brand with the real logo, not an emoji', () => {
+		// ✨ rendered as whatever the reader's OS supplies, which is not our
+		// artwork. The mark is inline SVG and carries no id, because the nav,
+		// the mobile menu and this footer all render one on the same page.
+		render(Footer);
+		const mark = document.querySelector('.footer-logo .logo-mark');
+		expect(mark).toBeInTheDocument();
+		expect(mark?.querySelector('[id]')).toBeNull();
+		expect(document.querySelector('.footer-logo')?.textContent).not.toContain('✨');
+	});
+
 	it('should display the app brand', () => {
 		render(Footer);
 		expect(screen.getByText(site.name)).toBeInTheDocument();

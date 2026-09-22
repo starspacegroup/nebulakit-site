@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { site, repoUrl } from '$lib/site.config';
+	import Logo from './Logo.svelte';
 
 	const currentYear = new Date().getFullYear();
 </script>
@@ -10,7 +11,7 @@
 			<!-- Brand Column -->
 			<div class="footer-brand">
 				<a href="/" class="footer-logo">
-					<span class="logo-icon">✨</span>
+					<Logo size={22} />
 					<span class="logo-text">{site.name}</span>
 				</a>
 				<p class="footer-tagline">
@@ -149,10 +150,6 @@
 
 	.footer-logo:hover {
 		color: var(--color-primary);
-	}
-
-	.logo-icon {
-		font-size: 1.25rem;
 	}
 
 	.footer-tagline {

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import Logo from './Logo.svelte';
 	import { onDestroy, onMount, tick } from 'svelte';
 	import { site } from '$lib/site.config';
 	import ThemeSwitcher from './ThemeSwitcher.svelte';
@@ -108,7 +109,7 @@
 	<div class="container nav-container">
 		<div class="nav-content">
 			<a href="/" class="logo" on:click={closeMobileMenu}>
-				<span class="logo-icon">✨</span>
+				<Logo size={26} />
 				<span class="logo-text">{site.name}</span>
 			</a>
 
@@ -116,10 +117,7 @@
 				{#if user?.isPretend}
 					<span class="pretend-badge" aria-label="Pretend login session">PRETEND</span>
 				{/if}
-				<button
-					class="command-palette-btn"
-					on:click={onCommandPaletteClick}
-				>
+				<button class="command-palette-btn" on:click={onCommandPaletteClick}>
 					<!-- The visible text is the shortcut hint, so the accessible name has to
 					     contain it (WCAG 2.5.3 Label in Name). A bare aria-label replaced it. -->
 					<span class="sr-only">Open command palette,</span>
@@ -198,7 +196,7 @@
 				<div class="mobile-menu-shell">
 					<div class="mobile-menu-header">
 						<a href="/" class="logo mobile-menu-logo" on:click={closeMobileMenu}>
-							<span class="logo-icon">✨</span>
+							<Logo size={26} />
 							<span class="logo-text">{site.name}</span>
 						</a>
 						<button
@@ -450,10 +448,6 @@
 
 	.logo:hover {
 		opacity: 0.8;
-	}
-
-	.logo-icon {
-		font-size: 1.5rem;
 	}
 
 	.nav-actions {
