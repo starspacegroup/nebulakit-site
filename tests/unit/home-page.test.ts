@@ -195,3 +195,55 @@ describe('Home Page Hero', () => {
 		expect(searchInput).toBeTruthy();
 	});
 });
+
+/**
+ * The Lighthouse scorecard.
+ *
+ * The reports are static files that Cloudflare Pages serves; they are not
+ * SvelteKit routes. That distinction is invisible until it bites, so it is
+ * asserted here rather than discovered in production again.
+ */
+describe('Home Page Lighthouse scores', () => {
+	it('forces a real navigation on every report link', () => {
+		// Without data-sveltekit-reload the client router claims these: a path
+		// like /lighthouse/site-showcase has two segments and so matches the
+		// [contentType]/[slug] route, which finds no CMS item called
+		// "lighthouse" and renders the app's own 404. Typing the URL worked and
+		// clicking it did not — which is exactly what that mismatch looks like.
+		const { container } = render(Page);
+		const links = [...container.querySelectorAll('.lh-table a')];
+		expect(links.length).toBeGreaterThan(0);
+		for (const link of links) {
+			expect(link.getAttribute('href')).toMatch(/^\/lighthouse\//);
+			expect(link.hasAttribute('data-sveltekit-reload')).toBe(true);
+		}
+	});
+
+	it('draws one dial per audited category', () => {
+		const { container } = render(Page);
+		const rows = container.querySelectorAll('.lh-table tbody tr');
+		const rings = container.querySelectorAll('.lh-table tbody .ring');
+		expect(rings.length).toBe(rows.length * 4);
+	});
+
+	it('counts the perfect scores instead of asserting them in prose', () => {
+		// The banner is derived from the data. If a score drops it has to stop
+		// saying "perfect" on its own, without anyone remembering to edit copy.
+		const { container } = render(Page);
+		const verdict = container.querySelector('.lh-verdict');
+		const rings = container.querySelectorAll('.lh-table tbody .ring');
+		const perfect = [...rings].filter((r) => r.textContent?.trim() === '100').length;
+		expect(verdict?.textContent).toContain(String(perfect));
+		expect(verdict?.textContent).toContain(String(rings.length));
+	});
+
+	it('names each category for a screen reader, not just its abbreviation', () => {
+		const { container } = render(Page);
+		// One card per target, so scope to the first table — querying the whole
+		// section returns both header rows concatenated.
+		const table = container.querySelector('.lh-table');
+		const heads = [...(table?.querySelectorAll('thead th') ?? [])].slice(1);
+		const named = heads.map((h) => h.querySelector('.sr-only')?.textContent?.trim());
+		expect(named).toEqual(['Performance', 'Accessibility', 'Best practices', 'SEO']);
+	});
+});

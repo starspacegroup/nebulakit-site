@@ -6,6 +6,7 @@
 	import { openCommandPalette } from '$lib/stores/commandPalette';
 	import { onMount } from 'svelte';
 	import lighthouse from '$lib/lighthouse-results.json';
+	import ScoreRing from '$lib/components/ScoreRing.svelte';
 
 	/* Category keys as Lighthouse names them, with the label the table shows.
 	   The JSON carries the order; this only supplies the wording. */
@@ -17,6 +18,38 @@
 		seo: 'SEO'
 	};
 	const lighthouseCategoryKeys = lighthouse.categories as LighthouseCategory[];
+
+	/* Short forms for the column headers. The full name is still in the DOM for
+	   assistive technology; these only have to fit a 4rem column. */
+	const lighthouseShort: Record<LighthouseCategory, string> = {
+		performance: 'Perf',
+		accessibility: 'A11y',
+		'best-practices': 'Practices',
+		seo: 'SEO'
+	};
+
+	/* Narrower still, for the mobile breakpoint. "PRACTICES" has a min-content
+	   width of ~75px and no way to wrap — one unbreakable word was enough to
+	   push the SEO column out past the edge of its card. Both forms are
+	   aria-hidden; the full category name is in the header for a screen reader
+	   either way. */
+	const lighthouseTiny: Record<LighthouseCategory, string> = {
+		performance: 'Perf',
+		accessibility: 'A11y',
+		'best-practices': 'BP',
+		seo: 'SEO'
+	};
+
+	/* Counted, not claimed. If a score ever drops, the banner stops saying
+	   "perfect" on its own rather than waiting for someone to edit the copy. */
+	const lighthouseAudits = lighthouse.targets.flatMap((target) =>
+		target.pages.flatMap((page) => lighthouseCategoryKeys.map((key) => page.scores[key]))
+	);
+	const lighthousePageCount = lighthouse.targets.reduce((n, t) => n + t.pages.length, 0);
+	const lighthousePerfect = lighthouseAudits.filter((score) => score === 100).length;
+	const lighthouseAllPerfect = lighthousePerfect === lighthouseAudits.length;
+	const isPerfectPage = (scores: Record<LighthouseCategory, number>) =>
+		lighthouseCategoryKeys.every((key) => scores[key] === 100);
 
 	let mounted = false;
 	let searchInput = '';
@@ -1099,52 +1132,81 @@
 		<div class="features-header">
 			<h2 class="features-title" id="lighthouse-title">Measured, not claimed</h2>
 			<p class="features-subtitle">
-				Every public page of the template and of this site scores 100 in all four Lighthouse
-				categories. Open any report and check.
+				Every public page of the template and of this site, audited on a production build. Open any
+				report and check the run for yourself.
 			</p>
 		</div>
 
-		{#each lighthouse.targets as target (target.key)}
-			<div class="lh-group">
-				<h3 class="lh-group-title">{target.label}</h3>
-				<p class="lh-group-note">{target.note}</p>
+		<p class="lh-verdict" class:is-perfect={lighthouseAllPerfect}>
+			<span class="lh-verdict-figure"
+				>{lighthousePerfect}<span class="lh-verdict-of">/{lighthouseAudits.length}</span></span
+			>
+			<span class="lh-verdict-text">
+				{#if lighthouseAllPerfect}
+					perfect scores — every category, on all {lighthousePageCount} pages
+				{:else}
+					categories at 100, across {lighthousePageCount} audited pages
+				{/if}
+			</span>
+		</p>
 
-				<table class="lh-table">
-					<caption class="sr-only">
-						Lighthouse scores for {target.label}, out of 100 in each category. Each page name links
-						to its full report.
-					</caption>
-					<thead>
-						<tr>
-							<th scope="col">Page</th>
-							{#each lighthouseCategoryKeys as category (category)}
-								<th scope="col">{lighthouseCategories[category]}</th>
-							{/each}
-						</tr>
-					</thead>
-					<tbody>
-						{#each target.pages as row (row.path)}
+		<div class="lh-grid">
+			{#each lighthouse.targets as target (target.key)}
+				<article class="lh-card">
+					<header class="lh-card-head">
+						<h3 class="lh-group-title">{target.label}</h3>
+						<p class="lh-group-note">{target.note}</p>
+					</header>
+
+					<table class="lh-table">
+						<caption class="sr-only">
+							Lighthouse scores for {target.label}, out of 100 in each category. Each page name
+							links to its full report.
+						</caption>
+						<thead>
 							<tr>
-								<th scope="row">
-									<a href={row.report}>
-										{row.title}
-										<span class="lh-path">{row.path}</span>
-									</a>
-								</th>
+								<th scope="col" class="lh-page-col">Page</th>
 								{#each lighthouseCategoryKeys as category (category)}
-									<td>
-										<span class="lh-score">{row.scores[category]}</span>
-									</td>
+									<th scope="col">
+										<span class="lh-cat-wide" aria-hidden="true">{lighthouseShort[category]}</span>
+										<span class="lh-cat-narrow" aria-hidden="true">{lighthouseTiny[category]}</span>
+										<span class="sr-only">{lighthouseCategories[category]}</span>
+									</th>
 								{/each}
 							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
-		{/each}
+						</thead>
+						<tbody>
+							{#each target.pages as row (row.path)}
+								<tr class:has-gap={!isPerfectPage(row.scores)}>
+									<th scope="row" class="lh-page-col">
+										<!-- data-sveltekit-reload, or the client router claims this link:
+										     /lighthouse/<slug> has two segments and so matches the
+										     [contentType]/[slug] route, which finds no CMS item named
+										     "lighthouse" and renders the app's own 404. The report is a
+										     static file served by Pages, so it needs a real navigation.
+										     Typing the URL worked and clicking it did not, which is
+										     exactly what that mismatch looks like. -->
+										<a href={row.report} data-sveltekit-reload>
+											{row.title}
+											<span class="lh-path">{row.path}</span>
+										</a>
+									</th>
+									{#each lighthouseCategoryKeys as category (category)}
+										<td>
+											<ScoreRing value={row.scores[category]} />
+										</td>
+									{/each}
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</article>
+			{/each}
+		</div>
 
 		<p class="lh-footnote">
-			Lighthouse {lighthouse.lighthouseVersion}, {lighthouse.formFactor} preset, run on
+			Lighthouse {lighthouse.lighthouseVersion}, {lighthouse.formFactor} preset, median of {lighthouse.runsPerPage}
+			runs per page, on
 			<time datetime={lighthouse.generatedAt}>{lighthouse.generatedAt}</time>. Login and signup are
 			not listed: robots.txt keeps the auth flow out of search on purpose, and Lighthouse scores a
 			crawl block as an SEO failure. Reproduce any row with
@@ -2648,8 +2710,75 @@
 		background: var(--color-background);
 	}
 
-	.lh-group + .lh-group {
-		margin-top: var(--spacing-2xl);
+	/* The headline count. The page max-width is 2560px, which suits prose and
+	   ruins a five-column table — everything below is capped well short of it. */
+	.lh-verdict {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-wrap: wrap;
+		gap: var(--spacing-sm) var(--spacing-md);
+		max-width: 44rem;
+		margin: 0 auto var(--spacing-2xl);
+		padding: var(--spacing-md) var(--spacing-xl);
+		border: 1px solid var(--color-border);
+		border-radius: 999px;
+		background: var(--color-surface);
+		text-align: center;
+	}
+
+	.lh-verdict.is-perfect {
+		border-color: color-mix(in srgb, var(--color-success) 45%, transparent);
+		background: linear-gradient(
+			180deg,
+			color-mix(in srgb, var(--color-success) 10%, var(--color-surface)),
+			var(--color-surface)
+		);
+	}
+
+	.lh-verdict-figure {
+		font-size: clamp(1.75rem, 4vw, 2.5rem);
+		font-weight: 800;
+		line-height: 1;
+		letter-spacing: -0.02em;
+		font-variant-numeric: tabular-nums;
+		color: var(--color-text);
+	}
+
+	.lh-verdict-of {
+		font-size: 0.5em;
+		font-weight: 600;
+		color: var(--color-text-secondary);
+	}
+
+	.lh-verdict-text {
+		font-size: 1rem;
+		line-height: 1.5;
+		color: var(--color-text-secondary);
+	}
+
+	/* Two cards side by side once there is room, which is what stops the four
+	   score columns from being flung to opposite edges of a 2K screen. */
+	.lh-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr));
+		gap: var(--spacing-xl);
+		align-items: start;
+		max-width: 78rem;
+		margin: 0 auto;
+	}
+
+	.lh-card {
+		display: flex;
+		flex-direction: column;
+		padding: var(--spacing-xl);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-xl);
+		background: var(--color-surface);
+	}
+
+	.lh-card-head {
+		margin-bottom: var(--spacing-lg);
 	}
 
 	.lh-group-title {
@@ -2660,38 +2789,57 @@
 	}
 
 	.lh-group-note {
-		margin: var(--spacing-xs) 0 var(--spacing-lg);
+		margin: var(--spacing-xs) 0 0;
 		color: var(--color-text-secondary);
+		font-size: 0.9375rem;
+		line-height: 1.6;
 	}
 
 	.lh-table {
 		width: 100%;
 		border-collapse: collapse;
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-lg);
-		overflow: hidden;
-		background: var(--color-surface);
 		font-size: 0.9375rem;
+	}
+
+	/* app.css styles bare <table>/<th> for CMS prose: a 2px rule under every th
+	   and a border around the table. Those landed on this scorecard too and drew
+	   a stray line under the last row of each card. Reset first, then draw only
+	   the two rules this layout actually wants. */
+	.lh-table,
+	.lh-table th,
+	.lh-table td {
+		border: 0;
 	}
 
 	.lh-table th,
 	.lh-table td {
-		padding: var(--spacing-md) var(--spacing-lg);
-		text-align: left;
-		border-bottom: 1px solid var(--color-border);
+		padding: var(--spacing-sm) var(--spacing-xs);
+		text-align: center;
+		vertical-align: middle;
 	}
 
-	.lh-table tbody tr:last-child th,
-	.lh-table tbody tr:last-child td {
-		border-bottom: 0;
+	/* Element in the selector on purpose: `.lh-table th` is (0,1,1) and a bare
+	   `.lh-page-col` is (0,1,0), so the centring above won and every page name
+	   sat in the middle of its column. */
+	.lh-table th.lh-page-col {
+		text-align: left;
+		width: 99%;
 	}
 
 	.lh-table thead th {
-		font-size: 0.8125rem;
+		padding-bottom: var(--spacing-sm);
+		border-bottom: 1px solid var(--color-border);
+		font-size: 0.6875rem;
 		font-weight: 600;
 		text-transform: uppercase;
-		letter-spacing: 0.04em;
+		letter-spacing: 0.06em;
 		color: var(--color-text-secondary);
+		white-space: nowrap;
+	}
+
+	.lh-table tbody tr + tr th,
+	.lh-table tbody tr + tr td {
+		border-top: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
 	}
 
 	.lh-table tbody th {
@@ -2699,39 +2847,47 @@
 		color: var(--color-text);
 	}
 
+	/* Nothing is highlighted while everything is 100. The accent exists so that
+	   the one row that slips is the row the eye lands on, without anybody
+	   editing the copy above to admit it. */
+	.lh-table tbody tr.has-gap th.lh-page-col {
+		box-shadow: inset 2px 0 0 var(--color-warning);
+	}
+
 	.lh-table tbody th a {
+		display: block;
+		padding: var(--spacing-xs) var(--spacing-sm);
+		margin-left: calc(var(--spacing-sm) * -1);
+		border-radius: var(--radius-md);
+		color: var(--color-text);
+		text-decoration: none;
+		transition:
+			background-color var(--transition-fast),
+			color var(--transition-fast);
+	}
+
+	.lh-table tbody th a:hover,
+	.lh-table tbody th a:focus-visible {
+		background: var(--color-surface-hover);
 		color: var(--color-primary);
-		text-decoration: underline;
-		text-underline-offset: 0.15em;
 	}
 
 	.lh-path {
 		display: block;
 		font-family: var(--font-mono, monospace);
-		font-size: 0.8125rem;
+		font-size: 0.75rem;
 		font-weight: 400;
 		color: var(--color-text-secondary);
 	}
 
-	/* The score itself. Green reads as "pass" but is never the only carrier —
-	   the number is the value and the column header names the category.
-	   The number stays --color-text: green text on a green tint only reached
-	   4.09:1 in light mode, and any fixed darker green would be wrong in dark. */
-	.lh-score {
-		display: inline-block;
-		min-width: 2.75rem;
-		padding: 0.125rem 0.5rem;
-		border: 1px solid color-mix(in srgb, var(--color-success) 35%, transparent);
-		border-radius: var(--radius-sm);
-		background: color-mix(in srgb, var(--color-success) 12%, transparent);
-		color: var(--color-text);
-		font-variant-numeric: tabular-nums;
-		font-weight: 700;
-		text-align: center;
+	.lh-table td {
+		--ring-size: 2.875rem;
+		width: 4rem;
 	}
 
 	.lh-footnote {
-		margin: var(--spacing-xl) 0 0;
+		max-width: 78rem;
+		margin: var(--spacing-xl) auto 0;
 		font-size: 0.875rem;
 		line-height: 1.7;
 		color: var(--color-text-secondary);
@@ -2744,38 +2900,49 @@
 		font-size: 0.9em;
 	}
 
-	/* Narrow screens: the four score columns stop fitting beside the page name,
-	   so the table becomes one block per page. */
-	@media (max-width: 640px) {
-		.lh-table,
-		.lh-table tbody,
-		.lh-table tbody tr,
-		.lh-table tbody th,
-		.lh-table tbody td {
-			display: block;
+	/* Narrow screens: shrink the dials rather than restacking the table, so the
+	   row keeps its header/cell relationship for a screen reader. */
+	.lh-cat-narrow {
+		display: none;
+	}
+
+	@media (max-width: 30rem) {
+		.lh-card {
+			padding: var(--spacing-lg) var(--spacing-md);
 		}
 
-		.lh-table thead {
+		.lh-cat-wide {
 			display: none;
 		}
 
-		.lh-table tbody tr {
-			border-bottom: 1px solid var(--color-border);
-			padding: var(--spacing-sm) 0;
+		.lh-cat-narrow {
+			display: inline;
 		}
 
-		.lh-table tbody tr:last-child {
-			border-bottom: 0;
+		.lh-table td {
+			--ring-size: 2rem;
+			width: 2.5rem;
 		}
 
-		.lh-table tbody th,
-		.lh-table tbody td {
-			border-bottom: 0;
-			padding: var(--spacing-xs) var(--spacing-lg);
+		.lh-table th,
+		.lh-table td {
+			padding: var(--spacing-sm) 0.125rem;
 		}
 
-		.lh-table tbody td {
-			display: inline-block;
+		.lh-table thead th {
+			font-size: 0.625rem;
+			letter-spacing: 0.02em;
+		}
+
+		.lh-table tbody th a {
+			font-size: 0.875rem;
+		}
+
+		/* A path is one long token with no space to break at, so it holds the
+		   page column open at its full width unless told otherwise. */
+		.lh-path {
+			font-size: 0.6875rem;
+			overflow-wrap: anywhere;
 		}
 	}
 
