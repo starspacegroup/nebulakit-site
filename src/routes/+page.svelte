@@ -32,7 +32,8 @@
 	/* The headline is the WORST number anywhere, not an average. An average of
 	   100 and a floor of 100 happen to be the same thing today, but only the
 	   floor stays honest on the day one page slips — and it is the stronger
-	   claim of the two while it holds. */
+	   claim of the two while it holds. The label beside it does the explaining;
+	   the figure itself never has to hedge. */
 	const lighthouseFloor = Math.min(...lighthouseAudits);
 
 	/* Per category, across every page: the floor again, and whether the pages
@@ -1154,8 +1155,17 @@
 		<div class="lh-verdict" class:is-perfect={lighthouseAllPerfect}>
 			<div class="lh-floor">
 				<p class="lh-floor-num">{lighthouseFloor}</p>
+				<!-- The number is the floor, not an average, so it stays true the day a
+				     page slips. That is a reason to compute it that way, not a thing to
+				     say out loud: "the lowest score anywhere" reads as an apology under
+				     a 100. While the floor IS the whole story, the label says so; if it
+				     ever drops, the wording falls back to naming what the number is. -->
 				<p class="lh-floor-label">
-					the lowest score<br />anywhere
+					{#if lighthouseAllPerfect}
+						on every page,<br />in every category
+					{:else}
+						the lowest of<br />{lighthouseAudits.length} audits
+					{/if}
 				</p>
 			</div>
 
@@ -1243,13 +1253,11 @@
 				Use this template
 				<span aria-hidden="true">→</span>
 			</a>
-			<a
-				class="cta cta-secondary"
-				href="https://github.com/{site.repo.split('/')[0]}/NebulaKit"
-				rel="noopener"
-			>
-				Read the docs
-			</a>
+			<!-- The site's own documentation page, not the GitHub repo root. This
+			     pointed at the repo, which is a file listing rather than docs, and
+			     sent people off the site to find them. rel="noopener" went with it:
+			     it buys nothing on a same-origin link that does not open a tab. -->
+			<a class="cta cta-secondary" href="/documentation"> Read the docs </a>
 		</div>
 	</div>
 </section>

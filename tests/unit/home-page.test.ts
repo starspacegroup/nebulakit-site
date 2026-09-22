@@ -66,6 +66,17 @@ describe('Home Page Hero', () => {
 		expect(cta.getAttribute('href')).toBe('https://github.com/starspacegroup/NebulaKit/generate');
 	});
 
+	it('sends "Read the docs" to this site\'s own documentation page', () => {
+		// It pointed at the GitHub repo root, which is a file listing rather than
+		// documentation, and took the reader off the site to find it.
+		render(Page);
+
+		expect(screen.getByRole('link', { name: /read the docs/i })).toHaveAttribute(
+			'href',
+			'/documentation'
+		);
+	});
+
 	it('points at the component showcase from the hero', () => {
 		render(Page);
 
@@ -222,7 +233,7 @@ describe('Home Page Lighthouse scores', () => {
 		}
 	});
 
-	it('leads with the lowest score anywhere, not an average', () => {
+	it('computes the headline from the floor, not an average', () => {
 		// An average of 100 and a floor of 100 are the same number today. Only
 		// the floor stays honest the day one page slips, so that is the one the
 		// headline is wired to.
@@ -232,6 +243,17 @@ describe('Home Page Lighthouse scores', () => {
 			Number(r.textContent?.trim())
 		);
 		expect(Number(headline)).toBe(Math.min(...dials));
+	});
+
+	it('states the coverage rather than apologising for it', () => {
+		// The figure being a floor is a reason to compute it that way, not copy.
+		// "The lowest score anywhere" under a 100 reads as a hedge; while every
+		// audit is perfect the label says what the number actually covers.
+		const { container } = render(Page);
+		const label = container.querySelector('.lh-floor-label')?.textContent ?? '';
+		expect(label).toMatch(/every page/i);
+		expect(label).toMatch(/every category/i);
+		expect(label).not.toMatch(/lowest/i);
 	});
 
 	it('draws one dial per category rather than one per cell', () => {
