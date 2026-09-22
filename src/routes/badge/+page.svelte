@@ -18,6 +18,7 @@
 		type BadgeVariant,
 		type LighthouseBadgeVariant
 	} from '$lib/badge';
+	import { highlightSnippet } from '$lib/highlight';
 
 	const description =
 		'The NebulaKit badge for your README, your site or your app. Pick the wording, pick the ground, copy the snippet.';
@@ -191,7 +192,11 @@
 					</button>
 				</div>
 				<p class="form-note">{form.note}</p>
-				<pre><code>{form.code}</code></pre>
+				<!-- `{@html}` because the highlighter returns markup. It escapes
+				     everything it is given — see highlight.ts — and what it is given
+				     is a snippet this site generated. The clipboard still gets
+				     `form.code`, the raw text. -->
+				<pre><code>{@html highlightSnippet(form.code, form.id)}</code></pre>
 			</article>
 		{/each}
 	</section>
@@ -238,7 +243,11 @@
 					</button>
 				</div>
 				<p class="form-note">{form.note}</p>
-				<pre><code>{form.code}</code></pre>
+				<!-- `{@html}` because the highlighter returns markup. It escapes
+				     everything it is given — see highlight.ts — and what it is given
+				     is a snippet this site generated. The clipboard still gets
+				     `form.code`, the raw text. -->
+				<pre><code>{@html highlightSnippet(form.code, form.id)}</code></pre>
 			</article>
 		{/each}
 	</section>
@@ -485,6 +494,58 @@
 		font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
 		font-size: 0.8125rem;
 		line-height: 1.6;
+	}
+
+	/* The highlighted markup is injected, so Svelte's scoping never reaches it —
+	   these have to be :global. Roles rather than a full theme: six colours,
+	   each checked against the page ground in both themes. Anything the grammar
+	   tags that is not listed keeps --color-text, which is the right default
+	   for code. */
+	pre :global(.hljs-comment),
+	pre :global(.hljs-quote),
+	pre :global(.hljs-meta) {
+		color: var(--code-comment);
+		font-style: italic;
+	}
+
+	pre :global(.hljs-punctuation),
+	pre :global(.hljs-operator) {
+		color: var(--code-punctuation);
+	}
+
+	pre :global(.hljs-tag),
+	pre :global(.hljs-name),
+	pre :global(.hljs-selector-tag),
+	pre :global(.hljs-selector-class),
+	pre :global(.hljs-selector-id),
+	pre :global(.hljs-section),
+	pre :global(.hljs-title) {
+		color: var(--code-tag);
+	}
+
+	pre :global(.hljs-attr),
+	pre :global(.hljs-attribute),
+	pre :global(.hljs-property),
+	pre :global(.hljs-variable),
+	pre :global(.hljs-symbol) {
+		color: var(--code-attr);
+	}
+
+	pre :global(.hljs-string),
+	pre :global(.hljs-number),
+	pre :global(.hljs-link),
+	pre :global(.hljs-regexp),
+	pre :global(.hljs-addition) {
+		color: var(--code-string);
+	}
+
+	pre :global(.hljs-keyword),
+	pre :global(.hljs-built_in),
+	pre :global(.hljs-literal),
+	pre :global(.hljs-type),
+	pre :global(.hljs-strong),
+	pre :global(.hljs-bullet) {
+		color: var(--code-keyword);
 	}
 
 	.terms {

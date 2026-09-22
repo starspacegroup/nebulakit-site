@@ -18,6 +18,20 @@
 	--color-success: #1a7f37;
 	--color-warning: #ffc107;
 
+	/* Syntax highlighting for the snippets on /badge. Six roles, not a full
+	   theme: tags, attribute names, strings and values, keywords, comments, and
+	   punctuation. Every one clears 4.5:1 against --color-background in its own
+	   theme — measured, lowest is 5.93:1. A comment nobody can read is worse
+	   than no colour at all, and greying comments out is exactly where
+	   highlighters usually fail that check, so the comment colour was the first
+	   one measured rather than the last. */
+	--code-tag: #a4243f;
+	--code-attr: #8a5a00;
+	--code-string: #1f6a3d;
+	--code-keyword: #7238b5;
+	--code-comment: #5a6169;
+	--code-punctuation: #5a6169;
+
 	/* Chart series (admin stats). A fixed categorical order — a series keeps its
 	   hue regardless of rank, so filtering never repaints the survivors. Both
 	   modes are stepped independently against their own surface and validated for
@@ -81,6 +95,14 @@
 	--color-error: #ef4444;
 	--color-success: #10b981;
 	--color-warning: #f59e0b;
+
+	/* Same six roles, lifted for the dark ground. */
+	--code-tag: #ff8a9b;
+	--code-attr: #f0b95c;
+	--code-string: #86d9a4;
+	--code-keyword: #cba6f7;
+	--code-comment: #9aa4ae;
+	--code-punctuation: #9aa4ae;
 
 	/* Chart series — stepped for the dark surface, not derived from the light
 	   values. See the note in :root. */

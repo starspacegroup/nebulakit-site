@@ -1189,7 +1189,16 @@
 		</p>
 
 		<p class="lh-footnote">
-			Lighthouse {lighthouse.lighthouseVersion}, {lighthouse.formFactor} preset, median of {lighthouse.runsPerPage}
+			<!-- Name the tool and link it. The whole section is an appeal to an
+			     outside measurement, so the reader should be one click from what
+			     is doing the measuring rather than taking our word for it. -->
+			<a
+				class="lh-tool-link"
+				href="https://developer.chrome.com/docs/lighthouse/overview"
+				target="_blank"
+				rel="noopener noreferrer">Lighthouse</a
+			>
+			{lighthouse.lighthouseVersion}, {lighthouse.formFactor} preset, median of {lighthouse.runsPerPage}
 			runs per page, on
 			<time datetime={lighthouse.generatedAt}>{lighthouse.generatedAt}</time>. Login and signup are
 			not listed: robots.txt keeps the auth flow out of search on purpose, and Lighthouse scores a
@@ -2832,6 +2841,10 @@
 	}
 
 	.lh-badge-offer a {
+		color: var(--color-primary);
+	}
+
+	.lh-tool-link {
 		color: var(--color-primary);
 	}
 
