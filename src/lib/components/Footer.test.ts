@@ -35,6 +35,11 @@ describe('Footer', () => {
 		expect(screen.getByRole('link', { name: /^showcase$/i })).toHaveAttribute('href', '/showcase');
 	});
 
+	it('should link to the badge page', () => {
+		render(Footer);
+		expect(screen.getByRole('link', { name: /^badge$/i })).toHaveAttribute('href', '/badge');
+	});
+
 	it('should have legal links section', () => {
 		render(Footer);
 		expect(screen.getByRole('heading', { name: /legal/i })).toBeInTheDocument();

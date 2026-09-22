@@ -96,6 +96,7 @@ npm run deploy`
 			<a href="#feature-overview">Feature Overview</a>
 			<a href="#how-to-use">How To Use</a>
 			<a href="#drag-and-drop">Drag and Drop</a>
+			<a href="#badge">The Badge</a>
 			<a href="#ai-workflow">AI Workflow</a>
 			<a href="#commands">Commands</a>
 			<a href="#cloudflare-bindings">Cloudflare Bindings</a>
@@ -365,6 +366,36 @@ npm run deploy`
 			<p>
 				Full reference, including the reorder contract and the component checklist:
 				<code>docs/WIDGET_BOARD.md</code>.
+			</p>
+		</section>
+
+		<section id="badge" class="docs-section">
+			<h2>The Badge</h2>
+			<p>
+				<a href="/badge">The badge page</a> hands out "Proudly built with NebulaKit" in six forms — Markdown
+				for a README, HTML, a web component, and React, Svelte and Vue components — in three wordings
+				and on either a dark or a light ground. Pick, preview, copy.
+			</p>
+			<p>
+				An app generated from the template already wears it: the footer carries
+				<code>BuiltWithNebulaKit.svelte</code>, and <code>showBuiltWithBadge: false</code> in
+				<code>src/lib/site.config.ts</code> removes it. NebulaKit is MIT-licensed, so the badge is a courtesy
+				rather than a condition.
+			</p>
+			<h3>Endpoints</h3>
+			<p>
+				<code>/badge.svg?variant=proudly|built|powered&amp;theme=dark|light</code> is the image a
+				README embeds. <code>/badge.js</code> defines
+				<code>&lt;nebulakit-badge&gt;</code>, which renders in a shadow root and follows the
+				reader's own colour scheme. <code>/badge-mark.svg?size=64</code> is the mark alone, for the cases
+				the pill does not cover.
+			</p>
+			<p>
+				All three are served with <code>Access-Control-Allow-Origin: *</code>, because the badge is
+				embedded cross-origin by definition. None of them loads a font, a stylesheet or a tracker:
+				the mark is drawn inline and every colour is a literal, so the badge renders on a page that
+				has never heard of this site. An unknown <code>variant</code> or <code>theme</code> renders the
+				default badge rather than a 400 — a broken image in someone else's README tells them nothing.
 			</p>
 		</section>
 

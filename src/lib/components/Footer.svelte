@@ -65,6 +65,9 @@
 							<a href="/showcase">Showcase</a>
 						</li>
 						<li>
+							<a href="/badge">Badge</a>
+						</li>
+						<li>
 							<a href={repoUrl} target="_blank" rel="noopener noreferrer"> GitHub </a>
 						</li>
 					</ul>
