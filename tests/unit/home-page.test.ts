@@ -66,10 +66,13 @@ describe('Home Page Hero', () => {
 		expect(cta.getAttribute('href')).toBe('https://github.com/starspacegroup/NebulaKit/generate');
 	});
 
-	it('points at the live drag-and-drop board from the hero', () => {
+	it('points at the component showcase from the hero', () => {
 		render(Page);
 
-		expect(screen.getByRole('link', { name: /see it work/i })).toHaveAttribute('href', '/showcase');
+		expect(screen.getByRole('link', { name: /included modules/i })).toHaveAttribute(
+			'href',
+			'/showcase'
+		);
 	});
 
 	it('gives drag-and-drop a feature card that is itself the link', () => {

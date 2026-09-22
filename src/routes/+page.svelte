@@ -429,7 +429,7 @@
 				>
 					Star on GitHub
 				</a>
-				<a class="cta cta-secondary" href="/showcase"> See it work </a>
+				<a class="cta cta-secondary" href="/showcase"> Included Modules </a>
 			</div>
 			<p class="hero-note">
 				Free and MIT-licensed. Deploy to Cloudflare in minutes — this site is built on it.
