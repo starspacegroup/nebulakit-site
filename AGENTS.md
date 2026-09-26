@@ -145,6 +145,16 @@ const passwordField = fieldName('password');
 
 ---
 
+### 10. Screenshots Of Other Sites Come In Light And Dark
+
+**Rule:** A screenshot of another website ships as a pair: one capture in that site's light mode, one in its dark mode. Show the one that matches this page's current theme.
+
+**When this breaks:**
+
+- Switching on `prefers-color-scheme` (for example `<picture media="(prefers-color-scheme: dark)">`) → the user toggle sets `data-theme` on `<html>` and overrides the OS, so the wrong capture shows after a toggle. Switch on `[data-theme='dark']` instead.
+- The two captures differ in size → the layout jumps on a theme change. Capture both at the same viewport, and give both the same `alt`.
+- The site has only one mode → ship the single image and say so beside it.
+
 ---
 
 ## Architecture Notes
