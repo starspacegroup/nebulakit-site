@@ -1,6 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { FIELD, INTRO_STAGGER, clamp01, nebulaField, place } from '$lib/hero-field';
+	import {
+		FIELD,
+		IDLE_MS,
+		INTRO_STAGGER,
+		METEOR_MS,
+		clamp01,
+		meteorHead,
+		nebulaField,
+		place,
+		planMeteor,
+		type Meteor
+	} from '$lib/hero-field';
 
 	/**
 	 * The live field behind the home hero — the same move as the Braille field
@@ -62,6 +73,13 @@
 		let ty = 0;
 		let scroll = 0;
 
+		/* A shooting star while the pointer rests: when it last moved, the
+		   crossing under way, and when the next may start. */
+		let lastMove = performance.now();
+		let meteor: Meteor | null = null;
+		let meteorAt = 0;
+		let nextMeteorAt = 0;
+
 		let star = '#ffffff';
 		let tints = ['#3b82f6', '#8b5cf6'];
 		let starAlpha = 1;
@@ -107,7 +125,31 @@
 			tx += (px - tx) * 0.07;
 			ty += (py - ty) * 0.07;
 			const intro = introAt ? clamp01((t - introAt) / (INTRO_MS * (1 + INTRO_STAGGER))) : 0;
-			const state = { t, tx, ty, scroll, intro, pointer: fine.matches, width: w, height: h };
+			if (fine.matches && intro >= 1) {
+				if (!meteor && t - lastMove > IDLE_MS && t > nextMeteorAt) {
+					meteor = planMeteor(w, h, Math.random);
+					meteorAt = t;
+				}
+				if (meteor) {
+					meteor.progress = (t - meteorAt) / METEOR_MS;
+					if (meteor.progress > 1) {
+						meteor = null;
+						// Still resting? Another one after the same pause.
+						nextMeteorAt = t + IDLE_MS;
+					}
+				}
+			}
+			const state = {
+				t,
+				tx,
+				ty,
+				scroll,
+				intro,
+				pointer: fine.matches,
+				width: w,
+				height: h,
+				meteor
+			};
 
 			// A pool of the nebula's own colour where the cursor is, under the field.
 			if (fine.matches) {
@@ -156,6 +198,27 @@
 				ctx!.arc(at.x, at.y, at.radius, 0, Math.PI * 2);
 				ctx!.fill();
 			}
+			// The streak itself, in the stars' own colour: bright at the head,
+			// gone a short way back along the path.
+			if (meteor) {
+				const head = meteorHead(meteor);
+				const dx = meteor.bx - meteor.ax;
+				const dy = meteor.by - meteor.ay;
+				const len = Math.hypot(dx, dy) || 1;
+				const fade = Math.sin(clamp01(meteor.progress) * Math.PI);
+				const tailX = head.x - (dx / len) * 220;
+				const tailY = head.y - (dy / len) * 220;
+				const trail = ctx!.createLinearGradient(head.x, head.y, tailX, tailY);
+				trail.addColorStop(0, tint(star, 0.9 * fade * starAlpha));
+				trail.addColorStop(1, tint(star, 0));
+				ctx!.strokeStyle = trail;
+				ctx!.lineWidth = 1.5;
+				ctx!.lineCap = 'round';
+				ctx!.beginPath();
+				ctx!.moveTo(head.x, head.y);
+				ctx!.lineTo(tailX, tailY);
+				ctx!.stroke();
+			}
 		}
 
 		function frame(t: number) {
@@ -193,6 +256,7 @@
 			draw(performance.now());
 		};
 		const onMove = (e: PointerEvent) => {
+			lastMove = performance.now();
 			px = (e.clientX - (heroLeft - window.scrollX)) / heroWidth - 0.5;
 			py = (e.clientY - (heroTop - window.scrollY)) / heroHeight - 0.5;
 		};

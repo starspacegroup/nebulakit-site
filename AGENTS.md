@@ -174,7 +174,7 @@ const passwordField = fieldName('password');
   [src/lib/hero-field.ts](src/lib/hero-field.ts) — the same pattern as the hero on
   davis9001.com and starspace.group. The server renders it as a still SVG; a canvas takes over on
   mount, arrives once, and moves by depth with the pointer, the scroll and its own slow wander.
-  Under reduced motion the canvas never starts. Colours are `--hero-field-*` tokens in
+  When the pointer rests for `IDLE_MS`, a meteor crosses and lights the points along its path in turn. Under reduced motion the canvas never starts. Colours are `--hero-field-*` tokens in
   `src/app.css`. Add stars to the field, not as new `div`s in the hero. The figures under the
   hero buttons (`.hero-receipts`) come from the same data as the sections they link to, so do not
   type a number into them by hand.

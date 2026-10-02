@@ -171,6 +171,8 @@ export type FrameState = {
 	pointer: boolean;
 	width: number;
 	height: number;
+	/** A meteor crossing the field while the pointer rests, if one is. */
+	meteor?: Meteor | null;
 };
 
 export type Placed = { x: number; y: number; radius: number; alpha: number; lift: number };
@@ -213,7 +215,7 @@ export function place(p: Particle, s: FrameState): Placed | null {
 	const near = s.pointer
 		? Math.max(0, 1 - Math.hypot(x - (s.tx + 0.5) * s.width, y - (s.ty + 0.5) * s.height) / 260)
 		: 0;
-	const lift = near * near;
+	const lift = Math.max(near * near, meteorGlow(x, y, s.meteor));
 
 	const breath = p.twinkle
 		? 0.15 + 0.85 * (0.5 + 0.5 * Math.sin(((s.t / 1000 + p.delay) / p.period) * Math.PI))
@@ -226,4 +228,63 @@ export function place(p: Particle, s: FrameState): Placed | null {
 		alpha: clamp01(p.opacity * breath * (1 + lift * 1.8) * arrived),
 		lift
 	};
+}
+
+/**
+ * A shooting star, for when the pointer rests.
+ *
+ * Once the cursor has been still for a few seconds, a streak crosses the
+ * field, and the points along its path light up one after another as the
+ * head passes them — the field answering nobody, briefly, so it is not dead
+ * while someone reads. In canvas pixels; `progress` runs 0 to 1 across the
+ * crossing.
+ */
+export type Meteor = { ax: number; ay: number; bx: number; by: number; progress: number };
+
+/** How long a crossing takes, and how long the field waits between them. */
+export const METEOR_MS = 2600;
+export const IDLE_MS = 3000;
+
+/** How far either side of the path a point still catches the light, in px. */
+const METEOR_BAND = 90;
+/** How much of the crossing a lit point stays lit behind the head. */
+const METEOR_TRAIL = 0.35;
+
+/**
+ * Plan a crossing. It starts high on one side and falls toward the other,
+ * from beyond the edges so the head enters and leaves the frame rather than
+ * appearing in it. `random` is any uniform [0, 1) source.
+ */
+export function planMeteor(width: number, height: number, random: () => number): Meteor {
+	const fromRight = random() < 0.5;
+	const ay = height * (-0.1 + random() * 0.35);
+	const by = ay + height * (0.55 + random() * 0.4);
+	const ax = fromRight ? width * (0.75 + random() * 0.35) : width * (-0.1 + random() * 0.35);
+	const bx = fromRight ? ax - width * (0.5 + random() * 0.3) : ax + width * (0.5 + random() * 0.3);
+	return { ax, ay, bx, by, progress: 0 };
+}
+
+/** Where the head is. Constant speed, so the lit points read as a row being walked. */
+export function meteorHead(m: Meteor): { x: number; y: number } {
+	const k = clamp01(m.progress);
+	return { x: m.ax + (m.bx - m.ax) * k, y: m.ay + (m.by - m.ay) * k };
+}
+
+/**
+ * How brightly a point at (x, y) is lit by a passing meteor, 0 to 1: only
+ * near the path, only once the head has reached it, fading behind the head.
+ */
+export function meteorGlow(x: number, y: number, m?: Meteor | null): number {
+	if (!m) return 0;
+	const dx = m.bx - m.ax;
+	const dy = m.by - m.ay;
+	const length = Math.hypot(dx, dy);
+	if (length === 0) return 0;
+	// Where the point sits along the path (0 to 1), and how far off it.
+	const along = ((x - m.ax) * dx + (y - m.ay) * dy) / (length * length);
+	const off = Math.abs((x - m.ax) * dy - (y - m.ay) * dx) / length;
+	if (off > METEOR_BAND || along < 0 || along > 1) return 0;
+	const behind = clamp01(m.progress) - along;
+	if (behind < 0 || behind > METEOR_TRAIL) return 0;
+	return (1 - behind / METEOR_TRAIL) * (1 - off / METEOR_BAND);
 }

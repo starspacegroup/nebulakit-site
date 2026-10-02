@@ -5,7 +5,10 @@ import {
 	easeOut,
 	fieldTransform,
 	nebulaField,
+	meteorGlow,
+	meteorHead,
 	nebulaSpine,
+	planMeteor,
 	place,
 	seededRandom,
 	wrap,
@@ -178,5 +181,59 @@ describe('place', () => {
 		const p = particle({ twinkle: true, period: 4, delay: 0 });
 		const alphas = [0, 1000, 2000, 3000, 4000].map((t) => place(p, frame({ t }))!.alpha);
 		expect(Math.max(...alphas)).toBeGreaterThan(Math.min(...alphas));
+	});
+});
+
+describe('meteor', () => {
+	const m = { ax: 0, ay: 0, bx: 1000, by: 0, progress: 0.5 };
+	const head = meteorHead(m).x;
+
+	it('lights a point just behind the head, on the path', () => {
+		expect(meteorGlow(head - 10, 0, m)).toBeGreaterThan(0.9);
+	});
+
+	it('leaves points ahead of the head, far behind it, or off the path dark', () => {
+		expect(meteorGlow(head + 20, 0, m)).toBe(0);
+		expect(meteorGlow(head - 400, 0, m)).toBe(0);
+		expect(meteorGlow(head - 10, 200, m)).toBe(0);
+		expect(meteorGlow(-50, 0, m)).toBe(0);
+	});
+
+	it('dims with distance from the path', () => {
+		expect(meteorGlow(head - 10, 40, m)).toBeLessThan(meteorGlow(head - 10, 0, m));
+	});
+
+	it('does nothing without a meteor, or with a zero-length one', () => {
+		expect(meteorGlow(0, 0, null)).toBe(0);
+		expect(meteorGlow(0, 0, { ax: 5, ay: 5, bx: 5, by: 5, progress: 0.5 })).toBe(0);
+	});
+
+	it('runs the head from one end to the other', () => {
+		expect(meteorHead({ ...m, progress: 0 })).toEqual({ x: 0, y: 0 });
+		expect(meteorHead({ ...m, progress: 1 })).toEqual({ x: 1000, y: 0 });
+	});
+
+	it('plans a crossing that falls across the field, from either side', () => {
+		for (const seed of [1, 2, 3, 4, 5, 6]) {
+			const plan = planMeteor(1600, 900, seededRandom(seed));
+			expect(plan.by).toBeGreaterThan(plan.ay);
+			expect(Math.abs(plan.bx - plan.ax)).toBeGreaterThan(1600 * 0.45);
+			expect(plan.progress).toBe(0);
+		}
+		const left = planMeteor(1600, 900, () => 0.9);
+		const right = planMeteor(1600, 900, () => 0.1);
+		expect(left.bx).toBeGreaterThan(left.ax);
+		expect(right.bx).toBeLessThan(right.ax);
+	});
+
+	it('lifts a particle in place() as the meteor passes it', () => {
+		const p = particle();
+		const at = place(p, frame())!;
+		const passing = { ax: at.x - 500, ay: at.y, bx: at.x + 500, by: at.y, progress: 0 };
+		// The head just past the particle.
+		passing.progress = 0.52;
+		const lit = place(p, frame({ meteor: passing }))!;
+		expect(lit.lift).toBeGreaterThan(0.8);
+		expect(lit.alpha).toBeGreaterThan(at.alpha);
 	});
 });
