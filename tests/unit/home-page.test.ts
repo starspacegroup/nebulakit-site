@@ -309,3 +309,46 @@ describe('Home Page Lighthouse scores', () => {
 		expect(coverage).toContain('11 public pages');
 	});
 });
+
+// Real sites made with the template are the strongest proof on the page. Each
+// ships a light and a dark capture, and the one shown follows data-theme
+// (AGENTS.md §10), so both must be in the markup with matching sizes.
+describe('Home Page Built With section', () => {
+	it('links every live site built with NebulaKit', async () => {
+		const { builtWith } = await import('../../src/lib/built-with');
+		render(Page);
+		expect(screen.getByRole('heading', { name: /built with nebulakit/i })).toBeTruthy();
+		for (const entry of builtWith) {
+			const link = document.querySelector(`.built-with a[href="${entry.url}"]`);
+			expect(link, entry.url).toBeTruthy();
+		}
+	});
+
+	it('ships a light and a dark capture of the same size for each site', async () => {
+		const { builtWith } = await import('../../src/lib/built-with');
+		render(Page);
+		for (const entry of builtWith) {
+			const light = document.querySelector(`img[src="/built-with/${entry.slug}-light.webp"]`);
+			const dark = document.querySelector(`img[src="/built-with/${entry.slug}-dark.webp"]`);
+			expect(light, entry.slug).toBeTruthy();
+			expect(dark, entry.slug).toBeTruthy();
+			expect(light?.getAttribute('width')).toBe(dark?.getAttribute('width'));
+			expect(light?.getAttribute('height')).toBe(dark?.getAttribute('height'));
+			expect(light?.getAttribute('alt')).toBe(dark?.getAttribute('alt'));
+			expect(light?.getAttribute('loading')).toBe('lazy');
+		}
+	});
+
+	it('has a capture on disk for every listed site', async () => {
+		const { builtWith } = await import('../../src/lib/built-with');
+		const { existsSync } = await import('node:fs');
+		for (const entry of builtWith) {
+			for (const mode of ['light', 'dark']) {
+				expect(
+					existsSync(`static/built-with/${entry.slug}-${mode}.webp`),
+					`${entry.slug}-${mode}`
+				).toBe(true);
+			}
+		}
+	});
+});

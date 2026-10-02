@@ -7,6 +7,7 @@
 	import { onMount } from 'svelte';
 	import lighthouse from '$lib/lighthouse-results.json';
 	import ScoreRing from '$lib/components/ScoreRing.svelte';
+	import { builtWith } from '$lib/built-with';
 
 	/* Category keys as Lighthouse names them, with the label the table shows.
 	   The JSON carries the order; this only supplies the wording. */
@@ -1134,6 +1135,52 @@
 				<h3>Type-safe end to end</h3>
 				<p>TypeScript throughout, including Cloudflare Workers types for the bindings.</p>
 			</li>
+		</ul>
+	</div>
+</section>
+
+<!-- Real sites made from the template. Each has a light and a dark capture
+     (scripts/capture-built-with.mjs); CSS shows the one that matches
+     data-theme, not prefers-color-scheme, because the toggle overrides the OS
+     (AGENTS.md §10). -->
+<section class="built-with" aria-labelledby="built-with-title">
+	<div class="features-shell">
+		<div class="features-header">
+			<h2 class="features-title" id="built-with-title">Built with NebulaKit</h2>
+			<p class="features-subtitle">
+				Live sites that started from this template. Switch the theme and they switch with it.
+			</p>
+		</div>
+
+		<ul class="bw-grid">
+			{#each builtWith as entry (entry.slug)}
+				<li class="bw-item">
+					<a class="bw-link" href={entry.url} target="_blank" rel="noopener">
+						<span class="bw-shot">
+							<img
+								class="bw-img bw-img--light"
+								src="/built-with/{entry.slug}-light.webp"
+								alt="The {entry.name} home page"
+								width="1280"
+								height="800"
+								loading="lazy"
+								decoding="async"
+							/>
+							<img
+								class="bw-img bw-img--dark"
+								src="/built-with/{entry.slug}-dark.webp"
+								alt="The {entry.name} home page"
+								width="1280"
+								height="800"
+								loading="lazy"
+								decoding="async"
+							/>
+						</span>
+						<span class="bw-name">{entry.name}</span>
+						<span class="bw-blurb">{entry.blurb}</span>
+					</a>
+				</li>
+			{/each}
 		</ul>
 	</div>
 </section>
@@ -2734,6 +2781,93 @@
 	.value-props {
 		padding: var(--spacing-2xl) 0;
 		background: var(--color-background);
+	}
+
+	/* Built with NebulaKit */
+	.built-with {
+		padding: var(--spacing-2xl) 0;
+		background: var(--color-background);
+	}
+
+	.bw-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+		gap: var(--spacing-xl);
+		max-width: 90rem;
+		margin: 0 auto var(--spacing-2xl);
+		padding: 0;
+		list-style: none;
+	}
+
+	.bw-link {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+		height: 100%;
+		padding: var(--spacing-md);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-xl);
+		background: var(--color-surface);
+		color: var(--color-text);
+		text-decoration: none;
+		transition:
+			transform 0.2s ease,
+			border-color 0.2s ease;
+	}
+
+	.bw-link:hover,
+	.bw-link:focus-visible {
+		transform: translateY(-3px);
+		border-color: var(--color-primary);
+	}
+
+	.bw-shot {
+		display: block;
+		aspect-ratio: 1280 / 800;
+		margin-bottom: var(--spacing-sm);
+		overflow: hidden;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+	}
+
+	.bw-img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.bw-img--dark {
+		display: none;
+	}
+
+	:global([data-theme='dark']) .bw-img--light {
+		display: none;
+	}
+
+	:global([data-theme='dark']) .bw-img--dark {
+		display: block;
+	}
+
+	.bw-name {
+		font-size: 1.125rem;
+		font-weight: 700;
+	}
+
+	.bw-blurb {
+		font-size: 0.9375rem;
+		color: var(--color-text-secondary);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bw-link {
+			transition: none;
+		}
+
+		.bw-link:hover,
+		.bw-link:focus-visible {
+			transform: none;
+		}
 	}
 
 	/* Lighthouse scores */
