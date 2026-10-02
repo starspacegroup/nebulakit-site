@@ -78,6 +78,15 @@
 	--transition-fast: 150ms ease;
 	--transition-base: 250ms ease;
 	--transition-slow: 350ms ease;
+
+	/* Home hero field (HeroField.svelte). Light: the last stars before dawn, dim
+	   points with no halo, and the nebula's dust faint over a pale page. */
+	--hero-field-star: #4a5878;
+	--hero-field-star-opacity: 0.5;
+	--hero-field-halo-opacity: 0;
+	--hero-field-dust-a: var(--color-primary);
+	--hero-field-dust-b: var(--color-secondary);
+	--hero-field-dust-opacity: 0.3;
 }
 
 /* Dark theme */
@@ -110,6 +119,16 @@
 	--chart-users: #10a396;
 	--chart-content: #b01e5c;
 	--chart-usage: #d97706;
+
+	/* Home hero field: a night sky, with halos on the bright few. The dust is
+	   lifted toward white so it glows against the wash instead of reading as
+	   holes in it. */
+	--hero-field-star: #ffffff;
+	--hero-field-dust-a: #93c5fd;
+	--hero-field-dust-b: #c4b5fd;
+	--hero-field-star-opacity: 1;
+	--hero-field-halo-opacity: 1;
+	--hero-field-dust-opacity: 0.85;
 }
 
 /* Reset and base styles */

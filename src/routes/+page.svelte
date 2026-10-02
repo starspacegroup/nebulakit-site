@@ -8,6 +8,7 @@
 	import lighthouse from '$lib/lighthouse-results.json';
 	import ScoreRing from '$lib/components/ScoreRing.svelte';
 	import { builtWith } from '$lib/built-with';
+	import HeroField from '$lib/components/HeroField.svelte';
 
 	/* Category keys as Lighthouse names them, with the label the table shows.
 	   The JSON carries the order; this only supplies the wording. */
@@ -259,17 +260,6 @@
 			</svg>
 
 			<!-- Stars within the nebula -->
-			<div class="nebula-star" style="top: 8%; left: 12%;"></div>
-			<div class="nebula-star small" style="top: 15%; left: 18%;"></div>
-			<div class="nebula-star large" style="top: 22%; left: 8%;"></div>
-			<div class="nebula-star" style="top: 35%; left: 14%;"></div>
-			<div class="nebula-star small" style="top: 42%; left: 6%;"></div>
-			<div class="nebula-star" style="top: 48%; left: 16%;"></div>
-			<div class="nebula-star large" style="top: 58%; left: 10%;"></div>
-			<div class="nebula-star small" style="top: 65%; left: 20%;"></div>
-			<div class="nebula-star" style="top: 72%; left: 7%;"></div>
-			<div class="nebula-star small" style="top: 82%; left: 15%;"></div>
-			<div class="nebula-star large" style="top: 90%; left: 11%;"></div>
 		</div>
 		<!-- Wavy colored background blobs -->
 		<div class="wavy-blob wavy-blob-left"></div>
@@ -279,19 +269,9 @@
 		<div class="nebula nebula-left"></div>
 		<div class="nebula-overlay nebula-left-overlay"></div>
 
-		<!-- Four-pointed stars scattered throughout -->
-		<div class="star-sparkle" style="top: 8%; left: 18%; animation-delay: 0s;"></div>
-		<div class="star-sparkle" style="top: 15%; left: 52%; animation-delay: 1.5s;"></div>
-		<div class="star-sparkle large" style="top: 18%; right: 15%; animation-delay: 0.8s;"></div>
-		<div class="star-sparkle" style="top: 35%; left: 25%; animation-delay: 2s;"></div>
-		<div class="star-sparkle large" style="top: 50%; left: 8%; animation-delay: 1.2s;"></div>
-		<div class="star-sparkle" style="bottom: 25%; left: 15%; animation-delay: 2.5s;"></div>
-		<div class="star-sparkle large" style="bottom: 15%; right: 8%; animation-delay: 0.3s;"></div>
-		<div class="star-sparkle" style="top: 45%; right: 12%; animation-delay: 1.8s;"></div>
-
-		<!-- Small dots for depth -->
-		<div class="stars-layer"></div>
-		<div class="stars-layer-2"></div>
+		<!-- The live field: stars and nebula dust that arrive once, answer the
+		     pointer and the scroll by depth, and wander on their own. -->
+		<HeroField />
 
 		<!-- Chat bubble decoration with user icon -->
 		<div class="chat-bubble">
@@ -317,9 +297,6 @@
 		<!-- Planets with enhanced detail -->
 		<div class="planet planet-left"></div>
 		<div class="planet planet-right"></div>
-
-		<!-- Comet/shooting star -->
-		<div class="comet"></div>
 	</div>
 
 	<div class="hero-shell">
@@ -441,6 +418,28 @@
 			<p class="hero-note">
 				Free and MIT-licensed. Deploy to Cloudflare in minutes — this site is built on it.
 			</p>
+			<!-- Receipts, not adjectives: each figure comes from the data the
+			     section it links to is built from, so it cannot drift from it. -->
+			<ul class="hero-receipts">
+				<li>
+					<a href="#lighthouse-title">
+						<strong>{lighthouseFloor}</strong>
+						<span>lowest Lighthouse score, {lighthousePageCount} pages</span>
+					</a>
+				</li>
+				<li>
+					<a href="#built-with-title">
+						<strong>{builtWith.length}</strong>
+						<span>live sites built with it</span>
+					</a>
+				</li>
+				<li>
+					<a href="/showcase">
+						<strong>95%</strong>
+						<span>test coverage floor, enforced in CI</span>
+					</a>
+				</li>
+			</ul>
 			<!-- Command Palette Style Search -->
 			<div class="command-palette">
 				<div class="search-box">
@@ -1527,43 +1526,6 @@
 		}
 	}
 
-	/* Stars within nebula */
-	.nebula-star {
-		position: absolute;
-		width: 4px;
-		height: 4px;
-		background: var(--color-text);
-		border-radius: 50%;
-		box-shadow: 0 0 12px 2px color-mix(in srgb, var(--color-text) 90%, transparent);
-		animation: nebula-star-twinkle 3s ease-in-out infinite;
-		z-index: 1;
-		will-change: transform, opacity;
-	}
-
-	.nebula-star.small {
-		width: 2.5px;
-		height: 2.5px;
-		box-shadow: 0 0 8px 1px color-mix(in srgb, var(--color-text) 80%, transparent);
-	}
-
-	.nebula-star.large {
-		width: 5px;
-		height: 5px;
-		box-shadow: 0 0 16px 3px color-mix(in srgb, var(--color-text) 95%, transparent);
-	}
-
-	@keyframes nebula-star-twinkle {
-		0%,
-		100% {
-			opacity: 0.6;
-			transform: scale(1);
-		}
-		50% {
-			opacity: 1;
-			transform: scale(1.3);
-		}
-	}
-
 	/* Enhanced Nebula clouds with layering */
 	.nebula {
 		position: absolute;
@@ -1609,122 +1571,6 @@
 		);
 		animation: float 20s ease-in-out infinite;
 		animation-delay: -5s;
-	}
-
-	/* Four-pointed sparkle stars */
-	.star-sparkle {
-		position: absolute;
-		width: 12px;
-		height: 12px;
-		animation: sparkle 3s ease-in-out infinite;
-		will-change: transform, opacity;
-	}
-
-	.star-sparkle::before,
-	.star-sparkle::after {
-		content: '';
-		position: absolute;
-		background: var(--color-text);
-		box-shadow: 0 0 8px color-mix(in srgb, var(--color-text) 80%, transparent);
-	}
-
-	.star-sparkle::before {
-		width: 12px;
-		height: 2px;
-		top: 5px;
-		left: 0;
-	}
-
-	.star-sparkle::after {
-		width: 2px;
-		height: 12px;
-		top: 0;
-		left: 5px;
-	}
-
-	.star-sparkle.large {
-		width: 16px;
-		height: 16px;
-	}
-
-	.star-sparkle.large::before {
-		width: 16px;
-		height: 2.5px;
-		top: 6.75px;
-		left: 0;
-	}
-
-	.star-sparkle.large::after {
-		width: 2.5px;
-		height: 16px;
-		top: 0;
-		left: 6.75px;
-	}
-
-	/* Small dot stars for depth */
-	.stars-layer,
-	.stars-layer-2 {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		background-image:
-			radial-gradient(
-				2px 2px at 15% 20%,
-				color-mix(in srgb, var(--color-text) 80%, transparent),
-				transparent
-			),
-			radial-gradient(
-				1.5px 1.5px at 40% 15%,
-				color-mix(in srgb, var(--color-text) 60%, transparent),
-				transparent
-			),
-			radial-gradient(
-				1px 1px at 65% 25%,
-				color-mix(in srgb, var(--color-text) 70%, transparent),
-				transparent
-			),
-			radial-gradient(
-				1.5px 1.5px at 80% 35%,
-				color-mix(in srgb, var(--color-text) 50%, transparent),
-				transparent
-			),
-			radial-gradient(
-				1px 1px at 25% 45%,
-				color-mix(in srgb, var(--color-text) 60%, transparent),
-				transparent
-			),
-			radial-gradient(
-				2px 2px at 90% 50%,
-				color-mix(in srgb, var(--color-text) 70%, transparent),
-				transparent
-			),
-			radial-gradient(
-				1px 1px at 35% 60%,
-				color-mix(in srgb, var(--color-text) 50%, transparent),
-				transparent
-			),
-			radial-gradient(
-				1.5px 1.5px at 70% 70%,
-				color-mix(in srgb, var(--color-text) 60%, transparent),
-				transparent
-			),
-			radial-gradient(
-				1px 1px at 20% 80%,
-				color-mix(in srgb, var(--color-text) 80%, transparent),
-				transparent
-			),
-			radial-gradient(
-				1.5px 1.5px at 55% 85%,
-				color-mix(in srgb, var(--color-text) 50%, transparent),
-				transparent
-			);
-		background-size: 100% 100%;
-		animation: twinkle 4s ease-in-out infinite;
-	}
-
-	.stars-layer-2 {
-		animation-delay: -2s;
-		opacity: 0.7;
 	}
 
 	/* Chat bubble decoration */
@@ -1782,32 +1628,6 @@
 			0 0 50px color-mix(in srgb, var(--color-error) 25%, transparent);
 		animation: float 35s ease-in-out infinite reverse;
 		filter: blur(0.5px);
-	}
-
-	/* Comet/shooting star effect */
-	.comet {
-		position: absolute;
-		top: 30%;
-		right: 20%;
-		width: 3px;
-		height: 3px;
-		background: var(--color-text);
-		border-radius: 50%;
-		box-shadow: 0 0 10px 2px color-mix(in srgb, var(--color-text) 80%, transparent);
-		animation: comet 8s linear infinite;
-		opacity: 0;
-		will-change: transform, opacity;
-	}
-
-	.comet::after {
-		content: '';
-		position: absolute;
-		top: 0;
-		right: 3px;
-		width: 100px;
-		height: 2px;
-		background: linear-gradient(to left, var(--color-text), transparent);
-		opacity: 0.7;
 	}
 
 	/* The hero's reading measure — NOT the shared `.container`, which this used
@@ -2069,28 +1889,6 @@
 		}
 	}
 
-	@keyframes sparkle {
-		0%,
-		100% {
-			opacity: 0.4;
-			transform: scale(0.8) rotate(0deg);
-		}
-		50% {
-			opacity: 1;
-			transform: scale(1) rotate(180deg);
-		}
-	}
-
-	@keyframes twinkle {
-		0%,
-		100% {
-			opacity: 0.4;
-		}
-		50% {
-			opacity: 0.9;
-		}
-	}
-
 	@keyframes pulse {
 		0%,
 		100% {
@@ -2100,23 +1898,6 @@
 		50% {
 			opacity: 0.5;
 			transform: scaleY(0.5);
-		}
-	}
-
-	@keyframes comet {
-		0% {
-			opacity: 0;
-			transform: translate(0, 0);
-		}
-		10% {
-			opacity: 1;
-		}
-		90% {
-			opacity: 1;
-		}
-		100% {
-			opacity: 0;
-			transform: translate(-400px, 400px);
 		}
 	}
 
@@ -2189,40 +1970,6 @@
 		.chat-bubble svg {
 			width: 60px;
 			height: 60px;
-		}
-
-		.star-sparkle {
-			width: 10px;
-			height: 10px;
-		}
-
-		.star-sparkle::before {
-			width: 10px;
-			height: 1.5px;
-			top: 4.25px;
-		}
-
-		.star-sparkle::after {
-			width: 1.5px;
-			height: 10px;
-			left: 4.25px;
-		}
-
-		.star-sparkle.large {
-			width: 12px;
-			height: 12px;
-		}
-
-		.star-sparkle.large::before {
-			width: 12px;
-			height: 2px;
-			top: 5px;
-		}
-
-		.star-sparkle.large::after {
-			width: 2px;
-			height: 12px;
-			left: 5px;
 		}
 
 		.command-palette {
@@ -2312,10 +2059,42 @@
 			left: -60px;
 			width: calc(100% + 120px);
 		}
+	}
 
-		.comet {
-			display: none;
-		}
+	/* Receipts under the buttons: figures someone can check, each linking to
+	   where it comes from. */
+	.hero-receipts {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: var(--spacing-sm) var(--spacing-xl);
+		margin: var(--spacing-lg) auto var(--spacing-2xl);
+		padding: 0;
+		list-style: none;
+	}
+
+	.hero-receipts a {
+		display: flex;
+		align-items: baseline;
+		gap: var(--spacing-sm);
+		color: var(--color-text-secondary);
+		font-size: 0.9375rem;
+		text-decoration: none;
+	}
+
+	.hero-receipts a:hover span,
+	.hero-receipts a:focus-visible span {
+		color: var(--color-text);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	.hero-receipts strong {
+		color: var(--color-text);
+		font-size: 1.375rem;
+		font-weight: 800;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: -0.02em;
 	}
 
 	/* Features Section */

@@ -169,6 +169,15 @@ const passwordField = fieldName('password');
   `preserveAspectRatio="slice"` scales the 400-unit viewBox ~4x, a per-path `stdDeviation` of 40
   rasterizes as a ~160px kernel. Either one alone cost ~10s of total blocking time and took the home
   page from Lighthouse 100 to 60.
+- **The hero's stars are one live field, not scattered elements.**
+  [HeroField.svelte](src/lib/components/HeroField.svelte) draws a seeded field from
+  [src/lib/hero-field.ts](src/lib/hero-field.ts) — the same pattern as the hero on
+  davis9001.com and starspace.group. The server renders it as a still SVG; a canvas takes over on
+  mount, arrives once, and moves by depth with the pointer, the scroll and its own slow wander.
+  Under reduced motion the canvas never starts. Colours are `--hero-field-*` tokens in
+  `src/app.css`. Add stars to the field, not as new `div`s in the hero. The figures under the
+  hero buttons (`.hero-receipts`) come from the same data as the sections they link to, so do not
+  type a number into them by hand.
 - **Lighthouse reports are generated, never hand-edited.** `bun run lighthouse` writes both
   `static/lighthouse/*.html` and `src/lib/lighthouse-results.json`, and exits non-zero below 100. The
   extensionless twin of each report is listed in `svelte.config.js`; Pages redirects `/foo.html` to

@@ -188,13 +188,34 @@ describe('Home Page Hero', () => {
 		const cosmicBg = container.querySelector('.cosmic-bg');
 		expect(cosmicBg).toBeTruthy();
 
-		// Check for stars
-		const stars = container.querySelector('.stars-layer');
-		expect(stars).toBeTruthy();
+		// The live field, server-rendered as a still SVG first and hidden from
+		// assistive technology as decoration.
+		const field = container.querySelector('.cosmic-bg .hero-field');
+		expect(field).toBeTruthy();
+		expect(field?.getAttribute('aria-hidden')).toBe('true');
+		expect(field?.querySelectorAll('svg.still .stars circle').length).toBeGreaterThan(50);
+		expect(field?.querySelectorAll('svg.still .dust circle').length).toBeGreaterThan(20);
+		expect(field?.querySelector('canvas')).toBeTruthy();
 
 		// Check for planets
 		const planets = container.querySelectorAll('.planet');
 		expect(planets.length).toBeGreaterThan(0);
+	});
+
+	it('puts checkable figures under the buttons, each linked to its source', () => {
+		const { container } = render(Page);
+		const receipts = [...container.querySelectorAll('.hero-receipts a')];
+		expect(receipts.map((a) => a.getAttribute('href'))).toEqual([
+			'#lighthouse-title',
+			'#built-with-title',
+			'/showcase'
+		]);
+		expect(receipts[0].textContent).toMatch(/lowest Lighthouse score, \d+ pages/);
+		expect(receipts[1].textContent).toMatch(/\d+\s*live sites built with it/);
+		for (const a of receipts) {
+			const id = a.getAttribute('href')!;
+			if (id.startsWith('#')) expect(container.querySelector(id), id).toBeTruthy();
+		}
 	});
 
 	it('should render AI indicator with animation bars', () => {
