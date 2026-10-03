@@ -10,7 +10,7 @@ test.describe('Homepage', () => {
 		await page.goto('/');
 
 		// Open command palette
-		const commandPaletteBtn = page.locator('button[aria-label="Open command palette"]');
+		const commandPaletteBtn = page.getByRole('button', { name: /Open command palette/ });
 		await expect(commandPaletteBtn).toBeVisible();
 		await page.waitForLoadState('networkidle');
 		await commandPaletteBtn.click();
@@ -35,7 +35,7 @@ test.describe('Homepage', () => {
 		await page.goto('/');
 
 		// Wait for hydration so the keyboard handler from onMount is registered
-		const commandPaletteBtn = page.locator('button[aria-label="Open command palette"]');
+		const commandPaletteBtn = page.getByRole('button', { name: /Open command palette/ });
 		await expect(commandPaletteBtn).toBeVisible();
 		await page.waitForLoadState('networkidle');
 
