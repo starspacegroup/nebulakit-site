@@ -418,28 +418,6 @@
 			<p class="hero-note">
 				Free and MIT-licensed. Deploy to Cloudflare in minutes — this site is built on it.
 			</p>
-			<!-- Receipts, not adjectives: each figure comes from the data the
-			     section it links to is built from, so it cannot drift from it. -->
-			<ul class="hero-receipts">
-				<li>
-					<a href="#lighthouse-title">
-						<strong>{lighthouseFloor}</strong>
-						<span>lowest Lighthouse score, {lighthousePageCount} pages</span>
-					</a>
-				</li>
-				<li>
-					<a href="#built-with-title">
-						<strong>{builtWith.length}</strong>
-						<span>live sites built with it</span>
-					</a>
-				</li>
-				<li>
-					<a href="/showcase">
-						<strong>95%</strong>
-						<span>test coverage floor, enforced in CI</span>
-					</a>
-				</li>
-			</ul>
 			<!-- Command Palette Style Search -->
 			<div class="command-palette">
 				<div class="search-box">
@@ -2059,42 +2037,6 @@
 			left: -60px;
 			width: calc(100% + 120px);
 		}
-	}
-
-	/* Receipts under the buttons: figures someone can check, each linking to
-	   where it comes from. */
-	.hero-receipts {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: var(--spacing-sm) var(--spacing-xl);
-		margin: var(--spacing-lg) auto var(--spacing-2xl);
-		padding: 0;
-		list-style: none;
-	}
-
-	.hero-receipts a {
-		display: flex;
-		align-items: baseline;
-		gap: var(--spacing-sm);
-		color: var(--color-text-secondary);
-		font-size: 0.9375rem;
-		text-decoration: none;
-	}
-
-	.hero-receipts a:hover span,
-	.hero-receipts a:focus-visible span {
-		color: var(--color-text);
-		text-decoration: underline;
-		text-underline-offset: 3px;
-	}
-
-	.hero-receipts strong {
-		color: var(--color-text);
-		font-size: 1.375rem;
-		font-weight: 800;
-		font-variant-numeric: tabular-nums;
-		letter-spacing: -0.02em;
 	}
 
 	/* Features Section */

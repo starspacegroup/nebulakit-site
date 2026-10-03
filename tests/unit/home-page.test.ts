@@ -202,22 +202,6 @@ describe('Home Page Hero', () => {
 		expect(planets.length).toBeGreaterThan(0);
 	});
 
-	it('puts checkable figures under the buttons, each linked to its source', () => {
-		const { container } = render(Page);
-		const receipts = [...container.querySelectorAll('.hero-receipts a')];
-		expect(receipts.map((a) => a.getAttribute('href'))).toEqual([
-			'#lighthouse-title',
-			'#built-with-title',
-			'/showcase'
-		]);
-		expect(receipts[0].textContent).toMatch(/lowest Lighthouse score, \d+ pages/);
-		expect(receipts[1].textContent).toMatch(/\d+\s*live sites built with it/);
-		for (const a of receipts) {
-			const id = a.getAttribute('href')!;
-			if (id.startsWith('#')) expect(container.querySelector(id), id).toBeTruthy();
-		}
-	});
-
 	it('should render AI indicator with animation bars', () => {
 		const { container } = render(Page);
 		const bars = container.querySelectorAll('.bar');

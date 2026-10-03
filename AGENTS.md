@@ -175,9 +175,7 @@ const passwordField = fieldName('password');
   davis9001.com and starspace.group. The server renders it as a still SVG; a canvas takes over on
   mount, arrives once, and moves by depth with the pointer, the scroll and its own slow wander.
   When the pointer rests for `IDLE_MS`, a meteor crosses and lights the points along its path in turn. Under reduced motion the canvas never starts. Colours are `--hero-field-*` tokens in
-  `src/app.css`. Add stars to the field, not as new `div`s in the hero. The figures under the
-  hero buttons (`.hero-receipts`) come from the same data as the sections they link to, so do not
-  type a number into them by hand.
+  `src/app.css`. Add stars to the field, not as new `div`s in the hero.
 - **Lighthouse reports are generated, never hand-edited.** `bun run lighthouse` writes both
   `static/lighthouse/*.html` and `src/lib/lighthouse-results.json`, and exits non-zero below 100. The
   extensionless twin of each report is listed in `svelte.config.js`; Pages redirects `/foo.html` to
