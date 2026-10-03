@@ -310,8 +310,9 @@ describe('Home Page Lighthouse scores', () => {
 		// anyone remembering to edit the copy.
 		const { container } = render(Page);
 		const coverage = container.querySelector('.lh-coverage')?.textContent ?? '';
-		expect(coverage).toMatch(/\b44\b[\s\S]*\b44\b/);
-		expect(coverage).toContain('11 public pages');
+		// 13 pages (6 template, 7 site) x 4 categories, every one at 100.
+		expect(coverage).toMatch(/\b52\b[\s\S]*\b52\b/);
+		expect(coverage).toContain('13 public pages');
 	});
 });
 
@@ -354,6 +355,22 @@ describe('Home Page Built With section', () => {
 					`${entry.slug}-${mode}`
 				).toBe(true);
 			}
+		}
+	});
+});
+
+// Lighthouse's own audit of this page flagged both of these (accessibility 96):
+// a link's accessible name must contain its visible text, in order
+// (label-content-name-mismatch), and a link inside a sentence needs more than
+// colour to stand out (link-in-text-block).
+describe('Home Page Lighthouse section accessibility', () => {
+	it('names each score dial starting with the text it shows', () => {
+		const { container } = render(Page);
+		const links = [...container.querySelectorAll('.lh-cat-link')];
+		expect(links.length).toBeGreaterThan(0);
+		for (const link of links) {
+			const visible = (link.textContent ?? '').replace(/\s+/g, ' ').trim();
+			expect(link.getAttribute('aria-label')?.startsWith(visible), visible).toBe(true);
 		}
 	});
 });

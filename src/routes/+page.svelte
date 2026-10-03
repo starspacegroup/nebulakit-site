@@ -1210,7 +1210,7 @@
 								href={psiHome}
 								target="_blank"
 								rel="noopener noreferrer"
-								aria-label={`${category.label}: ${category.lowest} out of 100. Opens a live PageSpeed Insights analysis of this site's home page.`}
+								aria-label={`${category.lowest} ${category.label} ${category.uniform ? `on all ${lighthousePageCount} pages` : `lowest of ${lighthousePageCount}`}. ${category.lowest} out of 100; opens a live PageSpeed Insights analysis of this site's home page.`}
 							>
 								<ScoreRing value={category.lowest} />
 								<p class="lh-cat-name" aria-hidden="true">{category.label}</p>
@@ -2764,8 +2764,13 @@
 		color: var(--color-primary);
 	}
 
-	.lh-tool-link {
+	/* Underlined: inside a sentence, colour alone does not mark a link
+	   (Lighthouse link-in-text-block). */
+	.lh-tool-link,
+	.lh-badge-offer span a {
 		color: var(--color-primary);
+		text-decoration: underline;
+		text-underline-offset: 2px;
 	}
 
 	.lh-footnote {

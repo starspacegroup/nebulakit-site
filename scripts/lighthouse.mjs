@@ -58,6 +58,7 @@ const TARGETS = [
 		pages: [
 			{ path: '/', title: 'Home' },
 			{ path: '/documentation', title: 'Documentation' },
+			{ path: '/components', title: 'Components' },
 			{ path: '/contact', title: 'Contact' },
 			{ path: '/privacy', title: 'Privacy' },
 			{ path: '/terms', title: 'Terms' }
@@ -71,6 +72,7 @@ const TARGETS = [
 		pages: [
 			{ path: '/', title: 'Home' },
 			{ path: '/showcase', title: 'Showcase' },
+			{ path: '/components', title: 'Components' },
 			{ path: '/documentation', title: 'Documentation' },
 			{ path: '/contact', title: 'Contact' },
 			{ path: '/privacy', title: 'Privacy' },

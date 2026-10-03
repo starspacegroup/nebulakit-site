@@ -1,5 +1,5 @@
 {
-	"generatedAt": "2026-09-22",
+	"generatedAt": "2026-10-03",
 	"lighthouseVersion": "13.5.0",
 	"formFactor": "desktop",
 	"runsPerPage": 3,
@@ -30,6 +30,17 @@
 					"path": "/documentation",
 					"title": "Documentation",
 					"report": "/lighthouse/template-documentation",
+					"scores": {
+						"performance": 100,
+						"accessibility": 100,
+						"best-practices": 100,
+						"seo": 100
+					}
+				},
+				{
+					"path": "/components",
+					"title": "Components",
+					"report": "/lighthouse/template-components",
 					"scores": {
 						"performance": 100,
 						"accessibility": 100,
@@ -92,6 +103,17 @@
 					"path": "/showcase",
 					"title": "Showcase",
 					"report": "/lighthouse/site-showcase",
+					"scores": {
+						"performance": 100,
+						"accessibility": 100,
+						"best-practices": 100,
+						"seo": 100
+					}
+				},
+				{
+					"path": "/components",
+					"title": "Components",
+					"report": "/lighthouse/site-components",
 					"scores": {
 						"performance": 100,
 						"accessibility": 100,
