@@ -255,6 +255,27 @@ describe('Documentation Page', () => {
 			expect(section.querySelector('a[href="/components"]')).toBeTruthy();
 		});
 
+		it('lists every group of the kit, including the larger components', () => {
+			render(Page);
+			const section = screen
+				.getByRole('heading', { name: /^ui kit$/i })
+				.closest('section') as HTMLElement;
+			for (const name of [
+				'Command',
+				'Combobox',
+				'DatePicker',
+				'Sheet',
+				'Sidebar',
+				'Resizable',
+				'DataTable',
+				'LineChart'
+			]) {
+				expect(section.textContent).toContain(name);
+			}
+			expect(section.textContent).toMatch(/Layout/);
+			expect(section.textContent).toMatch(/MIT-licensed/);
+		});
+
 		it('is in the nav, and the board section names the standard widgets', () => {
 			render(Page);
 			const nav = screen.getByRole('navigation', { name: /documentation navigation/i });

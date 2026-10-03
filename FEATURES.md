@@ -226,18 +226,20 @@ import GitHub from '@auth/sveltekit/providers/github';
 
 ## 🧱 UI Kit
 
-27 standard elements in `$lib/ui`, each themed with CSS variables only, working
-in light and dark, and usable by keyboard. All of them run, with their code, at
-`/components`.
+67 standard elements in `$lib/ui`, each themed with CSS variables only, working
+in light and dark, and usable by keyboard. That is everything shadcn/ui ships,
+and more, with no dependency beyond Svelte, and all of it free under the MIT
+licence. All of them run, with their code, at `/components`.
 
-| Group        | Components                                                               |
-| ------------ | ------------------------------------------------------------------------ |
-| Actions      | Button, Menu                                                             |
-| Forms        | Field, TextInput, Textarea, Select, Checkbox, RadioGroup, Switch, Slider |
-| Feedback     | Alert, Toaster + `toast`, Badge, Progress, Spinner, Skeleton             |
-| Overlays     | Dialog (native `<dialog>`), Tooltip                                      |
-| Navigation   | Tabs, Accordion (`<details>`), Breadcrumbs, Pagination                   |
-| Data display | Card, Table (sortable), Avatar, Kbd, EmptyState                          |
+| Group        | Components                                                                                                                                                      |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Actions      | Button, ButtonGroup, Menu, DropdownMenu, Command, Toggle, ToggleGroup                                                                                           |
+| Forms        | Field, TextInput, Textarea, Select, Checkbox, RadioGroup, Switch, Slider, Combobox, Calendar, DatePicker, InputOTP, InputGroup, NumberInput, TagInput, FileDrop |
+| Feedback     | Alert, Toaster + `toast`, Badge, Progress, Spinner, Skeleton                                                                                                    |
+| Overlays     | Dialog (native `<dialog>`), AlertDialog, Sheet, Popover, HoverCard, Tooltip, ContextMenu                                                                        |
+| Navigation   | Tabs, Accordion (`<details>`), Breadcrumbs, Pagination, Menubar, NavigationMenu, Sidebar, Stepper                                                               |
+| Layout       | Container, Stack, Separator, AspectRatio, ScrollArea, Resizable, Collapsible                                                                                    |
+| Data display | Card, Item, Table, DataTable, BarChart, LineChart, DonutChart, Stat, Carousel, Timeline, Avatar, AvatarGroup, Kbd, CodeBlock, Prose, EmptyState                 |
 
 ```ts
 import { Button, TextInput, Dialog, toast } from '$lib/ui';
