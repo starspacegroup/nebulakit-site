@@ -303,6 +303,11 @@
 					rel="noopener noreferrer">docs/WIDGET_BOARD.md</a
 				> in the template.
 			</p>
+			<p>
+				The board is one part of the kit. <a href="/components">The component catalog</a> shows the rest
+				running: every form control, button, dialog, tab set, table and toast, and all six standard widgets,
+				each with its code.
+			</p>
 		</section>
 	</div>
 </main>

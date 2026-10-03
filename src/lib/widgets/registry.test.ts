@@ -3,8 +3,15 @@ import { getWidgetComponent } from './index';
 import { getWidgetDefinition, widgetManifest } from './manifest';
 
 describe('widget manifest', () => {
-	it('registers this site’s widgets', () => {
-		expect(widgetManifest.map((widget) => widget.name)).toEqual(['notes', 'stat', 'clock']);
+	it('ships the standard set', () => {
+		expect(widgetManifest.map((widget) => widget.name)).toEqual([
+			'notes',
+			'stat',
+			'clock',
+			'checklist',
+			'meter',
+			'links'
+		]);
 	});
 
 	it('gives every widget the metadata a picker would need', () => {

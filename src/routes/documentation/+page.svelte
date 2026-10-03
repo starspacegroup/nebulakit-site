@@ -95,6 +95,7 @@ npm run deploy`
 			<a href="#quick-start">Quick Start</a>
 			<a href="#feature-overview">Feature Overview</a>
 			<a href="#how-to-use">How To Use</a>
+			<a href="#ui-kit">UI Kit</a>
 			<a href="#drag-and-drop">Drag and Drop</a>
 			<a href="#badge">The Badge</a>
 			<a href="#ai-workflow">AI Workflow</a>
@@ -317,6 +318,48 @@ npm run deploy`
 			</div>
 		</section>
 
+		<section id="ui-kit" class="docs-section">
+			<h2>UI Kit</h2>
+			<p>
+				Standard elements live in <code>src/lib/ui</code> and import from one place. Every one uses
+				the theme's CSS variables only, works in light and dark, and is usable by keyboard. See them
+				all running, with the code for each, at <a href="/components">/components</a>.
+			</p>
+			<pre><code
+					>{`import { Button, TextInput, Select, Dialog, Tabs, Table, toast } from '$lib/ui';`}</code
+				></pre>
+			<ul>
+				<li>
+					<strong>Actions</strong> — Button (four variants, three sizes, link form, loading state) and
+					Menu.
+				</li>
+				<li>
+					<strong>Forms</strong> — TextInput, Textarea, Select, Checkbox, RadioGroup, Switch and Slider,
+					all built on Field, which wires the label, hint and error to the control.
+				</li>
+				<li>
+					<strong>Feedback</strong> — Alert, toasts, Badge, Progress, Spinner and Skeleton.
+				</li>
+				<li>
+					<strong>Overlays</strong> — Dialog (native <code>&lt;dialog&gt;</code>) and Tooltip.
+				</li>
+				<li><strong>Navigation</strong> — Tabs, Accordion, Breadcrumbs and Pagination.</li>
+				<li>
+					<strong>Data display</strong> — Card, Table (sortable), Avatar, Kbd and EmptyState.
+				</li>
+			</ul>
+			<p>
+				Toasts need one <code>{'<Toaster />'}</code>, which the root layout already renders. Raise
+				one from anywhere with <code>toast.success('Saved')</code>; pass <code>0</code> as the duration
+				to keep it until it is dismissed.
+			</p>
+			<p>
+				The catalog is checked: a test fails when a component is added to <code>src/lib/ui</code>,
+				or a widget is registered, without an entry in <code>src/lib/ui/catalog.ts</code>. Full
+				reference: <code>docs/UI_KIT.md</code>.
+			</p>
+		</section>
+
 		<section id="drag-and-drop" class="docs-section">
 			<h2>Drag and Drop</h2>
 			<p>
@@ -336,9 +379,12 @@ npm run deploy`
 			<p>
 				Registering a widget takes three edits and none of them is the board: an entry in
 				<code>src/lib/widgets/manifest.ts</code>, a line in
-				<code>src/lib/widgets/index.ts</code>, and the component itself. The two actions underneath
-				the board — <code>use:draggable</code> and <code>use:dropzone</code> — work on any markup, so
-				a sortable list or a nav reorder needs no board at all.
+				<code>src/lib/widgets/index.ts</code>, and the component itself. Six standard widgets ship —
+				stat, clock, checklist, meter, notes and links — all running at
+				<a href="/components#widgets">/components</a>. The two actions underneath the board —
+				<code>use:draggable</code>
+				and <code>use:dropzone</code> — work on any markup, so a sortable list or a nav reorder needs
+				no board at all.
 			</p>
 			<h3>Keyboard control</h3>
 			<p>

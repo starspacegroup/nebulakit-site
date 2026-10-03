@@ -6,8 +6,8 @@
  * Add entries here and a matching component in ./index.ts to register a widget
  * type for your project. Registering a widget never means editing the board.
  *
- * NebulaKit itself ships this list empty — a template should not force its
- * widgets on a project. These three are this site's own, shown on /showcase.
+ * Ships with a standard set, shown live at /components. Remove what your app
+ * does not use; add your own the same way.
  */
 
 export interface WidgetDefinition {
@@ -38,6 +38,24 @@ export const widgetManifest: WidgetDefinition[] = [
 		label: 'Clock',
 		description: 'Ticks every second and reports a live title, never a stored one.',
 		defaultProps: { label: 'Local time' }
+	},
+	{
+		name: 'checklist',
+		label: 'Checklist',
+		description: 'A short to-do list with a done count.',
+		defaultProps: { items: [] }
+	},
+	{
+		name: 'meter',
+		label: 'Meter',
+		description: 'Progress toward a goal, or usage against a limit.',
+		defaultProps: { label: 'Goal', value: 0, goal: 100, unit: '', limit: false }
+	},
+	{
+		name: 'links',
+		label: 'Links',
+		description: 'A short list of bookmarks.',
+		defaultProps: { links: [] }
 	}
 ];
 

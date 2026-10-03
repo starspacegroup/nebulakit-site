@@ -242,4 +242,25 @@ describe('Documentation Page', () => {
 			);
 		});
 	});
+
+	describe('UI kit section', () => {
+		it('documents the import, the toaster, and the live catalog', () => {
+			render(Page);
+			const section = screen
+				.getByRole('heading', { name: /^ui kit$/i })
+				.closest('section') as HTMLElement;
+			expect(section.id).toBe('ui-kit');
+			expect(section.textContent).toMatch(/\$lib\/ui/);
+			expect(section.textContent).toMatch(/<Toaster \/>/);
+			expect(section.querySelector('a[href="/components"]')).toBeTruthy();
+		});
+
+		it('is in the nav, and the board section names the standard widgets', () => {
+			render(Page);
+			const nav = screen.getByRole('navigation', { name: /documentation navigation/i });
+			expect(nav.querySelector('a[href="#ui-kit"]')).toBeTruthy();
+			const board = document.getElementById('drag-and-drop') as HTMLElement;
+			expect(board.textContent).toMatch(/clock.*checklist.*meter/is);
+		});
+	});
 });

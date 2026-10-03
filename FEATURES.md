@@ -224,6 +224,28 @@ import GitHub from '@auth/sveltekit/providers/github';
 - Lazy loading
 - Fast page transitions
 
+## 🧱 UI Kit
+
+27 standard elements in `$lib/ui`, each themed with CSS variables only, working
+in light and dark, and usable by keyboard. All of them run, with their code, at
+`/components`.
+
+| Group        | Components                                                               |
+| ------------ | ------------------------------------------------------------------------ |
+| Actions      | Button, Menu                                                             |
+| Forms        | Field, TextInput, Textarea, Select, Checkbox, RadioGroup, Switch, Slider |
+| Feedback     | Alert, Toaster + `toast`, Badge, Progress, Spinner, Skeleton             |
+| Overlays     | Dialog (native `<dialog>`), Tooltip                                      |
+| Navigation   | Tabs, Accordion (`<details>`), Breadcrumbs, Pagination                   |
+| Data display | Card, Table (sortable), Avatar, Kbd, EmptyState                          |
+
+```ts
+import { Button, TextInput, Dialog, toast } from '$lib/ui';
+```
+
+A test fails if a component or widget is added without a catalog entry, so
+`/components` stays complete. See [docs/UI_KIT.md](./docs/UI_KIT.md).
+
 ## 🎯 Drag & Drop System
 
 Pointer, touch and keyboard dragging, built in-house on Pointer Events — not
@@ -237,11 +259,11 @@ drag looks.
 | `reorder()` (`$lib/utils/reorder`) | Pure list surgery. Orders stay contiguous and unique by construction |
 | `use:draggable` / `use:dropzone`   | Svelte actions. Mouse, touch hold, keyboard, ghost, auto-scroll      |
 | `<WidgetBoard>`                    | Columns, drop handling, and registry-driven widget rendering         |
-| `$lib/widgets/`                    | Manifest + component registry. **Ships empty** — bring your own      |
+| `$lib/widgets/`                    | Manifest + component registry, with six standard widgets             |
 
-The widget registry is empty on purpose, the same way the CMS embed registry is:
-a template should not force its widgets on a project. The board and the drag
-behaviour are complete; the widgets are yours.
+Six standard widgets ship — stat, clock, checklist, meter, notes and links —
+all running at `/components`. Delete the ones a project does not use, and add its
+own the same way: one manifest entry and one registry line.
 
 ### Usage
 

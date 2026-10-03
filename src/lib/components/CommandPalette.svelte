@@ -122,6 +122,13 @@
 			action: () => goto('/showcase'),
 			icon: '🧩'
 		},
+		{
+			id: 'components',
+			label: 'Components',
+			description: 'Every UI element and widget, running',
+			action: () => goto('/components'),
+			icon: '🧱'
+		},
 		...cmsCommands.map((command) => ({
 			id: command.id,
 			label: command.label,
@@ -245,7 +252,9 @@
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (!show) {
-			if (e.key === 'Escape' && !e.defaultPrevented) {
+			// An open modal dialog owns Escape: preventDefault here would cancel its close.
+			const inDialog = document.querySelector('dialog[open]') !== null;
+			if (e.key === 'Escape' && !e.defaultPrevented && !inDialog) {
 				e.preventDefault();
 				show = true;
 			}
