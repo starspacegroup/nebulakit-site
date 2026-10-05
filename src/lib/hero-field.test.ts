@@ -3,6 +3,8 @@ import {
 	FIELD,
 	freshSeed,
 	scatterHero,
+	starStay,
+	STAR_LIFE_MAX,
 	clamp01,
 	easeOut,
 	fieldTransform,
@@ -45,6 +47,9 @@ const particle = (over: Partial<Particle> = {}): Particle => ({
 	driftY: 0,
 	speed: 0,
 	phase: 0,
+	life: 0,
+	lifeAt: 0,
+	hop: 0,
 	...over
 });
 
@@ -265,5 +270,38 @@ describe('a different hero on every load', () => {
 
 	it('lands somewhere else when the source differs', () => {
 		expect(scatterHero(() => 0.1)).not.toEqual(scatterHero(() => 0.9));
+	});
+});
+
+describe('stars that keep moving', () => {
+	const star = nebulaField(7, 20, 0)[3];
+
+	it('starts where the still layer drew it', () => {
+		expect(starStay(star, 0)).toMatchObject({ x: star.x, y: star.y });
+	});
+
+	it('comes back somewhere else, inside the field, on a later stay', () => {
+		const later = starStay(star, STAR_LIFE_MAX * 3 + 1);
+		expect([later.x, later.y]).not.toEqual([star.x, star.y]);
+		expect(later.x).toBeGreaterThanOrEqual(0);
+		expect(later.x).toBeLessThan(FIELD.width);
+		expect(later.y).toBeGreaterThanOrEqual(0);
+		expect(later.y).toBeLessThan(FIELD.height);
+	});
+
+	it('is the same sky at the same moment', () => {
+		expect(starStay(star, 123456)).toEqual(starStay(star, 123456));
+	});
+
+	it('fades out to nothing at the end of a stay and back in after it', () => {
+		const end = star.life - star.lifeAt;
+		expect(starStay(star, end - 1).fade).toBeLessThan(0.01);
+		expect(starStay(star, end + 1).fade).toBeLessThan(0.01);
+		expect(starStay(star, end + star.life / 2).fade).toBe(1);
+	});
+
+	it('leaves dust where it is', () => {
+		const mote = nebulaField(7, 0, 5)[0];
+		expect(starStay(mote, 99999)).toEqual({ x: mote.x, y: mote.y, fade: 1 });
 	});
 });

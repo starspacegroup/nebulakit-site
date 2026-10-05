@@ -41,6 +41,14 @@ export type Particle = {
 	/** Radians per millisecond: one slow cycle every 26–60 seconds. */
 	speed: number;
 	phase: number;
+	/**
+	 * Stars only: how long a star stays in one place (ms), how far through
+	 * that stay it starts, and the key its later places are drawn from. When
+	 * a stay ends it fades out and comes back somewhere else. 0 on dust.
+	 */
+	life: number;
+	lifeAt: number;
+	hop: number;
 };
 
 /** mulberry32: small, fast, and plenty for scattering points. Uniform on [0, 1). */
@@ -67,6 +75,41 @@ export function nebulaSpine(y: number): number {
 	return FIELD.width * (0.14 + 0.1 * Math.sin(v * Math.PI * 1.4 + 0.6));
 }
 
+/** A star stays put this long (ms) before it moves on. */
+export const STAR_LIFE_MIN = 5000;
+export const STAR_LIFE_MAX = 14000;
+/** The share of a stay spent fading in at the start and out at the end. */
+const STAR_FADE = 0.18;
+
+/** One mulberry32 step from a key: uniform on [0, 1), no state. */
+function hash01(key: number): number {
+	let t = (key + 0x6d2b79f5) >>> 0;
+	t = Math.imul(t ^ (t >>> 15), t | 1);
+	t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+	return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+/**
+ * Where a star is in field coordinates at time `t`, and how far it has faded
+ * in (0 to 1). The first stay is where the still layer put it; every later
+ * stay is a new place drawn from the star's key and the stay's number, so the
+ * same moment always gives the same sky.
+ */
+export function starStay(p: Particle, t: number): { x: number; y: number; fade: number } {
+	if (!p.life) return { x: p.x, y: p.y, fade: 1 };
+	const cycle = (Math.max(t, 0) + p.lifeAt) / p.life;
+	const n = Math.floor(cycle);
+	const through = cycle - n;
+	const fade = clamp01(Math.min(through, 1 - through) / STAR_FADE);
+	if (n === 0) return { x: p.x, y: p.y, fade: through < 0.5 ? 1 : fade };
+	const key = (p.hop + Math.imul(n, 0x9e3779b9)) >>> 0;
+	return {
+		x: round(hash01(key) * FIELD.width),
+		y: round(hash01(key ^ 0x85ebca6b) * FIELD.height),
+		fade
+	};
+}
+
 export function nebulaField(seed = FIELD_SEED, stars = 120, dust = 110): Particle[] {
 	const random = seededRandom(seed);
 	const particles: Particle[] = [];
@@ -90,7 +133,10 @@ export function nebulaField(seed = FIELD_SEED, stars = 120, dust = 110): Particl
 			driftX: 0,
 			driftY: 0,
 			speed: 0,
-			phase: 0
+			phase: 0,
+			life: 0,
+			lifeAt: 0,
+			hop: 0
 		});
 	}
 
@@ -113,7 +159,10 @@ export function nebulaField(seed = FIELD_SEED, stars = 120, dust = 110): Particl
 			driftX: 0,
 			driftY: 0,
 			speed: 0,
-			phase: 0
+			phase: 0,
+			life: 0,
+			lifeAt: 0,
+			hop: 0
 		});
 	}
 
@@ -127,6 +176,15 @@ export function nebulaField(seed = FIELD_SEED, stars = 120, dust = 110): Particl
 		p.driftY = round((0.16 + motion() * 0.19) * sign(), 3);
 		p.speed = (2 * Math.PI) / (26000 + motion() * 34000);
 		p.phase = motion() * Math.PI * 2;
+	}
+
+	// The hops from a third stream, for the same reason.
+	const hops = seededRandom(seed + 0x27d4eb2d);
+	for (const p of particles) {
+		if (p.kind !== 'star') continue;
+		p.life = STAR_LIFE_MIN + hops() * (STAR_LIFE_MAX - STAR_LIFE_MIN);
+		p.lifeAt = hops() * p.life;
+		p.hop = Math.floor(hops() * 4294967296) >>> 0;
 	}
 
 	return particles;
@@ -193,17 +251,18 @@ export function place(p: Particle, s: FrameState): Placed | null {
 	const arrived = easeOut(clamp01(s.intro * (1 + INTRO_STAGGER) - at));
 	if (arrived <= 0) return null;
 
+	const stay = starStay(p, s.t);
 	const { scale, offsetX, offsetY } = fieldTransform(s.width, s.height);
 	const depth = 0.22 + p.z * 3.4;
 	const amp = 4 + p.z * 26;
 	const wanderX = Math.sin(s.t * p.speed + p.phase) * p.driftX * amp;
 	const wanderY = Math.cos(s.t * p.speed * 0.73 + p.phase) * p.driftY * amp;
 
-	const x = offsetX + p.x * scale + s.tx * 46 * depth + wanderX;
+	const x = offsetX + stay.x * scale + s.tx * 46 * depth + wanderX;
 	const y =
 		wrap(
 			offsetY +
-				p.y * scale +
+				stay.y * scale +
 				s.ty * 46 * depth +
 				wanderY -
 				s.scroll * depth * 30 -
@@ -225,7 +284,7 @@ export function place(p: Particle, s: FrameState): Placed | null {
 		x,
 		y,
 		radius: (p.r + p.z * 0.9) * scale * (1 + lift * 0.9) * (0.55 + arrived * 0.45),
-		alpha: clamp01(p.opacity * breath * (1 + lift * 1.8) * arrived),
+		alpha: clamp01(p.opacity * breath * (1 + lift * 1.8) * arrived * stay.fade),
 		lift
 	};
 }

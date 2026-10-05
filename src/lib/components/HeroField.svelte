@@ -23,7 +23,8 @@
 	 * **Two layers.** The SVG is server-rendered and needs no script: the still
 	 * field, painted before any JavaScript runs. On mount a canvas draws the
 	 * same seeded points and takes over, and from there the field arrives once,
-	 * answers the pointer and the scroll by depth, and wanders on its own.
+	 * answers the pointer and the scroll by depth, wanders on its own, and its
+	 * stars keep fading out and coming back somewhere else.
 	 *
 	 * **Under prefers-reduced-motion the canvas never starts.** The SVG is the
 	 * still version of the field, so that path is the layer that was there
@@ -49,8 +50,6 @@
 
 	/** The arrival, once: about a second, left to right, near layers last. */
 	const INTRO_MS = 900;
-	/** A touch screen keeps drawing this long after a scroll, then sleeps. */
-	const SETTLE_MS = 500;
 
 	let root: HTMLDivElement;
 	let canvas: HTMLCanvasElement;
@@ -77,7 +76,6 @@
 		let heroHeight = 1;
 		let raf = 0;
 		let introAt = 0;
-		let awakeUntil = 0;
 
 		// Pointer, eased: px/py is where it is, tx/ty where the field has got to.
 		let px = 0;
@@ -234,19 +232,11 @@
 			}
 		}
 
+		// Every pointer type keeps drawing: the stars keep moving to new places.
+		// The observers below still stop it off screen and in a background tab.
 		function frame(t: number) {
 			if (!introAt) introAt = t;
 			draw(t);
-			if (fine.matches) {
-				raf = requestAnimationFrame(frame);
-				return;
-			}
-			// Touch: finish arriving, then sleep until the page moves.
-			const arrived = t - introAt > INTRO_MS * (1 + INTRO_STAGGER) + 120;
-			if (arrived && t > awakeUntil) {
-				stop();
-				return;
-			}
 			raf = requestAnimationFrame(frame);
 		}
 
@@ -280,10 +270,6 @@
 		// No layout read: scrollY - heroTop is the same number as -rect.top.
 		const onScroll = () => {
 			scroll = clamp01((window.scrollY - heroTop) / heroHeight);
-			if (!fine.matches) {
-				awakeUntil = performance.now() + SETTLE_MS;
-				start();
-			}
 		};
 
 		// Nothing draws off screen or in a background tab.
