@@ -9,6 +9,7 @@
 	import ScoreRing from '$lib/components/ScoreRing.svelte';
 	import { builtWith } from '$lib/built-with';
 	import HeroField from '$lib/components/HeroField.svelte';
+	import { scatterHero } from '$lib/hero-field';
 
 	/* Category keys as Lighthouse names them, with the label the table shows.
 	   The JSON carries the order; this only supplies the wording. */
@@ -75,6 +76,9 @@
 	$: psiHome = psiUrl(`${$page.url.origin}/`);
 
 	let mounted = false;
+	/* The planets and the bubble land somewhere new on every load. Empty on the
+	   server, so the CSS defaults are the no-script layout. */
+	let heroScatter = '';
 	let searchInput = '';
 	let focusedOption = -1;
 	let toastMessage = '';
@@ -89,6 +93,9 @@
 
 	onMount(() => {
 		mounted = true;
+		heroScatter = Object.entries(scatterHero())
+			.map(([name, value]) => `${name}: ${value}`)
+			.join('; ');
 
 		// Check for error in URL and show toast
 		const errorCode = $page.url.searchParams.get('error');
@@ -142,7 +149,7 @@
 	imageHeight={630}
 />
 
-<div class="hero">
+<div class="hero" class:scattered={heroScatter} style={heroScatter || undefined}>
 	<!-- Cosmic Background -->
 	<div class="cosmic-bg">
 		<!-- New Nebula Flow - Left Side -->
@@ -1554,8 +1561,8 @@
 	/* Chat bubble decoration */
 	.chat-bubble {
 		position: absolute;
-		top: 12%;
-		right: 10%;
+		top: var(--bubble-top, 12%);
+		right: var(--bubble-right, 10%);
 		animation: float 20s ease-in-out infinite;
 		animation-delay: -3s;
 		filter: drop-shadow(0 10px 30px color-mix(in srgb, var(--color-primary) 40%, transparent));
@@ -1567,6 +1574,34 @@
 		position: absolute;
 		border-radius: 50%;
 		will-change: transform;
+	}
+
+	/* Per-load placement from scatterHero(). `translate` and `scale` compose
+	   with the float animation's `transform` rather than fighting it. */
+	.planet-left {
+		translate: var(--planet-left-x, 0) var(--planet-left-y, 0);
+		scale: var(--planet-left-scale, 1);
+	}
+
+	.planet-right {
+		translate: var(--planet-right-x, 0) var(--planet-right-y, 0);
+		scale: var(--planet-right-scale, 1);
+	}
+
+	/* With script on, the pieces wait for their places and then fade in, so
+	   the move from the default spot is never seen. Without script they show
+	   where the CSS puts them. */
+	@media (scripting: enabled) {
+		.planet,
+		.chat-bubble {
+			opacity: 0;
+			transition: opacity 0.8s ease-out;
+		}
+
+		.hero.scattered .planet,
+		.hero.scattered .chat-bubble {
+			opacity: 1;
+		}
 	}
 
 	.planet-left {
@@ -1941,8 +1976,8 @@
 		.chat-bubble {
 			width: 60px;
 			height: 60px;
-			top: 8%;
-			right: 5%;
+			top: var(--bubble-top, 8%);
+			right: var(--bubble-right, 5%);
 		}
 
 		.chat-bubble svg {

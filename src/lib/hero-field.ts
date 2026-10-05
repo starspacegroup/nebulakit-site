@@ -288,3 +288,35 @@ export function meteorGlow(x: number, y: number, m?: Meteor | null): number {
 	if (behind < 0 || behind > METEOR_TRAIL) return 0;
 	return (1 - behind / METEOR_TRAIL) * (1 - off / METEOR_BAND);
 }
+
+/** A fresh seed for the field: a different sky on every load. */
+export function freshSeed(random: () => number = Math.random): number {
+	return Math.floor(random() * 4294967296) >>> 0;
+}
+
+/**
+ * Where the hero's larger pieces sit on this load, as CSS custom properties
+ * for the hero element. Each piece keeps its own corner, so it never drifts
+ * over the copy; only how far along its edge, and its size, change.
+ *
+ * Applied by `translate` and `scale`, which compose with the `float`
+ * animation's `transform` instead of replacing it.
+ */
+export function scatterHero(random: () => number = Math.random): Record<string, string> {
+	const between = (lo: number, hi: number) => lo + random() * (hi - lo);
+	const pct = (v: number) => `${round(v, 1)}%`;
+	const px = (v: number) => `${round(v)}px`;
+	return {
+		// Left planet: anywhere down the top half of the left edge.
+		'--planet-left-x': px(between(-40, 60)),
+		'--planet-left-y': px(between(-40, 260)),
+		'--planet-left-scale': String(round(between(0.75, 1.2), 2)),
+		// Right planet: anywhere up the bottom half of the right edge.
+		'--planet-right-x': px(between(-60, 40)),
+		'--planet-right-y': px(between(-260, 40)),
+		'--planet-right-scale': String(round(between(0.75, 1.2), 2)),
+		// The bubble wanders the top-right corner.
+		'--bubble-top': pct(between(6, 22)),
+		'--bubble-right': pct(between(4, 16))
+	};
+}

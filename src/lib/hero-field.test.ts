@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
 	FIELD,
+	freshSeed,
+	scatterHero,
 	clamp01,
 	easeOut,
 	fieldTransform,
@@ -235,5 +237,33 @@ describe('meteor', () => {
 		const lit = place(p, frame({ meteor: passing }))!;
 		expect(lit.lift).toBeGreaterThan(0.8);
 		expect(lit.alpha).toBeGreaterThan(at.alpha);
+	});
+});
+
+describe('a different hero on every load', () => {
+	it('gives a fresh seed from the random source, and a new field with it', () => {
+		const a = freshSeed(() => 0.1);
+		const b = freshSeed(() => 0.7);
+		expect(a).not.toBe(b);
+		expect(nebulaField(a)).not.toEqual(nebulaField(b));
+		expect(freshSeed(() => 0.999999)).toBeLessThan(4294967296);
+	});
+
+	it('scatters the planets and the bubble inside their ranges', () => {
+		for (const r of [0, 0.5, 0.999]) {
+			const vars = scatterHero(() => r);
+			expect(Object.keys(vars)).toHaveLength(8);
+			const n = (k: string) => parseFloat(vars[k]);
+			expect(n('--planet-left-y')).toBeGreaterThanOrEqual(-40);
+			expect(n('--planet-left-y')).toBeLessThanOrEqual(260);
+			expect(n('--planet-right-scale')).toBeGreaterThanOrEqual(0.75);
+			expect(n('--planet-right-scale')).toBeLessThanOrEqual(1.2);
+			expect(n('--bubble-top')).toBeGreaterThanOrEqual(6);
+			expect(vars['--bubble-right']).toMatch(/%$/);
+		}
+	});
+
+	it('lands somewhere else when the source differs', () => {
+		expect(scatterHero(() => 0.1)).not.toEqual(scatterHero(() => 0.9));
 	});
 });

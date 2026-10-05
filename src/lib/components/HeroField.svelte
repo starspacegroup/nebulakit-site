@@ -6,11 +6,13 @@
 		INTRO_STAGGER,
 		METEOR_MS,
 		clamp01,
+		freshSeed,
 		meteorHead,
 		nebulaField,
 		place,
 		planMeteor,
-		type Meteor
+		type Meteor,
+		type Particle
 	} from '$lib/hero-field';
 
 	/**
@@ -31,9 +33,19 @@
 	 * mount and on a theme change — never in the frame loop. Decorative, and
 	 * hidden from assistive technology: the hero's words say what this is.
 	 */
-	const particles = nebulaField();
-	const stars = particles.filter((p) => p.kind === 'star');
-	const dust = particles.filter((p) => p.kind === 'dust');
+	/* The server lays out the default seed, so the still SVG and hydration
+	   agree. On mount the field is reseeded — a different sky on every load —
+	   before the canvas draws its first frame, and the canvas arrives from an
+	   empty field, so the swap is never seen. */
+	let stars: Particle[] = [];
+	let dust: Particle[] = [];
+
+	function lay(seed?: number) {
+		const particles = nebulaField(seed);
+		stars = particles.filter((p) => p.kind === 'star');
+		dust = particles.filter((p) => p.kind === 'dust');
+	}
+	lay();
 
 	/** The arrival, once: about a second, left to right, near layers last. */
 	const INTRO_MS = 900;
@@ -45,6 +57,7 @@
 	let live = false;
 
 	onMount(() => {
+		lay(freshSeed());
 		const still = matchMedia('(prefers-reduced-motion: reduce)');
 		const fine = matchMedia('(pointer: fine)');
 		// No canvas (an old browser, a test DOM): the still SVG is the whole field.
