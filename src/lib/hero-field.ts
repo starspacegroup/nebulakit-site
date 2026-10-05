@@ -95,18 +95,28 @@ function hash01(key: number): number {
  * stay is a new place drawn from the star's key and the stay's number, so the
  * same moment always gives the same sky.
  */
-export function starStay(p: Particle, t: number): { x: number; y: number; fade: number } {
-	if (!p.life) return { x: p.x, y: p.y, fade: 1 };
+export type Stay = {
+	x: number;
+	y: number;
+	/** Brightness through the stay: 0 at both ends, 1 between. */
+	fade: number;
+	/** How far it has zoomed in to its place: rises with the fade-in, then holds at 1. */
+	zoom: number;
+};
+
+export function starStay(p: Particle, t: number): Stay {
+	if (!p.life) return { x: p.x, y: p.y, fade: 1, zoom: 1 };
 	const cycle = (Math.max(t, 0) + p.lifeAt) / p.life;
 	const n = Math.floor(cycle);
 	const through = cycle - n;
 	const fade = clamp01(Math.min(through, 1 - through) / STAR_FADE);
-	if (n === 0) return { x: p.x, y: p.y, fade: through < 0.5 ? 1 : fade };
+	if (n === 0) return { x: p.x, y: p.y, fade: through < 0.5 ? 1 : fade, zoom: 1 };
 	const key = (p.hop + Math.imul(n, 0x9e3779b9)) >>> 0;
 	return {
 		x: round(hash01(key) * FIELD.width),
 		y: round(hash01(key ^ 0x85ebca6b) * FIELD.height),
-		fade
+		fade,
+		zoom: through < 0.5 ? easeOut(fade) : 1
 	};
 }
 
@@ -214,6 +224,10 @@ export const easeOut = (v: number) => 1 - Math.pow(1 - v, 3);
 
 /** How much of the arrival is spent staggering rather than moving. */
 export const INTRO_STAGGER = 0.45;
+/** How close to the centre a star starts its arrival (share of the way in). */
+const INTRO_ZOOM = 0.9;
+/** The same for a star zooming in to a new place: a shorter flight. */
+const HOP_ZOOM = 0.35;
 
 export type FrameState = {
 	/** Milliseconds, from requestAnimationFrame. */
@@ -241,13 +255,15 @@ const MARGIN = 80;
  * Where one particle is drawn this frame, and how brightly.
  *
  * Near particles travel several times further than far ones under the
- * pointer and the scroll. They arrive left to right with the near ones last,
- * falling into place out of depth, once. A particle near the cursor lifts —
+ * pointer and the scroll. They arrive once by zooming in: each starts close
+ * to the centre of the hero, small, and flies out to its place, far ones
+ * first and near ones last, as if the field were rushing toward the viewer.
+ * A star that moves on to a new place zooms in to it the same way, briefly. A particle near the cursor lifts —
  * grows and brightens — and its neighbours do not, so a sweep finds them one
  * at a time. Returns null for a particle that has not arrived yet.
  */
 export function place(p: Particle, s: FrameState): Placed | null {
-	const at = (p.x / FIELD.width) * INTRO_STAGGER * (0.7 + p.z * 0.5);
+	const at = p.z * INTRO_STAGGER;
 	const arrived = easeOut(clamp01(s.intro * (1 + INTRO_STAGGER) - at));
 	if (arrived <= 0) return null;
 
@@ -258,18 +274,24 @@ export function place(p: Particle, s: FrameState): Placed | null {
 	const wanderX = Math.sin(s.t * p.speed + p.phase) * p.driftX * amp;
 	const wanderY = Math.cos(s.t * p.speed * 0.73 + p.phase) * p.driftY * amp;
 
-	const x = offsetX + stay.x * scale + s.tx * 46 * depth + wanderX;
-	const y =
+	const cx = s.width / 2;
+	const cy = s.height / 2;
+	const fx = offsetX + stay.x * scale + s.tx * 46 * depth + wanderX;
+	const fy =
 		wrap(
 			offsetY +
 				stay.y * scale +
 				s.ty * 46 * depth +
 				wanderY -
-				s.scroll * depth * 30 -
-				(1 - arrived) * 46 * depth +
+				s.scroll * depth * 30 +
 				MARGIN,
 			s.height + MARGIN * 2
 		) - MARGIN;
+
+	// The zoom: pulled toward the centre, and let out to the place as it arrives.
+	const pull = (1 - arrived) * INTRO_ZOOM + (1 - stay.zoom) * HOP_ZOOM;
+	const x = cx + (fx - cx) * (1 - Math.min(pull, 1));
+	const y = cy + (fy - cy) * (1 - Math.min(pull, 1));
 
 	const near = s.pointer
 		? Math.max(0, 1 - Math.hypot(x - (s.tx + 0.5) * s.width, y - (s.ty + 0.5) * s.height) / 260)
@@ -283,7 +305,12 @@ export function place(p: Particle, s: FrameState): Placed | null {
 	return {
 		x,
 		y,
-		radius: (p.r + p.z * 0.9) * scale * (1 + lift * 0.9) * (0.55 + arrived * 0.45),
+		radius:
+			(p.r + p.z * 0.9) *
+			scale *
+			(1 + lift * 0.9) *
+			(0.2 + arrived * 0.8) *
+			(0.5 + stay.zoom * 0.5),
 		alpha: clamp01(p.opacity * breath * (1 + lift * 1.8) * arrived * stay.fade),
 		lift
 	};

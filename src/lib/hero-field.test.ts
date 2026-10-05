@@ -137,10 +137,21 @@ describe('place', () => {
 		expect(place(particle({ x: 1500, z: 0.9 }), frame({ intro: 0 }))).toBeNull();
 	});
 
-	it('arrives left to right', () => {
+	it('arrives far layers first, near ones last', () => {
 		const s = frame({ intro: 0.15 });
-		expect(place(particle({ x: 10 }), s)).not.toBeNull();
-		expect(place(particle({ x: 1590 }), s)).toBeNull();
+		expect(place(particle({ z: 0 }), s)).not.toBeNull();
+		expect(place(particle({ z: 0.99 }), s)).toBeNull();
+	});
+
+	it('zooms in to its place from near the centre, growing as it comes', () => {
+		const p = particle({ x: 100, y: 100, z: 0 });
+		const early = place(p, frame({ intro: 0.02 }))!;
+		const done = place(p, frame({ intro: 1 }))!;
+		const s = frame();
+		const fromCentre = (at: { x: number; y: number }) =>
+			Math.hypot(at.x - s.width / 2, at.y - s.height / 2);
+		expect(fromCentre(early)).toBeLessThan(fromCentre(done) / 2);
+		expect(early.radius).toBeLessThan(done.radius);
 	});
 
 	it('moves near particles further than far ones under the pointer', () => {
@@ -300,8 +311,14 @@ describe('stars that keep moving', () => {
 		expect(starStay(star, end + star.life / 2).fade).toBe(1);
 	});
 
+	it('zooms in to a new place as it fades in, and holds once there', () => {
+		const end = star.life - star.lifeAt;
+		expect(starStay(star, end + 1).zoom).toBeLessThan(0.1);
+		expect(starStay(star, end + star.life / 2).zoom).toBe(1);
+	});
+
 	it('leaves dust where it is', () => {
 		const mote = nebulaField(7, 0, 5)[0];
-		expect(starStay(mote, 99999)).toEqual({ x: mote.x, y: mote.y, fade: 1 });
+		expect(starStay(mote, 99999)).toEqual({ x: mote.x, y: mote.y, fade: 1, zoom: 1 });
 	});
 });

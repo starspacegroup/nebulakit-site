@@ -48,7 +48,7 @@
 	}
 	lay();
 
-	/** The arrival, once: about a second, left to right, near layers last. */
+	/** The arrival, once: about a second, zooming in, far layers first. */
 	const INTRO_MS = 900;
 
 	let root: HTMLDivElement;
