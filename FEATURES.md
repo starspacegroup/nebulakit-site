@@ -68,7 +68,9 @@
   client-side navigation
 - Owner-only on every verb; additive to the first-party counters above, which are unchanged
 
-See [docs/ADMIN_STATS.md](./docs/ADMIN_STATS.md) for setup and design.
+The owner can issue a stats token on `/admin/analytics` so an external dashboard reads the same
+numbers as JSON from `/api/stats/summary`. See [docs/ADMIN_STATS.md](./docs/ADMIN_STATS.md) for
+setup and design.
 
 ## 🤖 Agent Readiness
 
