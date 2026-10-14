@@ -1459,7 +1459,8 @@
 		top: 0;
 		width: calc(100% + 240px);
 		height: 100%;
-		mix-blend-mode: screen;
+		/* No mix-blend-mode here: a blend inside a masked, blurred, animated layer makes
+		   iOS Safari tile it, and the tile edge shows as a hard vertical line. */
 		/* PERF: ONE blur over the composed SVG, in CSS pixels.
 		   Each of the five cloud paths used to carry its own SVG filter. Because
 		   preserveAspectRatio="slice" scales this 400-unit viewBox up about 4x to
