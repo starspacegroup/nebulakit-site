@@ -420,7 +420,7 @@
 					Use this template
 					<span aria-hidden="true">→</span>
 				</a>
-				<a class="cta cta-secondary" href="/showcase"> See Working Modules </a>
+				<a class="cta cta-secondary" href="/modules"> See Working Modules </a>
 			</div>
 			<p class="hero-note">
 				Free and MIT-licensed. Deploy to Cloudflare in minutes — this site is built on it.

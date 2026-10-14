@@ -77,12 +77,12 @@ describe('Home Page Hero', () => {
 		);
 	});
 
-	it('points at the component showcase from the hero', () => {
+	it('points at the modules gallery from the hero', () => {
 		render(Page);
 
 		expect(screen.getByRole('link', { name: /see working modules/i })).toHaveAttribute(
 			'href',
-			'/showcase'
+			'/modules'
 		);
 	});
 
