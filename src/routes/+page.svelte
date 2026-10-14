@@ -1432,7 +1432,7 @@
 		width: 100%;
 		height: 100%;
 		z-index: 0;
-		opacity: 0.95;
+		opacity: 0.55;
 		pointer-events: none;
 		/* Gradient mask to fade out on right edge */
 		-webkit-mask-image: linear-gradient(
