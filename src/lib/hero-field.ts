@@ -76,8 +76,8 @@ export function nebulaSpine(y: number): number {
 }
 
 /** A star stays put this long (ms) before it moves on. */
-export const STAR_LIFE_MIN = 5000;
-export const STAR_LIFE_MAX = 14000;
+export const STAR_LIFE_MIN = 22000;
+export const STAR_LIFE_MAX = 48000;
 /** The share of a stay spent fading in at the start and out at the end. */
 const STAR_FADE = 0.18;
 

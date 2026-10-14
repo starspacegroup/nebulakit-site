@@ -1673,12 +1673,29 @@
 		transform: translateY(0);
 	}
 
+	/* A soft pool of the page colour behind the words: the nebula and the drifting
+	   dust stay lovely around the text but stop speckling and muddying it. */
+	.hero-content::before {
+		content: '';
+		position: absolute;
+		inset: -2rem -3rem;
+		z-index: -1;
+		background: radial-gradient(
+			closest-side,
+			color-mix(in srgb, var(--color-background) 72%, transparent) 0%,
+			color-mix(in srgb, var(--color-background) 40%, transparent) 60%,
+			transparent 100%
+		);
+		pointer-events: none;
+	}
+
 	.main-title {
 		font-size: 3.5rem;
 		font-weight: 700;
 		color: var(--color-text);
 		margin-bottom: var(--spacing-lg);
 		letter-spacing: -0.03em;
+		text-wrap: balance;
 		text-shadow: 0 2px 20px color-mix(in srgb, var(--color-secondary) 30%, transparent);
 	}
 
@@ -1695,11 +1712,13 @@
 	}
 
 	.subtitle {
-		font-size: 1.125rem;
-		color: var(--color-text-secondary);
-		margin-bottom: var(--spacing-2xl);
-		line-height: 1.7;
+		max-width: 46rem;
+		margin: 0 auto var(--spacing-2xl);
+		font-size: clamp(1.0625rem, 0.95rem + 0.5vw, 1.3125rem);
+		color: color-mix(in srgb, var(--color-text) 82%, var(--color-text-secondary));
+		line-height: 1.65;
 		font-weight: 400;
+		text-wrap: balance;
 	}
 
 	.svelte-icon,
@@ -2513,7 +2532,9 @@
 	}
 
 	.cta-secondary {
-		background: transparent;
+		background: color-mix(in srgb, var(--color-background) 65%, transparent);
+		-webkit-backdrop-filter: blur(8px);
+		backdrop-filter: blur(8px);
 		color: var(--color-text);
 		border: 1px solid var(--color-border);
 	}
@@ -2529,9 +2550,11 @@
 	}
 
 	.hero-note {
-		margin-top: var(--spacing-md);
+		max-width: 38rem;
+		margin: var(--spacing-lg) auto var(--spacing-xl);
 		font-size: 0.9375rem;
 		color: var(--color-text-secondary);
+		text-wrap: balance;
 	}
 
 	.value-props {
