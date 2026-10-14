@@ -69,6 +69,9 @@
 							<a href="/components">Components</a>
 						</li>
 						<li>
+							<a href="/modules">Modules</a>
+						</li>
+						<li>
 							<a href="/badge">Badge</a>
 						</li>
 						<li>

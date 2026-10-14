@@ -129,6 +129,13 @@
 			action: () => goto('/components'),
 			icon: '🧱'
 		},
+		{
+			id: 'modules',
+			label: 'Modules',
+			description: 'Sign-in, settings, pricing, data grids and more, running',
+			action: () => goto('/modules'),
+			icon: '🗂️'
+		},
 		...cmsCommands.map((command) => ({
 			id: command.id,
 			label: command.label,
