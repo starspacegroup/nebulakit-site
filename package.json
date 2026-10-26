@@ -5,6 +5,7 @@
 	"scripts": {
 		"prepare": "svelte-kit sync",
 		"check:bindings": "node scripts/check-bindings.mjs",
+		"check:migrations": "node scripts/check-migrations.mjs",
 		"setup:cf": "node scripts/setup-cf.mjs",
 		"palette:scan": "bun scripts/palette-scan.mjs",
 		"lighthouse": "node scripts/lighthouse.mjs",
