@@ -20,7 +20,10 @@
 		{ path: '/admin', label: 'Dashboard', icon: 'home' },
 		{ path: '/admin/stats', label: 'Stats', icon: 'chart', permission: 'stats' },
 		...(data.canManageAnalytics
-			? [{ path: '/admin/analytics', label: 'Analytics', icon: 'activity' }]
+			? [
+					{ path: '/admin/settings/pricing', label: 'Regional Pricing', icon: 'chart' },
+					{ path: '/admin/analytics', label: 'Analytics', icon: 'activity' }
+				]
 			: []),
 		{ path: '/admin/users', label: 'Users', icon: 'users', permission: 'users' },
 		...(ownerLevel

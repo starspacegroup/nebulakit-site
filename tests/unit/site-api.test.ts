@@ -6,10 +6,16 @@ import { createSqliteD1 } from '../helpers/sqlite-d1';
 import { PACKAGE_VERSIONS } from '../../src/lib/server/site-info';
 import * as site from '../../src/routes/api/v1/site/+server';
 import * as updates from '../../src/routes/api/v1/site/updates/+server';
+import * as products from '../../src/routes/api/v1/products/+server';
+import * as product from '../../src/routes/api/v1/products/[id]/+server';
+import * as orders from '../../src/routes/api/v1/orders/+server';
+import * as order from '../../src/routes/api/v1/orders/[id]/+server';
+import * as checkout from '../../src/routes/api/v1/checkout/+server';
 import * as pages from '../../src/routes/api/v1/pages/+server';
 import * as page from '../../src/routes/api/v1/pages/[slug]/+server';
 import * as revisions from '../../src/routes/api/v1/pages/[slug]/revisions/+server';
 import * as revision from '../../src/routes/api/v1/pages/[slug]/revisions/[id]/+server';
+import * as stripeHook from '../../src/routes/api/v1/webhooks/stripe/+server';
 import * as openapi from '../../src/routes/api/v1/openapi.json/+server';
 
 type Handler = (event: never) => Promise<Response>;
@@ -65,6 +71,25 @@ const owner = { id: 'o', login: 'owner', email: 'o@x', isOwner: true };
 const admin = { id: 'a', login: 'admin', email: 'a@x', isOwner: false, isAdmin: true };
 const member = { id: 'm', login: 'member', email: 'm@x', isOwner: false };
 
+const address = {
+	name: 'Ada',
+	line1: '1 Main',
+	city: 'Lewiston',
+	postalCode: '04240',
+	country: 'US'
+};
+
+async function seedProduct(input: Record<string, unknown> = {}) {
+	const writer = await key('products:write');
+	const res = await call(products.POST, {
+		method: 'POST',
+		key: writer,
+		body: { slug: 'tee', name: 'Tee', priceCents: 2500, ...input }
+	});
+	expect(res.status).toBe(201);
+	return res.json.product as { id: string; slug: string };
+}
+
 describe('site API authentication', () => {
 	it('refuses without a database', async () => {
 		expect((await call(site.GET, { noDb: true })).status).toBe(503);
@@ -79,7 +104,7 @@ describe('site API authentication', () => {
 	});
 
 	it('refuses a bad key even on a public endpoint', async () => {
-		expect((await call(pages.GET, { key: 'nk_wrong' })).status).toBe(401);
+		expect((await call(products.GET, { key: 'nk_wrong' })).status).toBe(401);
 	});
 
 	it('accepts the orchestrator key from the environment and logs its calls', async () => {
@@ -159,6 +184,303 @@ describe('site update preferences', () => {
 		expect((await call(updates.GET, { key: adminKey })).json.optedIn).toEqual([]);
 		await db.prepare(`UPDATE site_update_preferences SET opted_in = '{"a":1}'`).run();
 		expect((await call(updates.GET, { key: adminKey })).json.optedIn).toEqual([]);
+	});
+});
+
+describe('products API', () => {
+	it('creates, lists, reads, updates and deletes', async () => {
+		const tee = await seedProduct();
+		const writer = await key('products:write', 'products:read');
+		await call(products.POST, {
+			method: 'POST',
+			key: writer,
+			body: { slug: 'off', name: 'Off', priceCents: 1, active: false }
+		});
+
+		const publicList = await call(products.GET, { path: '/api/v1/products?all=1' });
+		expect(publicList.json.products.map((p: { slug: string }) => p.slug)).toEqual(['tee']);
+		const fullList = await call(products.GET, {
+			path: '/api/v1/products?all=1&limit=5',
+			key: writer
+		});
+		expect(fullList.json.products).toHaveLength(2);
+
+		expect((await call(product.GET, { params: { id: 'tee' } })).json.product.id).toBe(tee.id);
+		expect((await call(product.GET, { params: { id: 'off' } })).status).toBe(404);
+		expect((await call(product.GET, { params: { id: 'off' }, key: writer })).status).toBe(200);
+
+		const patched = await call(product.PATCH, {
+			method: 'PATCH',
+			key: writer,
+			params: { id: 'tee' },
+			body: { priceCents: 3000 }
+		});
+		expect(patched.json.product.priceCents).toBe(3000);
+		expect(
+			(
+				await call(product.PATCH, {
+					method: 'PATCH',
+					key: writer,
+					params: { id: 'tee' },
+					body: { priceCents: -1 }
+				})
+			).status
+		).toBe(422);
+		expect(
+			(
+				await call(product.PATCH, {
+					method: 'PATCH',
+					key: writer,
+					params: { id: 'nope' },
+					body: {}
+				})
+			).status
+		).toBe(404);
+
+		expect(
+			(await call(product.DELETE, { method: 'DELETE', key: writer, params: { id: tee.id } })).status
+		).toBe(204);
+		expect(
+			(await call(product.DELETE, { method: 'DELETE', key: writer, params: { id: tee.id } })).status
+		).toBe(404);
+	});
+
+	it('reports validation errors and slug conflicts', async () => {
+		await seedProduct();
+		const writer = await key('products:write');
+		const bad = await call(products.POST, { method: 'POST', key: writer, body: { slug: 'X' } });
+		expect(bad.status).toBe(422);
+		const dupe = await call(products.POST, {
+			method: 'POST',
+			key: writer,
+			body: { slug: 'tee', name: 'Tee', priceCents: 1 }
+		});
+		expect(dupe).toEqual({ status: 409, json: { error: 'Slug "tee" is taken' } });
+	});
+});
+
+describe('checkout and orders API', () => {
+	it('prices from the catalog, applies site tax and shipping, and records a manual payment', async () => {
+		const tee = await seedProduct();
+		env.COMMERCE_TAX_RATE_PERCENT = '10';
+		env.COMMERCE_FLAT_SHIPPING_CENTS = '500';
+		const res = await call(checkout.POST, {
+			method: 'POST',
+			body: {
+				email: 'ada@example.com',
+				lines: [{ productId: tee.id, quantity: 2, priceCents: 1 }],
+				shippingAddress: address
+			}
+		});
+		expect(res.status).toBe(201);
+		expect(res.json.order).toMatchObject({
+			status: 'pending',
+			subtotalCents: 5000,
+			shippingCents: 500,
+			taxCents: 500,
+			totalCents: 6000
+		});
+		expect(res.json.payment).toEqual({
+			provider: 'manual',
+			reference: `manual_${res.json.order.id}`,
+			redirectUrl: null
+		});
+
+		const reader = await key('orders:read', 'orders:write');
+		const listed = await call(orders.GET, { key: reader, path: '/api/v1/orders?status=pending' });
+		expect(listed.json.orders).toHaveLength(1);
+		expect(
+			(await call(orders.GET, { key: reader, path: '/api/v1/orders?status=lost' })).status
+		).toBe(400);
+		expect(
+			(await call(orders.GET, { key: reader, path: '/api/v1/orders?limit=x' })).json.orders
+		).toHaveLength(1);
+
+		const one = await call(order.GET, { key: reader, params: { id: res.json.order.id } });
+		expect(one.json.order.items).toHaveLength(1);
+		expect(one.json.order.paymentReference).toBe(`manual_${res.json.order.id}`);
+		expect((await call(order.GET, { key: reader, params: { id: 'nope' } })).status).toBe(404);
+
+		const paid = await call(order.PATCH, {
+			method: 'PATCH',
+			key: reader,
+			params: { id: res.json.order.id },
+			body: { status: 'paid', paymentReference: 'cash-1' }
+		});
+		expect(paid.json.order).toMatchObject({ status: 'paid', paymentReference: 'cash-1' });
+		const backwards = await call(order.PATCH, {
+			method: 'PATCH',
+			key: reader,
+			params: { id: res.json.order.id },
+			body: { status: 'pending' }
+		});
+		expect(backwards.status).toBe(409);
+		const shipped = await call(order.PATCH, {
+			method: 'PATCH',
+			key: reader,
+			params: { id: res.json.order.id },
+			body: { status: 'fulfilling', fulfillmentReference: 'pf-1' }
+		});
+		expect(shipped.json.order.fulfillmentReference).toBe('pf-1');
+		const badPatch = await call(order.PATCH, {
+			method: 'PATCH',
+			key: reader,
+			params: { id: res.json.order.id },
+			body: { status: 'lost', paymentReference: 5, fulfillmentReference: '' }
+		});
+		expect(badPatch.json.details).toHaveLength(3);
+		expect(
+			(
+				await call(order.PATCH, {
+					method: 'PATCH',
+					key: reader,
+					params: { id: 'nope' },
+					body: { status: 'paid' }
+				})
+			).status
+		).toBe(404);
+	});
+
+	it('needs an address for physical goods but not for digital ones', async () => {
+		const tee = await seedProduct();
+		const ebook = await seedProduct({
+			slug: 'ebook',
+			name: 'Ebook',
+			type: 'digital',
+			priceCents: 900
+		});
+		env.COMMERCE_FLAT_SHIPPING_CENTS = '500';
+		const noAddress = await call(checkout.POST, {
+			method: 'POST',
+			body: { email: 'a@b.co', lines: [{ productId: tee.id, quantity: 1 }] }
+		});
+		expect(noAddress.status).toBe(422);
+		const digital = await call(checkout.POST, {
+			method: 'POST',
+			body: { email: 'a@b.co', lines: [{ productId: ebook.id, quantity: 1 }] }
+		});
+		expect(digital.json.order).toMatchObject({ shippingCents: 0, totalCents: 900 });
+		expect((await call(checkout.POST, { method: 'POST', body: { email: 'x' } })).status).toBe(422);
+		const unknown = await call(checkout.POST, {
+			method: 'POST',
+			body: { email: 'a@b.co', lines: [{ productId: 'ghost', quantity: 1 }] }
+		});
+		expect(unknown.status).toBe(400);
+	});
+
+	it('pays through Stripe when configured, and the webhook marks the order paid', async () => {
+		const tee = await seedProduct();
+		env.STRIPE_SECRET_KEY = 'sk_test_123';
+		env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+		const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+			new Response(
+				JSON.stringify({ id: 'cs_test_1', url: 'https://checkout.stripe.test/cs_test_1' }),
+				{
+					status: 200
+				}
+			)
+		);
+		const res = await call(checkout.POST, {
+			method: 'POST',
+			body: {
+				email: 'a@b.co',
+				lines: [{ productId: tee.id, quantity: 1 }],
+				shippingAddress: address
+			}
+		});
+		fetchSpy.mockRestore();
+		expect(res.json.payment).toEqual({
+			provider: 'stripe',
+			reference: 'cs_test_1',
+			redirectUrl: 'https://checkout.stripe.test/cs_test_1'
+		});
+		const orderId = res.json.order.id;
+
+		async function signed(payload: object, secret = 'whsec_test') {
+			const body = JSON.stringify(payload);
+			const t = Math.floor(Date.now() / 1000);
+			const k = await crypto.subtle.importKey(
+				'raw',
+				new TextEncoder().encode(secret),
+				{ name: 'HMAC', hash: 'SHA-256' },
+				false,
+				['sign']
+			);
+			const sig = Array.from(
+				new Uint8Array(
+					await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(`${t}.${body}`))
+				),
+				(b) => b.toString(16).padStart(2, '0')
+			).join('');
+			return call(stripeHook.POST, {
+				method: 'POST',
+				rawBody: body,
+				headers: { 'stripe-signature': `t=${t},v1=${sig}` }
+			});
+		}
+		const completed = (id: string, status = 'paid', sessionId = 'cs_test_1') => ({
+			type: 'checkout.session.completed',
+			data: { object: { id: sessionId, payment_status: status, metadata: { orderId: id } } }
+		});
+
+		expect((await signed(completed(orderId), 'whsec_wrong')).status).toBe(400);
+		expect((await signed(completed(orderId, 'unpaid'))).json).toEqual({
+			received: true,
+			ignored: true
+		});
+		expect((await signed(completed(orderId, 'paid', 'cs_forged'))).json.ignored).toBe(true);
+		expect((await signed(completed('ghost'))).json.ignored).toBe(true);
+		expect(
+			(
+				await signed({
+					type: 'checkout.session.completed',
+					data: { object: { payment_status: 'paid' } }
+				})
+			).json.ignored
+		).toBe(true);
+		expect((await signed(completed(orderId))).json).toEqual({ received: true });
+		expect((await signed(completed(orderId))).json).toEqual({ received: true });
+		const status = await db
+			.prepare('SELECT status FROM commerce_orders WHERE id = ?')
+			.bind(orderId)
+			.first('status');
+		expect(status).toBe('paid');
+	});
+
+	it('refuses webhooks when Stripe is not configured or the payload is not JSON', async () => {
+		expect((await call(stripeHook.POST, { method: 'POST', rawBody: '{}' })).status).toBe(503);
+		env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+		const t = Math.floor(Date.now() / 1000);
+		const k = await crypto.subtle.importKey(
+			'raw',
+			new TextEncoder().encode('whsec_test'),
+			{ name: 'HMAC', hash: 'SHA-256' },
+			false,
+			['sign']
+		);
+		const sig = Array.from(
+			new Uint8Array(
+				await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(`${t}.not json`))
+			),
+			(b) => b.toString(16).padStart(2, '0')
+		).join('');
+		const res = await call(stripeHook.POST, {
+			method: 'POST',
+			rawBody: 'not json',
+			headers: { 'stripe-signature': `t=${t},v1=${sig}` }
+		});
+		expect(res.status).toBe(400);
+	});
+
+	it('turns an unexpected failure into a 500 without leaking it', async () => {
+		const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		await db.prepare('DROP TABLE commerce_orders').run();
+		const reader = await key('orders:read');
+		expect(await call(orders.GET, { key: reader })).toEqual({
+			status: 500,
+			json: { error: 'Internal error' }
+		});
+		spy.mockRestore();
 	});
 });
 

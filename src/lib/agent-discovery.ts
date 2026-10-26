@@ -49,6 +49,7 @@ export const SITEMAP_ROUTES: readonly SitemapRoute[] = [
 	{ path: '/components', changefreq: 'weekly', priority: 0.7 },
 	{ path: '/modules', changefreq: 'weekly', priority: 0.7 },
 	{ path: '/badge', changefreq: 'monthly', priority: 0.5 },
+	{ path: '/shop', changefreq: 'daily', priority: 0.7 },
 	{ path: '/chat', changefreq: 'monthly', priority: 0.6 },
 	{ path: '/contact', changefreq: 'monthly', priority: 0.5 },
 	{ path: '/privacy', changefreq: 'yearly', priority: 0.3 },
@@ -71,7 +72,8 @@ export const SITEMAP_EXCLUDED_ROUTES: Readonly<Record<string, string>> = {
 	setup: 'One-time install wizard; meaningless (and risky) once the site is live.',
 	media: 'R2 binary passthrough, not an HTML page.',
 	'[contentType]': 'Enumerated dynamically from the CMS at request time.',
-	p: 'Builder pages — published ones are enumerated dynamically at request time.'
+	p: 'Builder pages — published ones are enumerated dynamically at request time.',
+	cart: "The shopper's own cart and checkout — per-visitor, nothing to index."
 };
 
 /**
@@ -94,6 +96,7 @@ export const CRAWLER_DISALLOW: readonly string[] = [
 	'/api/',
 	'/auth/',
 	'/profile',
+	'/cart',
 	'/reset',
 	'/setup',
 	'/media/'

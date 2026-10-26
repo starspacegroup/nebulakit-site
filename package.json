@@ -27,6 +27,7 @@
 		"test:all": "npm run test && npm run test:e2e",
 		"validate:contrast": "node scripts/validate-theme-contrast.cjs",
 		"validate:all": "npm run check && npm run test && npm run validate:contrast",
+		"update:price-index": "node scripts/update-price-index.mjs",
 		"db:migrate": "node scripts/db-migrate.mjs apply",
 		"db:migrate:local": "node scripts/db-migrate.mjs apply --local",
 		"db:migrate:list": "node scripts/db-migrate.mjs list",
