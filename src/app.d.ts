@@ -29,6 +29,10 @@ declare global {
 				/** Granted admin areas (permissions.ts), re-read on every request. */
 				permissions?: string[];
 				isPretend?: boolean;
+				/** Effective role, re-read from `users` on every request (roles.ts). */
+				role?: 'user' | 'admin' | 'superadmin' | 'owner';
+				/** Granted admin areas (permissions.ts), re-read on every request. */
+				permissions?: string[];
 			};
 			/** Set by the CMS content route so the page-view hook can attribute the
 			 *  view to an item without a second lookup. Unset on every other route,
@@ -60,6 +64,16 @@ declare global {
 				DEV_AUTH_BYPASS?: string;
 				/** Shared bearer secret for /api/cron/* scheduler endpoints. */
 				CRON_SECRET?: string;
+				/** Optional PageSpeed Insights API key. Without one PSI still answers,
+				 *  at a much lower rate limit. See src/lib/server/lighthouse.ts. */
+				PAGESPEED_API_KEY?: string;
+				/** Comma-separated extra hostnames an admin redirect may point at (https
+				 *  only). The site's own host is always allowed. See src/lib/server/redirects.ts. */
+				REDIRECT_ALLOWED_HOSTS?: string;
+				/** Where to send vulnerability reports: an email address or an https URL,
+				 *  comma-separated for several. Unset means /.well-known/security.txt is a
+				 *  404. See src/lib/server/security-txt.ts. */
+				SECURITY_CONTACT?: string;
 			};
 			/** Cloudflare request metadata. `cf.country` is the edge-provided ISO
 			 *  3166-1 alpha-2 code used by page-view stats — undefined locally. */

@@ -29,7 +29,18 @@
 	}
 </script>
 
-<SharingMeta title={contentType.name} description={contentType.description || ''} />
+<SharingMeta
+	title={contentType.name}
+	description={contentType.description || ''}
+	structured={{
+		pageType: 'CollectionPage',
+		breadcrumb: [{ name: contentType.name, path: getRoutePrefix() }],
+		items: items.map((entry) => ({
+			name: entry.title,
+			url: `${getRoutePrefix()}/${entry.slug}`
+		}))
+	}}
+/>
 
 <div class="cms-list-page">
 	<header class="cms-list-header">
