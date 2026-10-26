@@ -107,6 +107,9 @@ npm run deploy`
 			<a href="#secrets-at-rest">Secrets at Rest</a>
 			<a href="#security-hardening">Security Hardening</a>
 			<a href="#admin-analytics">Admin Analytics</a>
+			<a href="#roles-permissions">Roles and Permissions</a>
+			<a href="#audit-log">Audit Log</a>
+			<a href="#sign-in-tracking">Sign-in Tracking</a>
 			<a href="#agent-readiness">Agent Readiness</a>
 			<a href="#testing">Testing</a>
 			<a href="#project-structure">Structure</a>
@@ -806,6 +809,97 @@ npm run db:migrate:list</code
 					</p>
 				</div>
 			</div>
+		</section>
+
+		<section id="roles-permissions" class="docs-section">
+			<h2>Roles and Permissions</h2>
+			<p>
+				Access is a ladder, <strong>owner &gt; superadmin &gt; admin &gt; user</strong>, plus a list
+				of named areas each admin may open. One rule does the work: you can only act on someone
+				strictly below you, and you can only hand out a role strictly below your own. An admin
+				cannot promote, demote or delete a peer, a superadmin or the owner, and nobody can promote
+				themselves.
+			</p>
+			<div class="callout-grid">
+				<div class="callout-card">
+					<h3>The owner is configuration</h3>
+					<p>
+						The owner is set by <code>GITHUB_OWNER_ID</code> (or setup), never by the
+						<code>users.role</code> column, so no request can assign or remove it. Superadmins hold
+						every area, including <code>pii</code>, and cannot be limited.
+					</p>
+				</div>
+				<div class="callout-card">
+					<h3>Areas for admins</h3>
+					<p>
+						<code>cms</code>, <code>pages</code>, <code>users</code> (view the list),
+						<code>users-manage</code> (change roles and delete, below their own role),
+						<code>stats</code>, <code>pii</code>, <code>api-keys</code>, <code>contact</code> and
+						<code>lighthouse</code>. Settings, auth keys, AI keys, the analytics connection, setup
+						and reset stay with the owner and superadmins. Only the owner or a superadmin can change
+						an admin's areas.
+					</p>
+				</div>
+				<div class="callout-card">
+					<h3>Managing access</h3>
+					<p>
+						On <code>/admin/users</code> choose <strong>Manage access</strong> on a row to set the role
+						and tick the areas. The sidebar only shows links the signed-in admin can use, but every load
+						and API also checks the permission itself. Role and areas are re-read from the database on
+						every request, so a change applies on the next click.
+					</p>
+				</div>
+				<div class="callout-card">
+					<h3>Upgrading</h3>
+					<p>
+						Migration <code>0015</code> adds <code>users.role</code> and
+						<code>user_permissions</code>. Existing admins keep every area they could reach before
+						(and <code>can_view_stats</code> becomes the <code>stats</code> permission); nobody is
+						promoted and owner-only areas are not handed out. <code>is_admin</code> and
+						<code>can_view_stats</code> stay in sync. To add an area, add it to
+						<code>src/lib/access/permissions.ts</code>, guard its routes with
+						<code>requirePermission</code>, and give its nav entry a <code>permission</code>.
+					</p>
+				</div>
+			</div>
+		</section>
+
+		<section id="audit-log" class="docs-section">
+			<h2>Audit Log</h2>
+			<p>
+				<a href="/admin/audit">/admin/audit</a> (owners and superadmins) lists who changed what: user
+				role changes, deletes and merges, content publish and delete, settings and key changes, API key
+				create and revoke. It records changes only, never page views, and never a secret value: a key
+				or setting change notes that it changed, and any detail field named like a token, secret, password
+				or key is redacted. Filter by actor and action, search, and open a row for its detail.
+			</p>
+			<p>
+				Rows are kept 365 days; a scheduled job prunes older ones (<code>pruneAudit</code> in
+				<code>src/lib/server/audit.ts</code>, run daily as the <code>prune-audit</code> job). Apply
+				migration <code>0016</code> (shared with sign-in tracking) with
+				<code>bun run db:migrate:local</code>. Details:
+				<code>docs/AUDIT_LOG.md</code>.
+			</p>
+		</section>
+
+		<section id="sign-in-tracking" class="docs-section">
+			<h2>Sign-in Tracking</h2>
+			<p>
+				The owner can see who is signed in and where each sign-in came from at
+				<a href="/admin/sign-ins">/admin/sign-ins</a>, and sign any session out. Recording is
+				<strong>off by default</strong>, because it is the one place the site stores an IP address;
+				the rest of the site stays cookie-free and IP-free. The owner switches it on on that page,
+				under a plain-language disclosure.
+			</p>
+			<p>
+				While on, each sign-in attempt, failures included, stores the method, whether it worked, the
+				IP address (shown masked unless the owner reveals personal data), a rough device label such
+				as “Chrome on macOS” (never the raw browser string), the country, and when a live session
+				was last used. Passwords and typed email addresses are never stored, visitors who are not
+				signing in are never recorded, and attempts are deleted after 90 days. Recording can never
+				block a sign-in. If you turn it on, say so in your privacy policy. Details:
+				<code>docs/SIGN_IN_TRACKING.md</code>.
+			</p>
 		</section>
 
 		<section id="testing" class="docs-section">

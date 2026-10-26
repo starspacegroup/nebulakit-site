@@ -1,4 +1,4 @@
-import { requireOwner } from '$lib/server/auth-guard';
+import { requireOwner } from '$lib/server/auth-guards';
 import { AUTH_PROVIDERS, isAuthProvider } from '$lib/utils/auth-provider-config';
 import {
 	authConfigSpec,

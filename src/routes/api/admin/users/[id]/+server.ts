@@ -1,22 +1,48 @@
+import { actorRole, loadTarget, rankOf } from '$lib/server/admin-target';
+import { requirePermission } from '$lib/server/auth-guards';
+import {
+	canEditPermissions,
+	DEFAULT_ADMIN_PERMISSIONS,
+	parsePermissions,
+	type Permission
+} from '$lib/access/permissions';
+import {
+	canAssignRole,
+	canDeleteUser,
+	isAssignableRole,
+	type AssignableRole
+} from '$lib/access/roles';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
+/**
+ * Change a user's role and, for admins, their granted areas.
+ *
+ * The ladder (roles.ts) is enforced HERE, on the server, from the stored row:
+ * the actor must outrank the target, and may only hand out a role strictly
+ * below their own. The owner is configuration, so it ranks above everyone and
+ * no request can reach it. Granting permissions is owner/superadmin only.
+ *
+ * Body: `{ role?: 'user'|'admin'|'superadmin', isAdmin?: boolean, permissions?: string[] }`.
+ * `isAdmin` is the older shape and maps to role admin/user.
+ */
 export const PATCH: RequestHandler = async ({ platform, locals, params, request }) => {
-	// Check if user is authenticated and is admin
-	if (!locals.user) {
-		throw error(401, 'Unauthorized');
-	}
-
-	if (!locals.user.isOwner && !locals.user.isAdmin) {
-		throw error(403, 'Forbidden');
-	}
+	const actor = requirePermission(locals, 'users-manage');
 
 	const userId = params.id;
 	const body = await request.json();
-	const { isAdmin } = body;
+	const { isAdmin, role: requestedRole, permissions: requestedPermissions } = body;
 
-	if (typeof isAdmin !== 'boolean') {
-		throw error(400, 'isAdmin must be a boolean');
+	if (requestedRole !== undefined && !isAssignableRole(requestedRole)) {
+		throw error(400, 'role must be one of user, admin, superadmin');
+	}
+	if (requestedPermissions !== undefined && !Array.isArray(requestedPermissions)) {
+		throw error(400, 'permissions must be an array');
+	}
+	if (requestedRole === undefined && requestedPermissions === undefined) {
+		if (typeof isAdmin !== 'boolean') {
+			throw error(400, 'isAdmin must be a boolean');
+		}
 	}
 
 	try {
@@ -25,42 +51,81 @@ export const PATCH: RequestHandler = async ({ platform, locals, params, request 
 			throw error(500, 'Database not available');
 		}
 
-		// Get the target user
-		const targetUser = await db
-			.prepare('SELECT id, email, github_login FROM users WHERE id = ?')
-			.bind(userId)
-			.first<{ id: string; email: string; github_login: string }>();
-
-		if (!targetUser) {
-			throw error(404, 'User not found');
-		}
+		const targetUser = await loadTarget(db, userId);
 
 		// Check if trying to modify self
-		if (userId === locals.user.id) {
+		if (userId === actor.id) {
 			throw error(400, 'Cannot modify your own admin status');
 		}
 
-		// Get setup owner email from KV
-		const setupData = await platform?.env?.KV?.get('setup:complete');
-		if (setupData) {
-			const setupInfo = JSON.parse(setupData);
-			const ownerEmail = setupInfo.ownerEmail;
+		const actorRank = actorRole(actor);
+		const targetRank = await rankOf(platform, targetUser);
 
-			// Prevent demoting the setup owner
-			if (targetUser.email === ownerEmail && !isAdmin) {
-				throw error(400, 'Cannot demote the setup owner');
-			}
+		// Rank first: acting on somebody at or above you is refused outright,
+		// whatever the change is. This is what stops an admin touching the owner.
+		const nextRole: AssignableRole =
+			requestedRole ??
+			(typeof isAdmin === 'boolean'
+				? isAdmin
+					? 'admin'
+					: 'user'
+				: (targetRank as AssignableRole));
+		const decision = canAssignRole(actorRank, targetRank, nextRole);
+		if (!decision.ok) {
+			throw error(403, decision.reason ?? 'Not allowed');
 		}
 
-		// Update user admin status
-		await db
-			.prepare('UPDATE users SET is_admin = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-			.bind(isAdmin ? 1 : 0, userId)
-			.run();
+		const becomesAdmin = nextRole === 'admin' && targetRank !== 'admin';
+		let permissions: Permission[] | null = null;
+		if (requestedPermissions !== undefined) {
+			const editable = canEditPermissions(actorRank, nextRole);
+			if (!editable.ok) {
+				throw error(403, editable.reason ?? 'Not allowed');
+			}
+			permissions = parsePermissions(requestedPermissions);
+		} else if (becomesAdmin) {
+			permissions = DEFAULT_ADMIN_PERMISSIONS;
+		}
+
+		const statements = [
+			db
+				.prepare(
+					'UPDATE users SET role = ?, is_admin = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+				)
+				.bind(nextRole, nextRole === 'user' ? 0 : 1, userId)
+		];
+		// Anyone who is not an admin holds no per-area grants: a demotion must not
+		// leave rows behind that would reopen a door on the next promotion.
+		if (nextRole !== 'admin') {
+			permissions = [];
+		}
+		if (permissions) {
+			statements.push(db.prepare('DELETE FROM user_permissions WHERE user_id = ?').bind(userId));
+			for (const permission of permissions) {
+				statements.push(
+					db
+						.prepare(
+							'INSERT INTO user_permissions (user_id, permission, granted_by) VALUES (?, ?, ?)'
+						)
+						.bind(userId, permission, actor.id)
+				);
+			}
+			// `can_view_stats` (0009) is the same grant as the `stats` permission.
+			statements.push(
+				db
+					.prepare('UPDATE users SET can_view_stats = ? WHERE id = ?')
+					.bind(permissions.includes('stats') ? 1 : 0, userId)
+			);
+		}
+		// Force the target to authenticate again after any authorization change.
+		statements.push(db.prepare('DELETE FROM sessions WHERE user_id = ?').bind(userId));
+		await db.batch(statements);
 
 		return json({
 			success: true,
-			message: isAdmin ? 'User promoted to admin' : 'User demoted from admin'
+			role: nextRole,
+			permissions: permissions ?? undefined,
+			message: roleMessage(targetRank, nextRole)
 		});
 	} catch (err: any) {
 		console.error('Failed to update user:', err);
@@ -71,15 +136,14 @@ export const PATCH: RequestHandler = async ({ platform, locals, params, request 
 	}
 };
 
-export const DELETE: RequestHandler = async ({ platform, locals, params }) => {
-	// Check if user is authenticated and is admin
-	if (!locals.user) {
-		throw error(401, 'Unauthorized');
-	}
+function roleMessage(from: string, to: AssignableRole): string {
+	if (from === to) return 'User permissions updated';
+	if (to === 'user') return 'User demoted from admin';
+	return to === 'admin' ? 'User promoted to admin' : 'User promoted to superadmin';
+}
 
-	if (!locals.user.isOwner && !locals.user.isAdmin) {
-		throw error(403, 'Forbidden');
-	}
+export const DELETE: RequestHandler = async ({ platform, locals, params }) => {
+	const actor = requirePermission(locals, 'users-manage');
 
 	const userId = params.id;
 
@@ -90,33 +154,17 @@ export const DELETE: RequestHandler = async ({ platform, locals, params }) => {
 		}
 
 		// Check if trying to delete self
-		if (userId === locals.user.id) {
+		if (userId === actor.id) {
 			throw error(400, 'Cannot delete your own account');
 		}
 
-		// Get the target user
-		const targetUser = await db
-			.prepare('SELECT id, email FROM users WHERE id = ?')
-			.bind(userId)
-			.first<{ id: string; email: string }>();
-
-		if (!targetUser) {
-			throw error(404, 'User not found');
+		const targetUser = await loadTarget(db, userId);
+		const decision = canDeleteUser(actorRole(actor), await rankOf(platform, targetUser));
+		if (!decision.ok) {
+			throw error(403, decision.reason ?? 'Not allowed');
 		}
 
-		// Get setup owner email from KV
-		const setupData = await platform?.env?.KV?.get('setup:complete');
-		if (setupData) {
-			const setupInfo = JSON.parse(setupData);
-			const ownerEmail = setupInfo.ownerEmail;
-
-			// Prevent deleting the setup owner
-			if (targetUser.email === ownerEmail) {
-				throw error(400, 'Cannot delete the setup owner');
-			}
-		}
-
-		// Delete user (cascades to sessions and oauth_accounts)
+		// Delete user (cascades to sessions, oauth_accounts and permissions)
 		await db.prepare('DELETE FROM users WHERE id = ?').bind(userId).run();
 
 		return json({

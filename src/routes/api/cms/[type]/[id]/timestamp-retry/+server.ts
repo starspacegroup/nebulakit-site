@@ -22,6 +22,7 @@ import {
 import { requestTimestamp } from '$lib/timestamp/rfc3161';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { requirePermission } from '$lib/server/auth-guards';
 
 interface HashableFields {
 	body?: string;
@@ -30,12 +31,7 @@ interface HashableFields {
 }
 
 export const POST: RequestHandler = async ({ platform, locals, params }) => {
-	if (!locals.user) {
-		throw error(401, 'Unauthorized');
-	}
-	if (!locals.user.isOwner && !locals.user.isAdmin) {
-		throw error(403, 'Forbidden');
-	}
+	requirePermission(locals, 'cms');
 
 	const db = platform?.env?.DB;
 	if (!db) {

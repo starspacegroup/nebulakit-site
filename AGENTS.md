@@ -163,6 +163,14 @@ const passwordField = fieldName('password');
 - **Minimal dependencies:** Build features in-house. External packages only for complex/unsolvable cases.
 - **SvelteKit + TypeScript:** Always use types. Never suppress TypeScript errors.
 - **TDD cycle:** Red → Green → Refactor. Repeat for each feature.
+- **Access is a role ladder plus named areas** (migration `0015_`, `src/lib/access/`): owner >
+  superadmin > admin > user; you act only on someone strictly below you. **The owner is config
+  (`GITHUB_OWNER_ID`), never a value of `users.role`.** Guard every admin load and API with
+  `requirePermission(locals, 'cms')` (or `requireOwner`) from `src/lib/server/auth-guards.ts`;
+  hiding a nav link is not authorization. Admin mutations are logged by `auditHandler`
+  ([docs/AUDIT_LOG.md](docs/AUDIT_LOG.md)); keep `auditHandler` just before `authHandler` in the
+  `sequence()` in `src/hooks.server.ts`. Sign-in tracking is opt-in
+  ([docs/SIGN_IN_TRACKING.md](docs/SIGN_IN_TRACKING.md)).
 - **Hero decoration animates `transform` and `opacity` only**, and the nebula SVG is softened by one
   `filter: blur()` on `.nebula-waves-svg`, never by per-path SVG filters. A `border-radius` in
   `@keyframes blob-float` repaints two blurred 500x600 elements every frame; and because

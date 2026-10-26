@@ -1,4 +1,4 @@
-import { requireOwner } from '$lib/server/auth-guard';
+import { requireOwner } from '$lib/server/auth-guards';
 import { AUTH_PROVIDERS } from '$lib/utils/auth-provider-config';
 import { authConfigSpec, ensureRecordSealed, sealRecordSecret } from '$lib/server/secret-store';
 import { error, isHttpError, json } from '@sveltejs/kit';

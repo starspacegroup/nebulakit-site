@@ -16,8 +16,11 @@ export const load: LayoutServerLoad = async ({ locals, cookies }) => {
 		throw redirect(302, '/auth/login?error=unauthorized');
 	}
 
-	// Check if user is the OAuth app owner or an admin
-	if (!locals.user.isOwner && !locals.user.isAdmin) {
+	// Check if user is the OAuth app owner or an admin. The predicate must match
+	// `requireAdmin` (including `isSuperAdmin`) or a superadmin would pass every
+	// admin API and still be bounced from the UI. This route redirects rather
+	// than throwing, so the check is spelled out here instead of calling the guard.
+	if (!locals.user.isOwner && !locals.user.isAdmin && !locals.user.isSuperAdmin) {
 		throw redirect(302, '/?error=forbidden');
 	}
 

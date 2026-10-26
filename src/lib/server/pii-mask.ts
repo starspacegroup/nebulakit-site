@@ -1,5 +1,5 @@
 /**
- * PII masking for admin views (ported from AgapeVerse).
+ * PII masking for admin views (ported from a downstream app).
  *
  * Personal data (names, emails, ids, avatars) is masked in admin views BY
  * DEFAULT so incidental screen-sharing/screenshots don't leak user PII. An
@@ -12,17 +12,15 @@
  *  2. Client-side context masking — `Pii.svelte` reads the reveal state from
  *     Svelte context and hides values already sent to the browser.
  *
- * Role policy for the KIT: reveal is `isOwner`-only (owner is the kit's top
- * role). Plain admins are always masked. Downstream apps with finer-grained
- * roles adjust `canRevealPii` (e.g. add a superadmin flag) — it's the one gate
- * every read routes through.
+ * Role policy: reveal needs the `pii` permission (owner and superadmin always
+ * hold it; an admin only when granted). It is the one gate every read routes
+ * through.
  */
 
+import { can, type PermissionSubject } from '$lib/access/permissions';
+
 /** Role flags as carried on `locals.user` (see app.d.ts). */
-export type RoleFlags = {
-	isOwner?: boolean;
-	isAdmin?: boolean;
-};
+export type RoleFlags = PermissionSubject;
 
 /**
  * Mask a display name: keep each word's first letter, star the rest.
@@ -63,10 +61,12 @@ export function maskGeneric(value: string | null | undefined): string {
 	return value.slice(0, 2) + '*'.repeat(value.length - 4) + value.slice(-2);
 }
 
-/** Whether this user may reveal PII. Owner-only in the kit. */
+/**
+ * Whether this user may reveal PII: the owner, a superadmin, or an admin who
+ * was granted the `pii` permission (permissions.ts). Plain admins stay masked.
+ */
 export function canRevealPii(user: RoleFlags | null | undefined): boolean {
-	if (!user) return false;
-	return Boolean(user.isOwner);
+	return can(user, 'pii');
 }
 
 /**
@@ -82,6 +82,8 @@ export function isPiiRevealed(
 
 /** Cookie name + scope shared by the reveal endpoint and every server read. */
 export const PII_REVEAL_COOKIE = 'pii_reveal';
-export const PII_REVEAL_COOKIE_PATH = '/admin';
+// The same server-side reveal decision protects both /admin pages and
+// /api/admin responses, so the browser must send the opt-in cookie to both.
+export const PII_REVEAL_COOKIE_PATH = '/';
 /** Reveal auto-expires (1h) so it's never left permanently on. */
 export const PII_REVEAL_MAX_AGE = 60 * 60;

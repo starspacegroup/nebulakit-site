@@ -5,16 +5,12 @@
  * Stores images in the R2 BUCKET binding; served back via /media/[...key].
  */
 import { buildMediaKey, mediaUrlForKey, validateUpload } from '$lib/cms/upload';
+import { requireAdmin } from '$lib/server/auth-guards';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ locals, platform, request }) => {
-	if (!locals.user) {
-		throw error(401, 'Unauthorized');
-	}
-	if (!locals.user.isOwner && !locals.user.isAdmin) {
-		throw error(403, 'Forbidden');
-	}
+	requireAdmin(locals);
 
 	const bucket = platform?.env?.BUCKET;
 	if (!bucket) {

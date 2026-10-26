@@ -1,11 +1,25 @@
 import { buildLinkHeader } from '$lib/agent-discovery';
+import { canonicalRedirect, withHostRobots } from '$lib/server/canonical-host';
 import {
 	isConvertibleHtml,
 	prefersMarkdown,
 	toMarkdownResponse
 } from '$lib/server/markdown-negotiation';
+import {
+	allowedRedirectHosts,
+	getRedirectByFromPath,
+	recordRedirectHit,
+	redirectLocation
+} from '$lib/server/redirects';
+import { PERMISSIONS, parsePermissions } from '$lib/access/permissions';
+import { effectiveRole } from '$lib/access/roles';
+import { auditAround } from '$lib/server/audit';
 import { withSecurityHeaders } from '$lib/server/security-headers';
+import { trackSessionSeen } from '$lib/server/sign-ins';
+import { resolveOwnerStatus } from '$lib/utils/auth-identity';
 import { getAuthSession } from '$lib/utils/db';
+import { isDevAuthSimulationEnabled } from '$lib/utils/dev-auth';
+import { createSessionUser } from '$lib/utils/session';
 import {
 	browserBucket,
 	deviceBucket,
@@ -20,38 +34,142 @@ import { recordRequest } from '$lib/utils/usage';
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 
-// Auth handling hook
-export const authHandler: Handle = async ({ event, resolve }) => {
-	// The cookie is an OPAQUE session id, not the user object. The trusted payload
-	// lives server-side in sessions.data (see createAuthSession) and is read back
-	// here on every request, so isOwner/isAdmin cannot be forged by editing the
-	// cookie. A cookie that resolves to no session leaves the request
-	// unauthenticated — fail closed.
-	const sessionId = event.cookies.get('session');
+// Auth handling hook.
+//
+// Merge resolution record (opaque-sessions x main): the COOKIE MECHANISM is
+// the opaque-sessions design — the cookie carries an opaque random token,
+// the trusted payload lives server-side in sessions.data, and a forged cookie
+// names no session and fails closed. What survives from main's competing
+// scheme is its PER-REQUEST PRIVILEGE REFRESH: identity comes from the stored
+// session, but is_admin / can_view_stats / owner status are re-read from the
+// users table on every request, so granting or revoking access takes effect
+// without a re-login. Dev-simulated identities are honored only under
+// isDevAuthSimulationEnabled, exactly as on main — a pretend payload in a
+// production database must not authenticate anyone.
+export function authHandler(input: {
+	event: any;
+	resolve: (event: any) => Response | Promise<Response>;
+}): Promise<Response>;
+export async function authHandler({ event, resolve }: Parameters<Handle>[0]): Promise<Response> {
+	const sessionToken = event.cookies.get('session');
 
-	if (sessionId) {
-		const db = event.platform?.env?.DB;
-		let user = null;
-		if (db) {
-			try {
-				user = await getAuthSession(db, sessionId);
-			} catch {
-				// A database error means we cannot authenticate this request — treat
-				// it as unauthenticated rather than trusting the cookie.
-				user = null;
+	if (sessionToken) {
+		try {
+			const db = event.platform?.env?.DB;
+			if (!db) throw new Error('Session database unavailable');
+
+			const stored = await getAuthSession(db, sessionToken);
+			if (!stored) throw new Error('Session is missing, expired, or revoked');
+
+			if (stored.isPretend) {
+				// Self-contained simulated identities are reserved for the
+				// explicitly enabled local development simulator.
+				if (!isDevAuthSimulationEnabled(event.url, event.platform)) {
+					throw new Error('Simulated session outside the dev simulator');
+				}
+				// Simulated admins hold every area; the simulator is dev-only.
+				const pretendRole = effectiveRole(stored);
+				event.locals.user = {
+					...stored,
+					role: pretendRole,
+					permissions: pretendRole === 'admin' ? [...PERMISSIONS] : []
+				};
+			} else {
+				type AuthUserRecord = {
+					id: string;
+					email: string;
+					name: string | null;
+					github_login: string | null;
+					github_avatar_url: string | null;
+					is_admin: number;
+					can_view_stats?: number;
+					role?: string | null;
+				};
+				let userRecord: AuthUserRecord | null;
+				try {
+					userRecord = await db
+						.prepare(
+							`SELECT id, email, name, github_login, github_avatar_url,
+							        is_admin, can_view_stats, role
+							 FROM users WHERE id = ?`
+						)
+						.bind(stored.id)
+						.first<AuthUserRecord>();
+				} catch {
+					// Migration 0021 added role (0009 added can_view_stats); retain
+					// compatibility with a local database that has not applied them.
+					try {
+						userRecord = await db
+							.prepare(
+								`SELECT id, email, name, github_login, github_avatar_url,
+								        is_admin, can_view_stats
+								 FROM users WHERE id = ?`
+							)
+							.bind(stored.id)
+							.first<AuthUserRecord>();
+					} catch {
+						userRecord = await db
+							.prepare(
+								`SELECT id, email, name, github_login, github_avatar_url, is_admin
+								 FROM users WHERE id = ?`
+							)
+							.bind(stored.id)
+							.first<AuthUserRecord>();
+					}
+				}
+
+				if (!userRecord) throw new Error('Session user no longer exists');
+				const isOwner = await resolveOwnerStatus(event.platform, userRecord);
+				const role = effectiveRole({
+					isOwner,
+					role: userRecord.role,
+					isAdmin: userRecord.is_admin === 1
+				});
+				// The granted areas are re-read every request too, so revoking one
+				// bites on the next click. Fails closed: no table, no grants.
+				let permissions: string[] = [];
+				if (role === 'admin') {
+					try {
+						const rows = await db
+							.prepare('SELECT permission FROM user_permissions WHERE user_id = ?')
+							.bind(userRecord.id)
+							.all<{ permission: string }>();
+						permissions = parsePermissions((rows.results ?? []).map((r) => r.permission));
+					} catch {
+						permissions = [];
+					}
+					// `can_view_stats` (0009) and the `stats` permission are one grant.
+					if (userRecord.can_view_stats === 1 && !permissions.includes('stats')) {
+						permissions = [...permissions, 'stats'];
+					}
+				}
+				event.locals.user = {
+					...createSessionUser({
+						...userRecord,
+						isOwner,
+						isAdmin: role !== 'user'
+					}),
+					role,
+					permissions,
+					isSuperAdmin: role === 'superadmin',
+					canViewStats: userRecord.can_view_stats === 1 || permissions.includes('stats')
+				};
 			}
-		}
-
-		if (user) {
-			event.locals.user = user;
-		} else {
+		} catch {
 			// Unknown, expired, or unverifiable session — clear the stale cookie.
+			delete event.locals.user;
 			event.cookies.delete('session', { path: '/' });
 		}
 	}
 
+	// Opt-in sign-in tracking (docs/SIGN_IN_TRACKING.md): a no-op unless the owner
+	// turned it on, throttled to once per 5 minutes per session, never throws.
+	if (sessionToken && event.locals.user && !event.locals.user.isPretend) {
+		await trackSessionSeen(event.platform, sessionToken);
+	}
+
 	return resolve(event);
-};
+}
 
 const BOT_UA = /bot|crawler|spider|preview|facebookexternalhit|lighthouse|headless/i;
 const UNTRACKED_ROUTES = /^\/(admin|api|setup)(\/|$)/;
@@ -187,18 +305,88 @@ export const agentDiscoveryHandler: Handle = async ({ event, resolve }) => {
 };
 
 /**
+ * Admin audit log (docs/AUDIT_LOG.md): one row per successful admin mutation,
+ * never per page view. Sits before authHandler so it wraps it; it reads
+ * `locals.user` only after the response, when authHandler has filled it in.
+ * The relative order of the other handlers is unchanged.
+ */
+export const auditHandler: Handle = ({ event, resolve }) => auditAround(event, resolve);
+
+/**
  * HSTS, nosniff, frame and referrer headers (security-headers.ts). Outermost,
  * so redirects and error responses get them too. It only decorates the
  * response, so it does not change when the other handlers run.
  */
-export const securityHeadersHandler: Handle = async ({ resolve, event }) =>
+export const securityHeadersHandler: Handle = async ({ event, resolve }) =>
 	withSecurityHeaders(await resolve(event));
+
+/**
+ * Canonical host (src/lib/server/canonical-host.ts): `www.<site host>` is sent
+ * to the host in site.config (301 for GET/HEAD, 308 otherwise) because the
+ * session cookie is host-only, and every other non-canonical host (localhost,
+ * *.pages.dev, previews, tunnels) is answered normally with
+ * `X-Robots-Tag: noindex, nofollow`.
+ *
+ * Inside usageHandler, so the bounce is still counted as an invocation, and
+ * outside everything else, so a redirected request never reaches auth, D1 or
+ * page-view recording.
+ *
+ * Exported for direct unit testing (sequence() needs Kit's request store).
+ */
+export const canonicalHostHandler: Handle = async ({ event, resolve }) => {
+	const redirect = canonicalRedirect(event.url, event.request.method);
+	if (redirect) return redirect;
+	return withHostRobots(await resolve(event), event.url.hostname);
+};
+
+/**
+ * Admin-managed redirects (docs/REDIRECTS.md, /admin/redirects). Consulted only
+ * when the response is already a 404 for a GET/HEAD, so healthy pages pay
+ * nothing. Checking the response rather than `route.id` matters: catch-all
+ * routes like /[contentType] match any single segment and 404 from their load.
+ *
+ * Sits INSIDE usageHandler (a bounced request is counted once, as the redirect
+ * it became) and OUTSIDE auth and pageViewsHandler (a redirect is never a page
+ * view, and the stale 404 render is simply discarded). A missing table or a D1
+ * error falls through to the plain 404.
+ *
+ * Exported for direct unit testing (sequence() needs Kit's request store).
+ */
+export const redirectsHandler: Handle = async ({ event, resolve }) => {
+	const response = await resolve(event);
+	const method = event.request.method;
+	const db = event.platform?.env?.DB;
+	if (response.status !== 404 || !db || (method !== 'GET' && method !== 'HEAD')) return response;
+
+	try {
+		const redirect = await getRedirectByFromPath(db, event.url.pathname);
+		if (!redirect) return response;
+		const location = redirectLocation(
+			redirect,
+			event.url,
+			allowedRedirectHosts(event.platform?.env?.REDIRECT_ALLOWED_HOSTS)
+		);
+		if (!location) return response;
+		const hit = recordRedirectHit(db, redirect.id).catch(() => {});
+		if (event.platform?.context?.waitUntil) {
+			event.platform.context.waitUntil(hit);
+		} else {
+			await hit;
+		}
+		return new Response(null, { status: redirect.status, headers: { location } });
+	} catch {
+		return response;
+	}
+};
 
 // Combine all hooks
 export const handle = sequence(
 	securityHeadersHandler,
 	usageHandler,
+	canonicalHostHandler,
+	redirectsHandler,
 	agentDiscoveryHandler,
+	auditHandler,
 	authHandler,
 	pageViewsHandler
 );

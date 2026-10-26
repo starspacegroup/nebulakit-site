@@ -6,6 +6,8 @@
  * Instead of showing an error, we seamlessly merge the accounts.
  */
 
+import { recordAudit } from '$lib/server/audit';
+
 interface D1Database {
 	prepare(query: string): D1PreparedStatement;
 	batch<T = unknown>(statements: D1PreparedStatement[]): Promise<D1Result<T>[]>;
@@ -136,6 +138,22 @@ export async function mergeAccounts(
 	// If source user was admin, make target user admin too
 	if (sourceIsAdmin) {
 		statements.push(db.prepare('UPDATE users SET is_admin = 1 WHERE id = ?').bind(targetUserId));
+		// Carry the ladder with it: a plain user becomes an admin (never higher than
+		// the source's own admin; a superadmin is only ever granted by a person),
+		// and the source's granted areas are kept so the merge loses nothing.
+		statements.push(
+			db
+				.prepare("UPDATE users SET role = 'admin' WHERE id = ? AND role = 'user'")
+				.bind(targetUserId)
+		);
+		statements.push(
+			db
+				.prepare(
+					`INSERT OR IGNORE INTO user_permissions (user_id, permission, granted_by)
+					 SELECT ?, permission, 'account-merge' FROM user_permissions WHERE user_id = ?`
+				)
+				.bind(targetUserId, sourceUserId)
+		);
 	}
 
 	// Never lose a grant by merging: the target keeps stats access if either had it.
@@ -152,6 +170,18 @@ export async function mergeAccounts(
 
 	// Execute all statements in a batch for atomicity
 	await db.batch(statements);
+
+	// Audit trail (docs/AUDIT_LOG.md). The log is not a foreign key, so it keeps
+	// naming the source user after the DELETE above. Recording never throws.
+	await recordAudit(db as never, {
+		actorId: targetUserId,
+		actorLogin: targetUser.email,
+		action: 'user.merge',
+		targetType: 'user',
+		targetId: sourceUserId,
+		summary: 'Merged one account into another',
+		detail: { sourceUserId, targetUserId, sourceWasAdmin: sourceIsAdmin }
+	});
 
 	console.log(`[Account Merge] Successfully merged user ${sourceUserId} into ${targetUserId}`);
 }

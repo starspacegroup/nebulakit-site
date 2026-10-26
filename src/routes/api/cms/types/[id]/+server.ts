@@ -13,14 +13,10 @@ import {
 } from '$lib/services/cms';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { requirePermission } from '$lib/server/auth-guards';
 
 export const GET: RequestHandler = async ({ platform, locals, params }) => {
-	if (!locals.user) {
-		throw error(401, 'Unauthorized');
-	}
-	if (!locals.user.isOwner && !locals.user.isAdmin) {
-		throw error(403, 'Forbidden');
-	}
+	requirePermission(locals, 'cms');
 
 	const db = platform?.env?.DB;
 	if (!db) {
@@ -40,12 +36,7 @@ export const GET: RequestHandler = async ({ platform, locals, params }) => {
 };
 
 export const PUT: RequestHandler = async ({ platform, locals, params, request }) => {
-	if (!locals.user) {
-		throw error(401, 'Unauthorized');
-	}
-	if (!locals.user.isOwner && !locals.user.isAdmin) {
-		throw error(403, 'Forbidden');
-	}
+	requirePermission(locals, 'cms');
 
 	const db = platform?.env?.DB;
 	if (!db) {
@@ -94,12 +85,7 @@ export const PUT: RequestHandler = async ({ platform, locals, params, request })
 };
 
 export const DELETE: RequestHandler = async ({ platform, locals, params }) => {
-	if (!locals.user) {
-		throw error(401, 'Unauthorized');
-	}
-	if (!locals.user.isOwner && !locals.user.isAdmin) {
-		throw error(403, 'Forbidden');
-	}
+	requirePermission(locals, 'cms');
 
 	const db = platform?.env?.DB;
 	if (!db) {

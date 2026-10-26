@@ -8,14 +8,10 @@ import { validateContentTypeInput } from '$lib/cms/utils';
 import { createContentTypeInDB, getContentTypes, syncContentTypes } from '$lib/services/cms';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { requirePermission } from '$lib/server/auth-guards';
 
 export const GET: RequestHandler = async ({ platform, locals }) => {
-	if (!locals.user) {
-		throw error(401, 'Unauthorized');
-	}
-	if (!locals.user.isOwner && !locals.user.isAdmin) {
-		throw error(403, 'Forbidden');
-	}
+	requirePermission(locals, 'cms');
 
 	const db = platform?.env?.DB;
 	if (!db) {
@@ -37,12 +33,7 @@ export const GET: RequestHandler = async ({ platform, locals }) => {
 };
 
 export const POST: RequestHandler = async ({ platform, locals, request }) => {
-	if (!locals.user) {
-		throw error(401, 'Unauthorized');
-	}
-	if (!locals.user.isOwner && !locals.user.isAdmin) {
-		throw error(403, 'Forbidden');
-	}
+	requirePermission(locals, 'cms');
 
 	const db = platform?.env?.DB;
 	if (!db) {
