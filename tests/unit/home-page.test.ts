@@ -95,6 +95,63 @@ describe('Home Page Hero', () => {
 		expect(card).toHaveTextContent(/try it live/i);
 	});
 
+	it('lists every capability ported from the template as a feature card', () => {
+		const { container } = render(Page);
+		const titles = [...container.querySelectorAll('.feature-card .feature-title')].map((t) =>
+			t.textContent?.trim()
+		);
+		for (const title of [
+			'Page Builder',
+			'Site API and API Keys',
+			'Shop with Stripe',
+			'Transactional Email',
+			'Regional Pricing',
+			'Roles and Permissions',
+			'Audit Log and Sign-in Tracking',
+			'Scheduled Jobs',
+			'SEO Toolkit',
+			'Security Hardening',
+			'Encrypted Secrets'
+		]) {
+			expect(titles, title).toContain(title);
+		}
+	});
+
+	it('keeps the feature grid even in two, three and four columns', () => {
+		const { container } = render(Page);
+		// 24 divides by 2, 3 and 4, so no breakpoint ends on a short row.
+		expect(container.querySelectorAll('.features-grid > .feature-card')).toHaveLength(24);
+	});
+
+	it('gives every feature card an icon, a title and a description', () => {
+		const { container } = render(Page);
+		for (const card of container.querySelectorAll('.feature-card')) {
+			expect(card.querySelector('.feature-icon svg')).toBeTruthy();
+			expect(card.querySelector('.feature-title')?.textContent?.trim()).toBeTruthy();
+			expect(card.querySelector('.feature-description')?.textContent?.trim()).toBeTruthy();
+		}
+	});
+
+	it('says off by default for the features that are off by default', () => {
+		const { container } = render(Page);
+		const text = (title: string) =>
+			[...container.querySelectorAll('.feature-card')]
+				.find((c) => c.querySelector('.feature-title')?.textContent?.trim() === title)
+				?.textContent ?? '';
+		expect(text('Regional Pricing')).toMatch(/off by default/i);
+		expect(text('Audit Log and Sign-in Tracking')).toMatch(/off by default/i);
+	});
+
+	it('colours the new cards only with CSS variables', () => {
+		const { container } = render(Page);
+		for (const el of container.querySelectorAll('.feature-card [fill], .feature-card [stroke]')) {
+			for (const attr of ['fill', 'stroke']) {
+				const v = el.getAttribute(attr);
+				if (v && v !== 'none') expect(v).toMatch(/^var\(--color-/);
+			}
+		}
+	});
+
 	it('should render the value propositions', () => {
 		render(Page);
 		expect(screen.getByText('Deploy in minutes')).toBeTruthy();

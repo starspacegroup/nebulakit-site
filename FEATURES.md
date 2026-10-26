@@ -382,6 +382,47 @@ Multiple variants included:
 - CSS optimization
 - Asset optimization
 
+## 🧩 Pages, Shop and Operations
+
+### Page Builder and Site API
+
+- Drag-and-drop pages stored as data (a JSON tree of blocks), never code
+- Revision history: every changing save keeps a revision, and a restore can be undone
+- Published pages are served at `/p/[slug]` and listed in the sitemap
+- Public API under `/api/v1`, described at `/api/v1/openapi.json`
+- API keys with scopes and an expiry; shown once, stored hashed, revocable in one click
+
+### Shop, Payments and Email
+
+- Products, cart and Stripe checkout; the server works out every price
+- Handles late, failed and expired payments; a replayed event changes nothing twice
+- Receipts and shipping notices through Resend, sent at most once per order
+- Inert until configured: no Stripe key means manual payment, no email key means nothing is sent
+
+### Regional Pricing
+
+- Purchasing-power pricing from a World Bank price table shipped with the kit
+- Off by default, and it only ever lowers a price
+- The least generous country among the request and the shipping address applies, so a VPN alone earns nothing
+
+### Roles, Audit Log and Sign-in Tracking
+
+- Roles: owner, superadmin, admin and user, with named areas for each admin
+- You can only act on someone below your own role
+- Audit log of changes, kept 365 days, with secret values never recorded
+- Sign-in tracking is off by default; it is the one place the site stores an IP address
+
+### Scheduled Jobs
+
+- A cron Worker calls the app's `/api/cron/*` routes on a schedule
+- Each job runs once per scheduled minute; every run is recorded at `/admin/scheduled-jobs`
+
+### SEO
+
+- One JSON-LD graph per page (Organization, WebSite, WebPage and more)
+- Redirect manager, canonical host handling and `/.well-known/security.txt`
+- Lighthouse admin that audits your public pages
+
 ## 🔒 Security
 
 ### Best Practices
@@ -391,6 +432,11 @@ Multiple variants included:
 - Content Security Policy ready
 - Secure session handling
 - Turnstile for bot protection
+- Security headers on every response (HSTS, nosniff, frame and referrer policy)
+- Login throttling per address and per email
+- AI keys and OAuth client secrets encrypted at rest (AES-256-GCM) with key rotation
+- Safer OAuth account linking
+- A CI check that fails when a committed migration is edited
 
 ## 📦 Deployment
 

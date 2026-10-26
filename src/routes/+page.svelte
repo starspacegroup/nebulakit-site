@@ -1018,7 +1018,228 @@
 				</p>
 			</div>
 
-			<!-- Feature 13: Drag & Drop — the one feature you can try without
+			<!-- Features 13-23: capabilities ported from the template -->
+			<div class="feature-card">
+				<div class="feature-header">
+					<div class="feature-icon">
+						<svg
+							width="40"
+							height="40"
+							viewBox="0 0 40 40"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<rect x="5" y="6" width="30" height="8" rx="2" stroke="var(--color-primary)" stroke-width="2" /><rect x="5" y="19" width="13" height="15" rx="2" fill="var(--color-primary)" opacity="0.3" /><rect x="22" y="19" width="13" height="15" rx="2" stroke="var(--color-secondary)" stroke-width="2" stroke-dasharray="3 3" />
+						</svg>
+					</div>
+					<h3 class="feature-title">Page Builder</h3>
+				</div>
+				<p class="feature-description">
+					Build pages by dragging blocks into place, then publish them at /p/your-slug. Pages are stored as data, never code. Every save keeps a revision, and a restore can be undone.
+				</p>
+			</div>
+
+			<div class="feature-card">
+				<div class="feature-header">
+					<div class="feature-icon">
+						<svg
+							width="40"
+							height="40"
+							viewBox="0 0 40 40"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<rect x="5" y="8" width="30" height="24" rx="3" stroke="var(--color-primary)" stroke-width="2" /><path d="M13 16l-4 4 4 4M27 16l4 4-4 4" stroke="var(--color-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d="M22 14l-4 12" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" />
+						</svg>
+					</div>
+					<h3 class="feature-title">Site API and API Keys</h3>
+				</div>
+				<p class="feature-description">
+					A public API under /api/v1, described by an OpenAPI file. Keys have scopes and an expiry. A key is shown once and stored hashed, and you can revoke it in one click.
+				</p>
+			</div>
+
+			<div class="feature-card">
+				<div class="feature-header">
+					<div class="feature-icon">
+						<svg
+							width="40"
+							height="40"
+							viewBox="0 0 40 40"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path d="M6 8h4l4 16h16l3-12H12" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><circle cx="16" cy="31" r="2.5" fill="var(--color-secondary)" /><circle cx="28" cy="31" r="2.5" fill="var(--color-secondary)" />
+						</svg>
+					</div>
+					<h3 class="feature-title">Shop with Stripe</h3>
+				</div>
+				<p class="feature-description">
+					Products, a cart and Stripe checkout. The server works out every price. Late payments, failed payments and expired sessions are handled, and a replay changes nothing twice.
+				</p>
+			</div>
+
+			<div class="feature-card">
+				<div class="feature-header">
+					<div class="feature-icon">
+						<svg
+							width="40"
+							height="40"
+							viewBox="0 0 40 40"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<rect x="5" y="9" width="30" height="22" rx="3" stroke="var(--color-primary)" stroke-width="2" /><path d="M6 12l14 11 14-11" stroke="var(--color-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+						</svg>
+					</div>
+					<h3 class="feature-title">Transactional Email</h3>
+				</div>
+				<p class="feature-description">
+					Receipts and shipping notices through Resend. Each email goes out at most once per order. With no key set, nothing is sent and the log records what was skipped.
+				</p>
+			</div>
+
+			<div class="feature-card">
+				<div class="feature-header">
+					<div class="feature-icon">
+						<svg
+							width="40"
+							height="40"
+							viewBox="0 0 40 40"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<circle cx="20" cy="20" r="14" stroke="var(--color-primary)" stroke-width="2" /><path d="M6 20h28M20 6c-6 6-6 22 0 28M20 6c6 6 6 22 0 28" stroke="var(--color-secondary)" stroke-width="2" />
+						</svg>
+					</div>
+					<h3 class="feature-title">Regional Pricing</h3>
+				</div>
+				<p class="feature-description">
+					Lower prices where money buys more, using a World Bank price table. Off by default, and it only ever lowers a price. A VPN alone earns no discount.
+				</p>
+			</div>
+
+			<div class="feature-card">
+				<div class="feature-header">
+					<div class="feature-icon">
+						<svg
+							width="40"
+							height="40"
+							viewBox="0 0 40 40"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<circle cx="14" cy="14" r="5" fill="var(--color-primary)" opacity="0.4" /><circle cx="26" cy="14" r="5" stroke="var(--color-primary)" stroke-width="2" /><path d="M6 33c0-6 4-10 8-10s8 4 8 10M18 33c0-6 4-10 8-10s8 4 8 10" stroke="var(--color-secondary)" stroke-width="2" stroke-linecap="round" />
+						</svg>
+					</div>
+					<h3 class="feature-title">Roles and Permissions</h3>
+				</div>
+				<p class="feature-description">
+					Four roles: owner, superadmin, admin and user. Give each admin only the areas they need. You can only act on someone below your own role.
+				</p>
+			</div>
+
+			<div class="feature-card">
+				<div class="feature-header">
+					<div class="feature-icon">
+						<svg
+							width="40"
+							height="40"
+							viewBox="0 0 40 40"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<rect x="9" y="5" width="22" height="30" rx="3" stroke="var(--color-primary)" stroke-width="2" /><path d="M14 13h12M14 19h12M14 25h7" stroke="var(--color-secondary)" stroke-width="2" stroke-linecap="round" />
+						</svg>
+					</div>
+					<h3 class="feature-title">Audit Log and Sign-in Tracking</h3>
+				</div>
+				<p class="feature-description">
+					See who changed what. The log records changes only, and never a secret value. Sign-in tracking is off by default because it is the one place the site stores an IP address.
+				</p>
+			</div>
+
+			<div class="feature-card">
+				<div class="feature-header">
+					<div class="feature-icon">
+						<svg
+							width="40"
+							height="40"
+							viewBox="0 0 40 40"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<circle cx="20" cy="20" r="14" stroke="var(--color-primary)" stroke-width="2" /><path d="M20 11v9l6 4" stroke="var(--color-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+						</svg>
+					</div>
+					<h3 class="feature-title">Scheduled Jobs</h3>
+				</div>
+				<p class="feature-description">
+					A small cron Worker runs your jobs on a schedule. Each job runs once per scheduled minute, retries are safe, and every run is recorded in the admin.
+				</p>
+			</div>
+
+			<div class="feature-card">
+				<div class="feature-header">
+					<div class="feature-icon">
+						<svg
+							width="40"
+							height="40"
+							viewBox="0 0 40 40"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<circle cx="18" cy="18" r="10" stroke="var(--color-primary)" stroke-width="2" /><path d="M26 26l9 9" stroke="var(--color-secondary)" stroke-width="3" stroke-linecap="round" />
+						</svg>
+					</div>
+					<h3 class="feature-title">SEO Toolkit</h3>
+				</div>
+				<p class="feature-description">
+					A site-wide JSON-LD graph, a redirect manager, canonical host handling and security.txt. A Lighthouse admin audits your public pages.
+				</p>
+			</div>
+
+			<div class="feature-card">
+				<div class="feature-header">
+					<div class="feature-icon">
+						<svg
+							width="40"
+							height="40"
+							viewBox="0 0 40 40"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path d="M20 5l13 5v9c0 8-5 13-13 16C12 32 7 27 7 19v-9l13-5z" stroke="var(--color-primary)" stroke-width="2" stroke-linejoin="round" /><path d="M14 20l4 4 8-8" stroke="var(--color-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+						</svg>
+					</div>
+					<h3 class="feature-title">Security Hardening</h3>
+				</div>
+				<p class="feature-description">
+					Security headers on every response, login throttling, and safer OAuth account linking. CI fails if anyone edits a committed migration.
+				</p>
+			</div>
+
+			<div class="feature-card">
+				<div class="feature-header">
+					<div class="feature-icon">
+						<svg
+							width="40"
+							height="40"
+							viewBox="0 0 40 40"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<rect x="9" y="18" width="22" height="16" rx="3" fill="var(--color-primary)" opacity="0.3" /><rect x="9" y="18" width="22" height="16" rx="3" stroke="var(--color-primary)" stroke-width="2" /><path d="M14 18v-4a6 6 0 0112 0v4" stroke="var(--color-secondary)" stroke-width="2" /><circle cx="20" cy="26" r="2" fill="var(--color-secondary)" />
+						</svg>
+					</div>
+					<h3 class="feature-title">Encrypted Secrets</h3>
+				</div>
+				<p class="feature-description">
+					AI keys and OAuth client secrets are encrypted with AES-256-GCM before they are saved. The admin shows only the last four characters. Rotate the key and old values are re-encrypted when read.
+				</p>
+			</div>
+
+			<!-- Feature 24: Drag & Drop — the one feature you can try without
 			     leaving the site, so the card is the link to it. -->
 			<a class="feature-card feature-card--link" href="/showcase">
 				<div class="feature-header">
@@ -2344,7 +2565,7 @@
 	}
 
 	/* Ultra-wide: a fourth column, so the extra room holds more cards instead of
-	   stretching three of them. Twelve cards divide evenly either way. */
+	   stretching three of them. Twenty-four cards divide evenly into two, three and four columns. */
 	@media (min-width: 1920px) {
 		.features-grid {
 			grid-template-columns: repeat(4, 1fr);

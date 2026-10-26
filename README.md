@@ -23,6 +23,15 @@ This repository is the site at [nebulakit.starspace.group](https://nebulakit.sta
 - **📱 Mobile-First**: Responsive layouts optimized for all devices
 - **🤖 Agent Ready**: robots.txt with AI crawler rules, dynamic sitemap, `.well-known` discovery, Markdown content negotiation, and WebMCP tools — all working out of the box
 - **🎯 Drag & Drop**: Pointer, touch and keyboard dragging, a columned widget board, and a pure reorder engine
+- **🧱 Page Builder**: Drag-and-drop pages stored as data, with revision history and a public site API (API keys, OpenAPI)
+- **🛒 Shop**: Products, cart and Stripe checkout, with late and failed payments handled
+- **✉️ Email**: Receipts and shipping notices through Resend, sent at most once per order
+- **🌍 Regional Pricing**: Purchasing-power pricing that only ever lowers a price (off by default)
+- **👥 Roles and Permissions**: Owner, superadmin, admin and user, with per-area access for admins
+- **📜 Audit Log**: Who changed what, never a secret value; sign-in tracking is opt-in
+- **⏰ Scheduled Jobs**: A cron Worker with run history and a Run now button
+- **🔎 SEO**: Site-wide JSON-LD, redirect manager, canonical host handling, security.txt and a Lighthouse admin
+- **🛡️ Security Hardening**: Security headers, login throttling, encrypted secrets at rest with key rotation, safer OAuth account linking, and a CI check that migrations are never edited
 - **⚡ TypeScript**: Full type safety with Cloudflare Workers types
 - **🎨 UI Components**: Beautiful, accessible components out of the box
 
