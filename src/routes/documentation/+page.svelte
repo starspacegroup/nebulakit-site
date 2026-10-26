@@ -112,6 +112,7 @@ npm run deploy`
 			<a href="#sign-in-tracking">Sign-in Tracking</a>
 			<a href="#seo-and-hosts">SEO, Redirects and Lighthouse</a>
 			<a href="#scheduled-jobs">Scheduled Jobs</a>
+			<a href="#pages-site-api">Pages and the Site API</a>
 			<a href="#agent-readiness">Agent Readiness</a>
 			<a href="#testing">Testing</a>
 			<a href="#project-structure">Structure</a>
@@ -1089,6 +1090,35 @@ bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}</c
 			<p>
 				It needs migration <code>0019_scheduled_job_runs.sql</code>. Adding a job and the details
 				are in <code>docs/SCHEDULED_JOBS.md</code>.
+		<section id="pages-site-api" class="docs-section">
+			<h2>Pages and the Site API</h2>
+				Two packages live in <code>packages/</code>, each versioned on its own:
+				<code>@nebulakit/builder</code> (drag-and-drop pages stored as data) and
+				<code>@nebulakit/security</code> (API keys). Security updates are forced to every site; the
+				builder is opt-in.
+					<h3>Pages</h3>
+						Build pages at <code>/admin/pages</code>: drag blocks from the palette onto the page or
+						into a Section or Column, reorder and nest them, edit each block's fields, hide a block
+						on phones, tablets or desktops, preview at each width, and publish. Mouse, touch and
+						keyboard all work: every drag has Add, Move up/down, Move in and Move out buttons, plus
+						Alt+Arrow keys, and Undo and Redo (Ctrl/⌘+Z) cover every edit. A check list flags images
+						without a description, skipped heading levels and vague link text. Published pages are
+						served at <code>/p/[slug]</code> and listed in the sitemap; the site's own routes always
+						win over a page. Every save that changes a page keeps a revision (the newest 50), listed
+						under History in the editor and at <code>/api/v1/pages/[slug]/revisions</code>;
+						restoring one is itself saved, so it can be undone. A page is a JSON document (format
+						version 2: a tree of blocks), never code, and it is rendered without raw HTML.
+					<h3>API keys</h3>
+						The owner manages access at <code>/admin/api-keys</code>: create a key with scopes and
+						an expiry, see when it was last used, revoke it in one click, and read the call log. A
+						key is shown once and stored hashed.
+					<h3>The site API</h3>
+						Everything is reachable under <code>/api/v1</code>, described at
+						<code>/api/v1/openapi.json</code>. Send keys as <code>Authorization: Bearer nk_…</code>.
+						Published pages are public to read; writes need a key with the right scope or an admin
+						session that sends JSON.
+				<code>ORCHESTRATOR_KEY_SHA256</code> connects the Ammoura control room. Apply migrations
+				<code>0020</code>–<code>0022</code> with <code>bun run db:migrate:local</code>.
 			</p>
 		</section>
 
