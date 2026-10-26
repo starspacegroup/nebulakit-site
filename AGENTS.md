@@ -109,6 +109,7 @@ Tiles and installed-app icons are **static** — they cannot switch on `prefers-
 | `/.well-known/api-catalog` (RFC 9727)                     | [src/routes/\[x+2e\]well-known/api-catalog/](src/routes/[x+2e]well-known/api-catalog/+server.ts)              |
 | `/.well-known/agent-skills/index.json`                    | [src/routes/\[x+2e\]well-known/agent-skills/](src/routes/[x+2e]well-known/agent-skills/index.json/+server.ts) |
 | `/auth.md` — how agents authenticate                      | [src/routes/auth.md/](src/routes/auth.md/+server.ts)                                                          |
+| `/.well-known/security.txt` (RFC 9116) — 404 until `SECURITY_CONTACT` is set | [src/routes/\[x+2e\]well-known/security.txt/](src/routes/[x+2e]well-known/security.txt/+server.ts) |
 | `Accept: text/markdown` + `Link` headers                  | [src/hooks.server.ts](src/hooks.server.ts)                                                                    |
 | WebMCP browser tools                                      | [src/lib/webmcp.ts](src/lib/webmcp.ts)                                                                        |
 
