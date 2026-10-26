@@ -180,6 +180,12 @@ enforces it.
 upgrade. It is refreshed from the database on every request by the auth hook, so
 revoking it takes effect without waiting for a re-login.
 
+Since migration `0015_` the same grant is also the `stats` permission in the
+per-area system (`src/lib/access/permissions.ts`). Migration 0015 mapped
+`can_view_stats = 1` admins to a `stats` row, the hook treats either as the
+grant, and the user admin API keeps the two in step when an owner or superadmin
+edits an admin's areas. `canViewStats()` is unchanged.
+
 ---
 
 ## Google Analytics (optional)

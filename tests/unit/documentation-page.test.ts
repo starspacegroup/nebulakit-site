@@ -324,4 +324,45 @@ describe('Documentation Page', () => {
 			expect(board.textContent).toMatch(/clock.*checklist.*meter/is);
 		});
 	});
+
+	// AGENTS.md §7 — the role ladder and per-area permissions are an admin
+	// change, so the page has to say how they work and what upgrading does.
+	it('documents the role ladder and per-area permissions', () => {
+		render(Page);
+
+		const section = screen
+			.getByRole('heading', { name: /Roles and Permissions/i })
+			.closest('section');
+		expect(section).toBeTruthy();
+		const scoped = within(section as HTMLElement);
+
+		expect(scoped.getByText(/strictly below you/i)).toBeInTheDocument();
+		expect(scoped.getAllByText(/GITHUB_OWNER_ID/).length).toBeGreaterThan(0);
+		expect(scoped.getAllByText('users-manage').length).toBeGreaterThan(0);
+		expect(scoped.getAllByText('0015').length).toBeGreaterThan(0);
+		expect(scoped.getAllByText(/requirePermission/).length).toBeGreaterThan(0);
+	});
+
+	it('documents the audit log, its privacy limits and its retention job', () => {
+		render(Page);
+		const section = screen.getByRole('heading', { name: /^Audit Log$/ }).closest('section');
+		expect(section).toBeTruthy();
+		const text = section?.textContent ?? '';
+		expect(text).toMatch(/never a secret value/i);
+		expect(text).toMatch(/never page views/i);
+		expect(text).toMatch(/prune-audit/);
+		expect(text).toMatch(/365 days/);
+	});
+
+	it('documents sign-in tracking as opt-in with its privacy limits', () => {
+		render(Page);
+		const section = screen.getByRole('heading', { name: /^Sign-in Tracking$/ }).closest('section');
+		expect(section).toBeTruthy();
+		const text = section?.textContent ?? '';
+		expect(text).toMatch(/off by default/i);
+		expect(text).toMatch(/IP address/);
+		expect(text).toMatch(/never the raw browser string/i);
+		expect(text).toMatch(/90 days/);
+		expect(text).toMatch(/never\s+block a sign-in/i);
+	});
 });
