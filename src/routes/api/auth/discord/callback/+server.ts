@@ -1,5 +1,6 @@
 import { mergeAccounts } from '$lib/services/account-merge';
 import { findUserByEmailOrAlias, resolveOwnerStatus } from '$lib/utils/auth-identity';
+import { trackSignIn } from '$lib/server/sign-ins';
 import { createAuthSession } from '$lib/utils/db';
 import { buildSessionCookieHeader } from '$lib/utils/session';
 import { consumeOAuthState } from '$lib/server/oauth-state';
@@ -7,7 +8,7 @@ import { isRedirect, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 // GET - Handle Discord OAuth callback
-export const GET: RequestHandler = async ({ url, cookies, platform }) => {
+export const GET: RequestHandler = async ({ url, cookies, platform, request }) => {
 	const code = url.searchParams.get('code');
 	const state = url.searchParams.get('state');
 
@@ -213,6 +214,11 @@ export const GET: RequestHandler = async ({ url, cookies, platform }) => {
 						};
 
 						const sessionCookie = await createAuthSession(platform.env.DB, sessionData);
+						await trackSignIn(platform, request, {
+							method: 'discord',
+							success: true,
+							userId: sessionData.id
+						});
 
 						const isSecure = url.protocol === 'https:';
 						const cookieParts = [
@@ -273,6 +279,11 @@ export const GET: RequestHandler = async ({ url, cookies, platform }) => {
 						isOwner,
 						isAdmin: matchedUser.is_admin === 1 || isOwner,
 						githubLogin: matchedUser.github_login || undefined
+					});
+					await trackSignIn(platform, request, {
+						method: 'discord',
+						success: true,
+						userId: matchedUser.id
 					});
 					return new Response(null, {
 						status: 302,
@@ -361,6 +372,11 @@ export const GET: RequestHandler = async ({ url, cookies, platform }) => {
 
 		// Store the trusted payload server-side; the cookie carries only the id.
 		const sessionCookie = await createAuthSession(platform.env.DB, sessionData);
+		await trackSignIn(platform, request, {
+			method: 'discord',
+			success: true,
+			userId: sessionData.id
+		});
 
 		// Redirect to home
 		const redirectUrl = '/';
@@ -393,6 +409,11 @@ export const GET: RequestHandler = async ({ url, cookies, platform }) => {
 		}
 		// Log actual errors only
 		console.error('Discord OAuth callback error:', err);
+		await trackSignIn(platform, request, {
+			method: 'discord',
+			success: false,
+			reason: 'provider error'
+		});
 		throw redirect(302, '/auth/login?error=oauth_failed');
 	}
 };

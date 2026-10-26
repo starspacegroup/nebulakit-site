@@ -1,6 +1,7 @@
 import { resolveOwnerStatus } from '$lib/utils/auth-identity';
 import { getConfiguredAuthProviders } from '$lib/utils/auth-provider-config';
 import { verifyPassword } from '$lib/utils/passwords';
+import { trackSignIn } from '$lib/server/sign-ins';
 import { createAuthSession } from '$lib/utils/db';
 import { buildSessionCookieHeader, createSessionUser } from '$lib/utils/session';
 import { error, json } from '@sveltejs/kit';
@@ -40,11 +41,22 @@ export const POST: RequestHandler = async ({ platform, request, url }) => {
 		.first<LoginUserRecord>();
 
 	if (!user?.password_hash) {
+		await trackSignIn(platform, request, {
+			method: 'password',
+			success: false,
+			reason: 'unknown account'
+		});
 		throw error(401, 'Invalid email or password.');
 	}
 
 	const isValidPassword = await verifyPassword(password, user.password_hash);
 	if (!isValidPassword) {
+		await trackSignIn(platform, request, {
+			method: 'password',
+			success: false,
+			userId: user.id,
+			reason: 'wrong password'
+		});
 		throw error(401, 'Invalid email or password.');
 	}
 
@@ -58,6 +70,7 @@ export const POST: RequestHandler = async ({ platform, request, url }) => {
 	const redirectTo = sessionUser.isAdmin ? '/admin' : '/';
 
 	const sessionId = await createAuthSession(platform.env.DB, sessionUser);
+	await trackSignIn(platform, request, { method: 'password', success: true, userId: user.id });
 
 	return json(
 		{

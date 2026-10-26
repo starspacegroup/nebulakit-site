@@ -6,6 +6,8 @@ import {
 } from '$lib/server/markdown-negotiation';
 import { PERMISSIONS, parsePermissions } from '$lib/access/permissions';
 import { effectiveRole } from '$lib/access/roles';
+import { auditAround } from '$lib/server/audit';
+import { trackSessionSeen } from '$lib/server/sign-ins';
 import { resolveOwnerStatus } from '$lib/utils/auth-identity';
 import { getAuthSession } from '$lib/utils/db';
 import { isDevAuthSimulationEnabled } from '$lib/utils/dev-auth';
@@ -152,6 +154,12 @@ export async function authHandler({ event, resolve }: Parameters<Handle>[0]): Pr
 		}
 	}
 
+	// Opt-in sign-in tracking (docs/SIGN_IN_TRACKING.md): a no-op unless the owner
+	// turned it on, throttled to once per 5 minutes per session, never throws.
+	if (sessionToken && event.locals.user && !event.locals.user.isPretend) {
+		await trackSessionSeen(event.platform, sessionToken);
+	}
+
 	return resolve(event);
 }
 
@@ -288,10 +296,19 @@ export const agentDiscoveryHandler: Handle = async ({ event, resolve }) => {
 	}
 };
 
+/**
+ * Admin audit log (docs/AUDIT_LOG.md): one row per successful admin mutation,
+ * never per page view. Sits before authHandler so it wraps it; it reads
+ * `locals.user` only after the response, when authHandler has filled it in.
+ * The relative order of the other handlers is unchanged.
+ */
+export const auditHandler: Handle = ({ event, resolve }) => auditAround(event, resolve);
+
 // Combine all hooks
 export const handle = sequence(
 	usageHandler,
 	agentDiscoveryHandler,
+	auditHandler,
 	authHandler,
 	pageViewsHandler
 );
