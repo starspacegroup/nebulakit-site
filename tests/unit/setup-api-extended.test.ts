@@ -1,4 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TEST_ENCRYPTION_KEY } from '../helpers/fake-kv';
+
+const ownerLocals = { user: { id: 'owner-1', isOwner: true, isAdmin: true } };
+const setupHeaders = new Headers({ authorization: 'Bearer test-setup-secret' });
 
 /**
  * Tests for Setup API Endpoint
@@ -12,15 +16,9 @@ describe('Setup API', () => {
 	});
 
 	describe('GET /api/setup', () => {
-		it('should return hasConfig=false when KV not available', async () => {
+		it('should fail closed when KV is not available', async () => {
 			const { GET } = await import('../../src/routes/api/setup/+server');
-			const response = await GET({
-				platform: {}
-			} as any);
-
-			const result = await response.json();
-			expect(result.hasConfig).toBe(false);
-			expect(result.hasAdmin).toBe(false);
+			await expect(GET({ platform: {} } as any)).rejects.toMatchObject({ status: 500 });
 		});
 
 		it('should return hasConfig=true when auth config exists', async () => {
@@ -69,7 +67,7 @@ describe('Setup API', () => {
 			expect(result.setupLocked).toBe(true);
 		});
 
-		it('should handle KV errors gracefully', async () => {
+		it('should fail closed when KV reads fail', async () => {
 			const mockPlatform = {
 				env: {
 					KV: {
@@ -79,14 +77,7 @@ describe('Setup API', () => {
 			};
 
 			const { GET } = await import('../../src/routes/api/setup/+server');
-			const response = await GET({
-				platform: mockPlatform
-			} as any);
-
-			const result = await response.json();
-			expect(result.hasConfig).toBe(false);
-			expect(result.hasAdmin).toBe(false);
-			expect(result.setupLocked).toBe(false);
+			await expect(GET({ platform: mockPlatform } as any)).rejects.toMatchObject({ status: 500 });
 		});
 	});
 
@@ -94,6 +85,7 @@ describe('Setup API', () => {
 		it('should return 403 when setup is locked', async () => {
 			const mockPlatform = {
 				env: {
+					SETUP_SECRET: 'test-setup-secret',
 					KV: {
 						get: vi.fn().mockResolvedValue('true') // setup locked
 					}
@@ -194,6 +186,8 @@ describe('Setup API', () => {
 			const mockPut = vi.fn().mockResolvedValue(undefined);
 			const mockPlatform = {
 				env: {
+					SETUP_SECRET: 'test-setup-secret',
+					ENCRYPTION_KEY: TEST_ENCRYPTION_KEY,
 					KV: {
 						get: vi.fn().mockResolvedValue(null),
 						put: mockPut
@@ -210,11 +204,12 @@ describe('Setup API', () => {
 				})
 			});
 
-			vi.stubGlobal('crypto', { randomUUID: () => 'config-uuid' });
+			vi.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('config-uuid' as any);
 
 			const { POST } = await import('../../src/routes/api/setup/+server');
 			const response = await POST({
 				request: {
+					headers: setupHeaders,
 					json: vi.fn().mockResolvedValue({
 						clientId: 'test-client',
 						clientSecret: 'test-secret',
@@ -261,9 +256,7 @@ describe('Setup API', () => {
 			).rejects.toThrow();
 		});
 
-		it('should refuse without KV rather than claim success', async () => {
-			// Without KV the setup lock cannot be read, and an unreadable lock
-			// used to mean "proceed" — on the endpoint that sets site ownership.
+		it('should fail closed without KV', async () => {
 			globalThis.fetch = vi.fn().mockResolvedValue({
 				ok: true,
 				json: vi.fn().mockResolvedValue({
@@ -273,22 +266,12 @@ describe('Setup API', () => {
 			});
 
 			const { POST } = await import('../../src/routes/api/setup/+server');
-
 			await expect(
-				POST({
-					request: {
-						json: vi.fn().mockResolvedValue({
-							clientId: 'test-client',
-							clientSecret: 'test-secret',
-							adminGithubUsername: 'testuser'
-						})
-					},
-					platform: {}
-				} as any)
+				POST({ request: { headers: setupHeaders }, platform: {} } as any)
 			).rejects.toMatchObject({ status: 500 });
 		});
 
-		it('should allow updating admin without credentials when config exists', async () => {
+		it('should require reset before updating an existing setup', async () => {
 			const existingConfig = {
 				id: 'existing-id',
 				clientId: 'existing-client',
@@ -300,13 +283,11 @@ describe('Setup API', () => {
 			const mockPlatform = {
 				env: {
 					KV: {
-						// Key-based rather than call-ordered: setup now also checks for
-						// an already-recorded owner before accepting a re-run.
-						get: vi.fn((key: string) =>
-							Promise.resolve(
+						get: vi
+							.fn()
+							.mockImplementation((key: string) =>
 								key === 'auth_config:github' ? JSON.stringify(existingConfig) : null
-							)
-						),
+							),
 						put: mockPut
 					}
 				}
@@ -321,19 +302,16 @@ describe('Setup API', () => {
 			});
 
 			const { POST } = await import('../../src/routes/api/setup/+server');
-			const response = await POST({
-				request: {
-					json: vi.fn().mockResolvedValue({
-						adminGithubUsername: 'newadmin'
-						// No clientId/clientSecret - using existing
-					})
-				},
-				platform: mockPlatform
-			} as any);
-
-			const result = await response.json();
-			expect(result.success).toBe(true);
-			expect(result.adminUsername).toBe('newadmin');
+			await expect(
+				POST({
+					request: {
+						json: vi.fn().mockResolvedValue({ adminGithubUsername: 'newadmin' })
+					},
+					platform: mockPlatform,
+					locals: ownerLocals
+				} as any)
+			).rejects.toMatchObject({ status: 403 });
+			expect(mockPut).not.toHaveBeenCalled();
 		});
 	});
 });

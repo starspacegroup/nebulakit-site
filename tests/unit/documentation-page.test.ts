@@ -40,6 +40,21 @@ describe('Documentation Page', () => {
 		expect(screen.getByText(/must be inert/i)).toBeInTheDocument();
 	});
 
+	it('documents how stored secrets are encrypted and how to rotate the key', () => {
+		render(Page);
+
+		expect(screen.getByRole('heading', { name: /Secrets at Rest/i })).toBeInTheDocument();
+		expect(screen.getAllByText(/ENCRYPTION_KEY_PREVIOUS/).length).toBeGreaterThan(0);
+		expect(screen.getByText(/generate:encryption-key/)).toBeInTheDocument();
+	});
+
+	it('documents the security hardening and the migration check', () => {
+		render(Page);
+
+		expect(screen.getByRole('heading', { name: /Security Hardening/i })).toBeInTheDocument();
+		expect(screen.getByText(/check:migrations/)).toBeInTheDocument();
+	});
+
 	it('documents core product features and operator workflows', () => {
 		render(Page);
 

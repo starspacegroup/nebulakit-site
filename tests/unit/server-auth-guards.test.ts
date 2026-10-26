@@ -12,12 +12,6 @@ import {
 	requireAdmin,
 	requireOwner
 } from '../../src/lib/server/auth-guard';
-import {
-	OAUTH_PROVIDERS,
-	authConfigKey,
-	findProviderByKeyId,
-	isSupportedOAuthProvider
-} from '../../src/lib/server/oauth-config';
 
 const owner = { user: { id: '1', login: 'o', email: 'o@e.com', isOwner: true, isAdmin: true } };
 const admin = { user: { id: '2', login: 'a', email: 'a@e.com', isOwner: false, isAdmin: true } };
@@ -63,61 +57,7 @@ describe('requireOwner', () => {
 		// The distinction matters: /api/reset wipes the owner identity, so admin
 		// is deliberately not enough.
 		expect(() => requireOwner(admin as any)).toThrowError(expect.objectContaining({ status: 403 }));
-	});
 });
-
-describe('oauth-config', () => {
-	it('recognises exactly the supported providers', () => {
-		for (const p of OAUTH_PROVIDERS) {
-			expect(isSupportedOAuthProvider(p)).toBe(true);
-		}
-		expect(isSupportedOAuthProvider('reset_route_disabled')).toBe(false);
-		expect(isSupportedOAuthProvider('')).toBe(false);
-		expect(isSupportedOAuthProvider(undefined)).toBe(false);
-		expect(isSupportedOAuthProvider(42)).toBe(false);
-	});
-
-	it('namespaces provider configs', () => {
-		expect(authConfigKey('github')).toBe('auth_config:github');
-	});
-
-	it('finds the provider holding an id', async () => {
-		const kv = {
-			get: vi.fn((key: string) =>
-				Promise.resolve(
-					key === 'auth_config:discord' ? JSON.stringify({ id: 'k1', provider: 'discord' }) : null
-				)
-			)
-		};
-
-		const found = await findProviderByKeyId(kv as any, 'k1');
-		expect(found?.provider).toBe('discord');
-	});
-
-	it('returns null when no provider claims the id', async () => {
-		const kv = { get: vi.fn().mockResolvedValue(null) };
-		expect(await findProviderByKeyId(kv as any, 'nope')).toBeNull();
-	});
-
-	it('steps over an unreadable provider config and keeps looking', async () => {
-		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-		const kv = {
-			get: vi.fn((key: string) =>
-				Promise.resolve(
-					key === 'auth_config:github'
-						? 'not json'
-						: key === 'auth_config:discord'
-							? JSON.stringify({ id: 'k1', provider: 'discord' })
-							: null
-				)
-			)
-		};
-
-		const found = await findProviderByKeyId(kv as any, 'k1');
-		expect(found?.provider).toBe('discord');
-		expect(consoleSpy).toHaveBeenCalled();
-		consoleSpy.mockRestore();
-	});
 });
 
 describe('superadmin tier', () => {

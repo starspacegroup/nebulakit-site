@@ -43,6 +43,12 @@ declare global {
 				GITHUB_OWNER_ID?: string;
 				SESSION_SECRET?: string;
 				SETUP_SECRET?: string;
+				/** Base64 of 32 random bytes (`bun run generate:encryption-key`). Encrypts
+				 *  provider/API secrets stored in KV. Optional: without it a key is generated
+				 *  and kept in KV. See docs/CLOUDFLARE_SETUP.md. */
+				ENCRYPTION_KEY?: string;
+				/** Retired key(s), comma separated, still accepted for decryption during rotation. */
+				ENCRYPTION_KEY_PREVIOUS?: string;
 				DISCORD_CLIENT_ID?: string;
 				DISCORD_CLIENT_SECRET?: string;
 				DEV_AUTH_BYPASS?: string;

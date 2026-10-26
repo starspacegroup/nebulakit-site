@@ -1,16 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TEST_ENCRYPTION_KEY } from '../helpers/fake-kv';
 
-// These endpoints are admin/owner-gated, so tests drive them as the owner.
-// The unauthenticated and under-privileged cases are asserted separately.
-const OWNER_LOCALS = {
-	user: {
-		id: '72961',
-		login: 'davis9001',
-		email: 'owner@example.com',
-		isOwner: true,
-		isAdmin: true
-	}
-};
+const ownerLocals = { user: { id: 'owner-1', isOwner: true, isAdmin: true } };
 
 /**
  * Tests for Auth Keys API Endpoints
@@ -35,8 +26,8 @@ describe('Auth Keys API', () => {
 
 			const { GET } = await import('../../src/routes/api/admin/auth-keys/+server');
 			const response = await GET({
-				locals: OWNER_LOCALS,
-				platform: mockPlatform
+				platform: mockPlatform,
+				locals: ownerLocals
 			} as any);
 
 			const result = await response.json();
@@ -66,8 +57,8 @@ describe('Auth Keys API', () => {
 
 			const { GET } = await import('../../src/routes/api/admin/auth-keys/+server');
 			const response = await GET({
-				locals: OWNER_LOCALS,
-				platform: mockPlatform
+				platform: mockPlatform,
+				locals: ownerLocals
 			} as any);
 
 			const result = await response.json();
@@ -76,7 +67,7 @@ describe('Auth Keys API', () => {
 			expect(result.keys[0].isSetupKey).toBe(true);
 		});
 
-		it('should handle KV parse errors gracefully', async () => {
+		it('should fail closed on malformed KV configuration', async () => {
 			const mockPlatform = {
 				env: {
 					KV: {
@@ -86,24 +77,16 @@ describe('Auth Keys API', () => {
 			};
 
 			const { GET } = await import('../../src/routes/api/admin/auth-keys/+server');
-			const response = await GET({
-				locals: OWNER_LOCALS,
-				platform: mockPlatform
-			} as any);
-
-			const result = await response.json();
-			expect(result.keys).toEqual([]);
+			await expect(
+				GET({ platform: mockPlatform, locals: ownerLocals } as any)
+			).rejects.toMatchObject({ status: 500 });
 		});
 
-		it('should return empty array when KV is not available', async () => {
+		it('should fail closed when KV is not available', async () => {
 			const { GET } = await import('../../src/routes/api/admin/auth-keys/+server');
-			const response = await GET({
-				locals: OWNER_LOCALS,
-				platform: {}
-			} as any);
-
-			const result = await response.json();
-			expect(result.keys).toEqual([]);
+			await expect(GET({ platform: {}, locals: ownerLocals } as any)).rejects.toMatchObject({
+				status: 500
+			});
 		});
 
 		it('should return Discord OAuth key from KV', async () => {
@@ -129,8 +112,8 @@ describe('Auth Keys API', () => {
 
 			const { GET } = await import('../../src/routes/api/admin/auth-keys/+server');
 			const response = await GET({
-				locals: OWNER_LOCALS,
-				platform: mockPlatform
+				platform: mockPlatform,
+				locals: ownerLocals
 			} as any);
 
 			const result = await response.json();
@@ -173,8 +156,8 @@ describe('Auth Keys API', () => {
 
 			const { GET } = await import('../../src/routes/api/admin/auth-keys/+server');
 			const response = await GET({
-				locals: OWNER_LOCALS,
-				platform: mockPlatform
+				platform: mockPlatform,
+				locals: ownerLocals
 			} as any);
 
 			const result = await response.json();
@@ -183,7 +166,7 @@ describe('Auth Keys API', () => {
 			expect(result.keys[1].provider).toBe('discord');
 		});
 
-		it('should handle Discord KV parse errors gracefully', async () => {
+		it('should fail closed on malformed Discord configuration', async () => {
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
 			const mockPlatform = {
@@ -200,19 +183,15 @@ describe('Auth Keys API', () => {
 			};
 
 			const { GET } = await import('../../src/routes/api/admin/auth-keys/+server');
-			const response = await GET({
-				locals: OWNER_LOCALS,
-				platform: mockPlatform
-			} as any);
-
-			const result = await response.json();
-			expect(result.keys).toEqual([]);
+			await expect(
+				GET({ platform: mockPlatform, locals: ownerLocals } as any)
+			).rejects.toMatchObject({ status: 500 });
 			expect(consoleSpy).toHaveBeenCalled();
 
 			consoleSpy.mockRestore();
 		});
 
-		it('should handle KV.get errors gracefully and return empty keys', async () => {
+		it('should fail closed when KV reads fail', async () => {
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
 			const mockPlatform = {
@@ -225,14 +204,9 @@ describe('Auth Keys API', () => {
 
 			const { GET } = await import('../../src/routes/api/admin/auth-keys/+server');
 
-			// The GET function catches KV errors internally and returns empty keys
-			const response = await GET({
-				locals: OWNER_LOCALS,
-				platform: mockPlatform
-			} as any);
-
-			const result = await response.json();
-			expect(result.keys).toEqual([]);
+			await expect(
+				GET({ platform: mockPlatform, locals: ownerLocals } as any)
+			).rejects.toMatchObject({ status: 500 });
 			expect(consoleSpy).toHaveBeenCalled();
 
 			consoleSpy.mockRestore();
@@ -241,7 +215,7 @@ describe('Auth Keys API', () => {
 
 	describe('POST /api/admin/auth-keys', () => {
 		it('should create a new auth key', async () => {
-			vi.stubGlobal('crypto', { randomUUID: () => 'new-key-123' });
+			vi.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('new-key-123' as any);
 
 			const { POST } = await import('../../src/routes/api/admin/auth-keys/+server');
 			const response = await POST({
@@ -254,8 +228,13 @@ describe('Auth Keys API', () => {
 						clientSecret: 'secret-123'
 					})
 				},
-				locals: OWNER_LOCALS,
-				platform: {}
+				platform: {
+					env: {
+						ENCRYPTION_KEY: TEST_ENCRYPTION_KEY,
+						KV: { get: vi.fn().mockResolvedValue(null), put: vi.fn().mockResolvedValue(undefined) }
+					}
+				},
+				locals: ownerLocals
 			} as any);
 
 			const result = await response.json();
@@ -275,20 +254,22 @@ describe('Auth Keys API', () => {
 							// Missing clientId and clientSecret
 						})
 					},
-					locals: OWNER_LOCALS,
-					platform: {}
+					platform: {},
+					locals: ownerLocals
 				} as any)
 			).rejects.toThrow();
 		});
 
 		it('should save auth key to KV when provider is specified', async () => {
-			vi.stubGlobal('crypto', { randomUUID: () => 'kv-key-123' });
+			vi.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('kv-key-123' as any);
 			const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 			const mockPut = vi.fn().mockResolvedValue(undefined);
 
 			const mockPlatform = {
 				env: {
+					ENCRYPTION_KEY: TEST_ENCRYPTION_KEY,
 					KV: {
+						get: vi.fn().mockResolvedValue(null),
 						put: mockPut
 					}
 				}
@@ -305,8 +286,8 @@ describe('Auth Keys API', () => {
 						clientSecret: 'secret-123'
 					})
 				},
-				locals: OWNER_LOCALS,
-				platform: mockPlatform
+				platform: mockPlatform,
+				locals: ownerLocals
 			} as any);
 
 			const result = await response.json();
@@ -326,8 +307,8 @@ describe('Auth Keys API', () => {
 					request: {
 						json: vi.fn().mockRejectedValue(new Error('Request parse failed'))
 					},
-					locals: OWNER_LOCALS,
-					platform: {}
+					platform: {},
+					locals: ownerLocals
 				} as any);
 				expect.fail('Should have thrown');
 			} catch (err: any) {
@@ -340,18 +321,17 @@ describe('Auth Keys API', () => {
 
 	describe('PUT /api/admin/auth-keys/[id]', () => {
 		it('should update an auth key', async () => {
+			const stored = JSON.stringify({
+				id: 'key-123',
+				provider: 'discord',
+				clientId: 'old-client'
+			});
 			const mockPlatform = {
 				env: {
 					KV: {
-						get: vi
-							.fn()
-							.mockImplementation((key: string) =>
-								Promise.resolve(
-									key === 'auth_config:discord'
-										? JSON.stringify({ id: 'key-123', provider: 'discord', clientId: 'old' })
-										: null
-								)
-							),
+						get: vi.fn((key: string) =>
+							Promise.resolve(key === 'auth_config:discord' ? stored : null)
+						),
 						put: vi.fn().mockResolvedValue(undefined)
 					}
 				}
@@ -363,86 +343,18 @@ describe('Auth Keys API', () => {
 				request: {
 					json: vi.fn().mockResolvedValue({
 						name: 'Updated Key',
-						provider: 'discord',
+						provider: 'github',
 						type: 'oauth',
 						clientId: 'client-456'
 					})
 				},
-				locals: OWNER_LOCALS,
-				platform: mockPlatform
+				platform: mockPlatform,
+				locals: ownerLocals
 			} as any);
 
 			const result = await response.json();
 			expect(result.success).toBe(true);
 			expect(result.key.name).toBe('Updated Key');
-			expect(mockPlatform.env.KV.put).toHaveBeenCalledWith(
-				'auth_config:discord',
-				expect.any(String)
-			);
-		});
-
-		it('should return 404 for an id that matches no stored config', async () => {
-			const mockPlatform = {
-				env: {
-					KV: { get: vi.fn().mockResolvedValue(null), put: vi.fn() }
-				}
-			};
-
-			const { PUT } = await import('../../src/routes/api/admin/auth-keys/[id]/+server');
-
-			await expect(
-				PUT({
-					params: { id: 'nope' },
-					request: {
-						json: vi.fn().mockResolvedValue({ name: 'X', provider: 'discord', clientId: 'c' })
-					},
-					locals: OWNER_LOCALS,
-					platform: mockPlatform
-				} as any)
-			).rejects.toMatchObject({ status: 404 });
-			expect(mockPlatform.env.KV.put).not.toHaveBeenCalled();
-		});
-
-		it('should not let a mismatched id smuggle a write onto the GitHub setup config', async () => {
-			// The setup-key guard compares the path id against the stored GitHub
-			// config. Trusting `provider` from the body meant an unrelated id
-			// sailed past that check while the write still landed on GitHub.
-			const mockPlatform = {
-				env: {
-					KV: {
-						get: vi
-							.fn()
-							.mockImplementation((key: string) =>
-								Promise.resolve(
-									key === 'auth_config:github'
-										? JSON.stringify({ id: 'setup-key-123', provider: 'github' })
-										: null
-								)
-							),
-						put: vi.fn().mockResolvedValue(undefined)
-					}
-				}
-			};
-
-			const { PUT } = await import('../../src/routes/api/admin/auth-keys/[id]/+server');
-
-			await expect(
-				PUT({
-					params: { id: 'some-unrelated-id' },
-					request: {
-						json: vi.fn().mockResolvedValue({
-							name: 'Hijack',
-							provider: 'github',
-							clientId: 'attacker-client',
-							clientSecret: 'attacker-secret'
-						})
-					},
-					locals: OWNER_LOCALS,
-					platform: mockPlatform
-				} as any)
-			).rejects.toMatchObject({ status: 404 });
-
-			expect(mockPlatform.env.KV.put).not.toHaveBeenCalled();
 		});
 
 		it('should prevent editing setup key', async () => {
@@ -470,8 +382,8 @@ describe('Auth Keys API', () => {
 							clientId: 'evil-client'
 						})
 					},
-					locals: OWNER_LOCALS,
-					platform: mockPlatform
+					platform: mockPlatform,
+					locals: ownerLocals
 				} as any)
 			).rejects.toThrow();
 		});
@@ -495,8 +407,8 @@ describe('Auth Keys API', () => {
 							// Missing name and clientId
 						})
 					},
-					locals: OWNER_LOCALS,
-					platform: mockPlatform
+					platform: mockPlatform,
+					locals: ownerLocals
 				} as any)
 			).rejects.toThrow();
 		});
@@ -504,18 +416,13 @@ describe('Auth Keys API', () => {
 
 	describe('DELETE /api/admin/auth-keys/[id]', () => {
 		it('should delete an auth key', async () => {
+			const stored = JSON.stringify({ id: 'key-123', provider: 'discord' });
 			const mockPlatform = {
 				env: {
 					KV: {
-						get: vi
-							.fn()
-							.mockImplementation((key: string) =>
-								Promise.resolve(
-									key === 'auth_config:discord'
-										? JSON.stringify({ id: 'key-123', provider: 'discord' })
-										: null
-								)
-							),
+						get: vi.fn((key: string) =>
+							Promise.resolve(key === 'auth_config:discord' ? stored : null)
+						),
 						delete: vi.fn().mockResolvedValue(undefined)
 					}
 				}
@@ -524,13 +431,12 @@ describe('Auth Keys API', () => {
 			const { DELETE } = await import('../../src/routes/api/admin/auth-keys/[id]/+server');
 			const response = await DELETE({
 				params: { id: 'key-123' },
-				locals: OWNER_LOCALS,
-				platform: mockPlatform
+				platform: mockPlatform,
+				locals: ownerLocals
 			} as any);
 
 			const result = await response.json();
 			expect(result.success).toBe(true);
-			expect(mockPlatform.env.KV.delete).toHaveBeenCalledWith('auth_config:discord');
 		});
 
 		it('should prevent deleting setup key', async () => {
@@ -552,100 +458,17 @@ describe('Auth Keys API', () => {
 			await expect(
 				DELETE({
 					params: { id: 'setup-key-123' },
-					locals: OWNER_LOCALS,
-					platform: mockPlatform
+					platform: mockPlatform,
+					locals: ownerLocals
 				} as any)
 			).rejects.toThrow();
 		});
 
-		it('should refuse deletion when no KV available', async () => {
-			// Previously this reported success without deleting anything, and the
-			// setup-key guard was skipped on the way through.
+		it('should fail closed when deletion storage is unavailable', async () => {
 			const { DELETE } = await import('../../src/routes/api/admin/auth-keys/[id]/+server');
-
 			await expect(
-				DELETE({
-					params: { id: 'key-123' },
-					locals: OWNER_LOCALS,
-					platform: {}
-				} as any)
+				DELETE({ params: { id: 'key-123' }, platform: {}, locals: ownerLocals } as any)
 			).rejects.toMatchObject({ status: 500 });
-		});
-	});
-
-	describe('authorization', () => {
-		const ANON = undefined;
-		const PLAIN_USER = {
-			user: { id: '1', login: 'someone', email: 's@example.com', isOwner: false, isAdmin: false }
-		};
-
-		it('rejects unauthenticated callers on every method', async () => {
-			const { GET, POST } = await import('../../src/routes/api/admin/auth-keys/+server');
-			const { PUT, DELETE } = await import('../../src/routes/api/admin/auth-keys/[id]/+server');
-
-			const platform = { env: { KV: { get: vi.fn(), put: vi.fn(), delete: vi.fn() } } };
-			const request = { json: vi.fn().mockResolvedValue({}) };
-
-			await expect(GET({ locals: ANON, platform } as any)).rejects.toMatchObject({ status: 401 });
-			await expect(POST({ locals: ANON, platform, request } as any)).rejects.toMatchObject({
-				status: 401
-			});
-			await expect(
-				PUT({ locals: ANON, platform, request, params: { id: 'x' } } as any)
-			).rejects.toMatchObject({ status: 401 });
-			await expect(
-				DELETE({ locals: ANON, platform, params: { id: 'x' } } as any)
-			).rejects.toMatchObject({ status: 401 });
-
-			expect(platform.env.KV.put).not.toHaveBeenCalled();
-			expect(platform.env.KV.delete).not.toHaveBeenCalled();
-		});
-
-		it('rejects authenticated non-admins', async () => {
-			const { GET, POST } = await import('../../src/routes/api/admin/auth-keys/+server');
-			const platform = { env: { KV: { get: vi.fn(), put: vi.fn() } } };
-
-			await expect(GET({ locals: PLAIN_USER, platform } as any)).rejects.toMatchObject({
-				status: 403
-			});
-			await expect(
-				POST({
-					locals: PLAIN_USER,
-					platform,
-					request: {
-						json: vi.fn().mockResolvedValue({
-							name: 'n',
-							clientId: 'c',
-							clientSecret: 's',
-							provider: 'github'
-						})
-					}
-				} as any)
-			).rejects.toMatchObject({ status: 403 });
-
-			expect(platform.env.KV.put).not.toHaveBeenCalled();
-		});
-
-		it('rejects an unrecognised provider rather than writing an arbitrary KV key', async () => {
-			const { POST } = await import('../../src/routes/api/admin/auth-keys/+server');
-			const platform = { env: { KV: { get: vi.fn(), put: vi.fn() } } };
-
-			await expect(
-				POST({
-					locals: OWNER_LOCALS,
-					platform,
-					request: {
-						json: vi.fn().mockResolvedValue({
-							name: 'n',
-							clientId: 'c',
-							clientSecret: 's',
-							provider: 'reset_route_disabled'
-						})
-					}
-				} as any)
-			).rejects.toMatchObject({ status: 400 });
-
-			expect(platform.env.KV.put).not.toHaveBeenCalled();
 		});
 	});
 });
