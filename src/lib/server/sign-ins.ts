@@ -24,6 +24,7 @@
  */
 import type { D1Database, KVNamespace } from '@cloudflare/workers-types';
 import { browserBucket, osBucket } from '$lib/utils/page-views';
+import { hashSessionToken } from '$lib/utils/db';
 
 export const SIGN_IN_TRACKING_KEY = 'sign_in_tracking';
 export const SIGN_IN_RETENTION_DAYS = 90;
@@ -220,7 +221,7 @@ export async function touchSession(
 			.prepare(
 				'UPDATE sessions SET last_seen_at = ? WHERE id = ? AND (last_seen_at IS NULL OR last_seen_at < ?)'
 			)
-			.bind(stamp, sessionToken, stale)
+			.bind(stamp, await hashSessionToken(sessionToken), stale)
 			.run();
 		return (result.meta?.changes ?? 0) > 0;
 	} catch (err) {
@@ -303,17 +304,6 @@ export interface SessionRow {
 	expiresAt: string;
 }
 
-/**
- * The page gets a handle, never the row id. On this site `sessions.id` IS the
- * bearer value of the session cookie, so showing it would hand whoever opens
- * the page every live login. The handle is its SHA-256, which cannot be turned
- * back into a cookie but still names exactly one session.
- */
-export async function sessionHandle(sessionId: string): Promise<string> {
-	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(sessionId));
-	return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
 /** Live sessions, most recently active first. `data IS NOT NULL` skips pre-opaque rows. */
 export async function listSessions(db: D1Database, limit = 100): Promise<SessionRow[]> {
 	try {
@@ -333,37 +323,24 @@ export async function listSessions(db: D1Database, limit = 100): Promise<Session
 				last_seen_at: string | null;
 				expires_at: string;
 			}>();
-		return await Promise.all(
-			results.map(async (r) => ({
-				id: await sessionHandle(r.id),
-				userId: r.user_id,
-				email: r.email,
-				createdAt: r.created_at,
-				lastSeenAt: r.last_seen_at,
-				expiresAt: r.expires_at
-			}))
-		);
+		return results.map((r) => ({
+			id: r.id,
+			userId: r.user_id,
+			email: r.email,
+			createdAt: r.created_at,
+			lastSeenAt: r.last_seen_at,
+			expiresAt: r.expires_at
+		}));
 	} catch (err) {
 		console.error('[sign-ins] could not list sessions:', err);
 		return [];
 	}
 }
 
-/**
- * Sign one session out, by the handle `listSessions` gave out. Returns whether
- * there was a session to revoke.
- */
-export async function revokeSession(db: D1Database, handle: string): Promise<boolean> {
-	if (!/^[0-9a-f]{64}$/.test(handle)) return false;
-	const { results } = await db
-		.prepare('SELECT id FROM sessions WHERE data IS NOT NULL')
-		.all<{ id: string }>();
-	for (const row of results) {
-		if ((await sessionHandle(row.id)) !== handle) continue;
-		const result = await db.prepare('DELETE FROM sessions WHERE id = ?').bind(row.id).run();
-		return (result.meta?.changes ?? 0) > 0;
-	}
-	return false;
+/** Sign one session out. Returns whether there was a session to revoke. */
+export async function revokeSession(db: D1Database, sessionId: string): Promise<boolean> {
+	const result = await db.prepare('DELETE FROM sessions WHERE id = ?').bind(sessionId).run();
+	return (result.meta?.changes ?? 0) > 0;
 }
 
 /** Delete events past the retention window. Returns how many went. */

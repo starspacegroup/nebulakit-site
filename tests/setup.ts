@@ -78,8 +78,9 @@ globalThis.IntersectionObserver = class IntersectionObserver {
 
 // Svelte 5 implements transitions with the Web Animations API. happy-dom does
 // not provide it yet, so complete animations on a microtask after Svelte has
-// attached its `onfinish` callback.
-if (typeof Element !== 'undefined' && typeof Element.prototype.animate !== 'function') {
+// attached its `onfinish` callback. happy-dom 20 does ship animate(), but its
+// cancel() rejects with an AbortError nobody awaits, which fails the run.
+if (typeof Element !== 'undefined') {
 	Object.defineProperty(Element.prototype, 'animate', {
 		configurable: true,
 		value: function animate(): Animation {

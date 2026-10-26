@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { D1Database } from '@cloudflare/workers-types';
 import { createSqliteD1 } from '../helpers/sqlite-d1';
 import { hashPassword } from '../../src/lib/utils/passwords';
-import { createAuthSession } from '../../src/lib/utils/db';
+import { createAuthSession, hashSessionToken } from '../../src/lib/utils/db';
 import {
 	SESSION_TOUCH_SECONDS,
 	SIGN_IN_RETENTION_DAYS,
@@ -18,7 +18,6 @@ import {
 	requestOrigin,
 	resetTouchCache,
 	revokeSession,
-	sessionHandle,
 	signInSummary,
 	touchSession,
 	trackSessionSeen,
@@ -28,6 +27,8 @@ import {
 import { authHandler } from '../../src/hooks.server';
 import { POST as login } from '../../src/routes/api/auth/login/+server';
 import { POST as signup } from '../../src/routes/api/auth/signup/+server';
+import { finalizeOAuthLogin } from '../../src/lib/server/oauth-finalization';
+import { POST as pruneRoute } from '../../src/routes/api/cron/prune-audit/+server';
 import * as page from '../../src/routes/admin/sign-ins/+page.server';
 
 function kvStore(initial: Record<string, string> = {}) {
@@ -284,6 +285,15 @@ describe('login and signup routes', () => {
 		expect(JSON.stringify(rows)).not.toContain('nobody@x.test');
 	});
 
+	it('records a throttled attempt', async () => {
+		await user();
+		const kv = kvStore({ ...ON });
+		for (let i = 0; i < 12; i++)
+			await Promise.resolve(call(kv, { email: 'a@x.test', password: 'nope' })).catch(() => {});
+		const reasons = (await events()).map((r) => r.reason);
+		expect(reasons).toContain('throttled');
+	});
+
 	it('does not refuse a correct login because recording failed', async () => {
 		await user();
 		vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -315,6 +325,38 @@ describe('login and signup routes', () => {
 	});
 });
 
+describe('OAuth', () => {
+	it('records a provider sign-in but not a link flow, and nothing when off', async () => {
+		await db
+			.prepare('INSERT INTO users (id, email, name) VALUES (?,?,?)')
+			.bind('g1', 'g@x.test', 'G')
+			.run();
+		const run = (kv: ReturnType<typeof kvStore>, linkedProvider?: 'github') =>
+			finalizeOAuthLogin({
+				db,
+				platform: platform(kv),
+				url: new URL('https://x.test/cb'),
+				request: req(),
+				method: 'github',
+				userId: 'g1',
+				linkedProvider
+			});
+		await run(kvStore());
+		expect(await events()).toHaveLength(0);
+		await run(kvStore(ON));
+		expect(await events()).toHaveLength(1);
+		await run(kvStore(ON), 'github');
+		expect(await events()).toHaveLength(1);
+		await finalizeOAuthLogin({
+			db,
+			platform: platform(kvStore(ON)),
+			url: new URL('https://x.test/cb'),
+			userId: 'g1'
+		});
+		expect(await events()).toHaveLength(1);
+	});
+});
+
 describe('session last_seen_at throttling', () => {
 	async function session() {
 		await db.prepare('INSERT INTO users (id, email) VALUES (?,?)').bind('u1', 'a@x.test').run();
@@ -323,8 +365,7 @@ describe('session last_seen_at throttling', () => {
 			login: 'u1',
 			email: 'a@x.test'
 		} as never);
-		// On this site the session row id is the cookie value itself.
-		return { token, id: token };
+		return { token, id: await hashSessionToken(token) };
 	}
 	const seen = async (id: string) =>
 		(
@@ -434,12 +475,20 @@ describe('retention', () => {
 		expect(ids).toHaveLength(2);
 	});
 
-	it('prunes on demand and clears everything on request', async () => {
+	it('prunes on demand, through the cron route, and clears everything on request', async () => {
 		await insert('old', ago(120));
 		await insert('fresh', ago(10));
 		expect(await pruneSignIns(db)).toBe(1);
 		await insert('old2', ago(200));
-		expect(await pruneSignIns(db)).toBe(1);
+		const res = await pruneRoute({
+			request: new Request('https://x.test/c', {
+				method: 'POST',
+				headers: { authorization: 'Bearer s' }
+			}),
+			url: new URL('https://x.test/api/cron/prune-audit'),
+			platform: { env: { DB: db, CRON_SECRET: 's' } }
+		} as never);
+		expect((await res.json()).detail.prunedSignIns).toBe(1);
 		await db.prepare('INSERT INTO users (id, email) VALUES (?,?)').bind('u', 'u@x.test').run();
 		await createAuthSession(db, { id: 'u' } as never);
 		await db.prepare("UPDATE sessions SET last_seen_at = '2026-01-01T00:00:00Z'").run();
@@ -547,12 +596,8 @@ describe('/admin/sign-ins', () => {
 
 		await db.prepare('INSERT INTO users (id, email) VALUES (?,?)').bind('u1', 'a@x.test').run();
 		const token = await createAuthSession(db, { id: 'u1' } as never);
-		const id = await sessionHandle(token);
-		// The page only ever sees a handle: the row id is the live cookie value.
+		const id = await hashSessionToken(token);
 		expect((await listSessions(db)).map((s) => s.id)).toEqual([id]);
-		expect(id).not.toContain(token);
-		expect(await revokeSession(db, token)).toBe(false);
-		expect(await revokeSession(db, 'f'.repeat(64))).toBe(false);
 		expect(await page.actions.revoke(ev(form({ id })))).toEqual({ revoked: true });
 		expect(await listSessions(db)).toEqual([]);
 		expect(await page.actions.revoke(ev(form({ id })))).toMatchObject({ status: 404 });
@@ -571,7 +616,7 @@ describe('/admin/sign-ins', () => {
 		} as never);
 		const { getAuthSession } = await import('../../src/lib/utils/db');
 		expect(await getAuthSession(db, token)).not.toBeNull();
-		expect(await revokeSession(db, await sessionHandle(token))).toBe(true);
+		expect(await revokeSession(db, await hashSessionToken(token))).toBe(true);
 		expect(await getAuthSession(db, token)).toBeNull();
 	});
 });

@@ -7,12 +7,14 @@
  * disagree, so a job cannot be registered on a schedule nothing fires.
  */
 import { LIGHTHOUSE_JOB } from './jobs/lighthouse';
+import { PRUNE_AUDIT_JOB } from './jobs/prune-audit';
 import { PRUNE_VIEW_STATS_JOB } from './jobs/prune-view-stats';
 import type { ScheduledJob } from './types';
 
 export const SCHEDULED_JOBS: readonly ScheduledJob[] = [
 	PRUNE_VIEW_STATS_JOB,
-	LIGHTHOUSE_JOB
+	LIGHTHOUSE_JOB,
+	PRUNE_AUDIT_JOB
 ];
 
 export function getScheduledJob(id: string): ScheduledJob | undefined {

@@ -20,7 +20,9 @@ import {
 	scrubDetail,
 	toAuditEvent
 } from '../../src/lib/server/audit';
+import { siteApi } from '../../src/lib/server/site-api';
 import { mergeAccounts } from '../../src/lib/services/account-merge';
+import { POST as pruneRoute } from '../../src/routes/api/cron/prune-audit/+server';
 import * as auditPage from '../../src/routes/admin/audit/+page.server';
 
 let db: D1Database;
@@ -366,6 +368,88 @@ describe('presentation', () => {
 	});
 });
 
+describe('siteApi writes', () => {
+	function apiEvent(method: string, routeId: string, params: Record<string, string> = {}) {
+		return {
+			request: new Request('https://x.test/api/v1/thing', {
+				method,
+				headers: { 'content-type': 'application/json' }
+			}),
+			route: { id: routeId },
+			params,
+			url: new URL('https://x.test/api/v1/thing'),
+			locals: { user: { id: 'o1', login: 'owner', isOwner: true } },
+			platform: { env: { DB: db } }
+		} as never;
+	}
+
+	it('records a successful write by a signed-in owner, with the rule metadata', async () => {
+		const handler = siteApi('pages:write', async () => new Response('{}', { status: 200 }));
+		await handler(apiEvent('PUT', '/api/v1/pages/[slug]', { slug: 'home' }));
+		const [row] = await rows();
+		expect(row).toMatchObject({
+			actor_id: 'o1',
+			actor_login: 'owner',
+			action: 'page.save',
+			target_type: 'page',
+			target_id: 'home'
+		});
+	});
+
+	it('does not record reads, failures or public endpoints, and names unknown writes generically', async () => {
+		await siteApi(
+			'pages:write',
+			async () => new Response('{}')
+		)(apiEvent('GET', '/api/v1/pages/[slug]'));
+		await siteApi(
+			'pages:write',
+			async () => new Response('no', { status: 422 })
+		)(apiEvent('PUT', '/api/v1/pages/[slug]'));
+		await siteApi(null, async () => new Response('{}'))(apiEvent('POST', '/api/v1/checkout'));
+		expect(await rows()).toHaveLength(0);
+		await siteApi(
+			'site:admin',
+			async () => new Response('{}')
+		)(apiEvent('POST', '/api/v1/unlisted'));
+		const [row] = await rows();
+		expect(row.action).toBe('api.post');
+		expect(row.target_type).toBe('api');
+	});
+});
+
+describe('siteApi audit resilience', () => {
+	it('survives an event it cannot describe, and an unwritable table', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		const handler = siteApi('site:admin', async () => new Response('{}'));
+		const odd = {
+			request: new Request('https://x.test/api/v1/x', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' }
+			}),
+			locals: { user: { id: 'o', login: 'owner', isOwner: true } },
+			platform: { env: { DB: db } }
+		} as never; // no url, no route, no params
+		expect((await handler(odd)).status).toBe(200);
+		await db.exec('DROP TABLE admin_actions');
+		const ok = apiEventFor(db);
+		expect((await handler(ok)).status).toBe(200);
+	});
+});
+
+function apiEventFor(database: D1Database) {
+	return {
+		request: new Request('https://x.test/api/v1/x', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' }
+		}),
+		route: { id: '/api/v1/x' },
+		params: {},
+		url: new URL('https://x.test/api/v1/x'),
+		locals: { user: { id: 'o', login: 'owner', isOwner: true } },
+		platform: { env: { DB: database } }
+	} as never;
+}
+
 describe('account merge', () => {
 	it('leaves an audit row that survives the deleted user', async () => {
 		const user = (id: string, email: string) =>
@@ -379,17 +463,34 @@ describe('account merge', () => {
 	});
 });
 
-describe('retention and page', () => {
-	// Scheduling is wired by the scheduler port; the retention logic lives here.
-	it('prunes rows past the retention window and keeps the rest', async () => {
+describe('cron and page', () => {
+	const call = (env: Record<string, unknown>, auth?: string) =>
+		pruneRoute({
+			request: new Request('https://x.test/api/cron/prune-audit', {
+				method: 'POST',
+				headers: auth ? { authorization: auth } : {}
+			}),
+			url: new URL('https://x.test/api/cron/prune-audit'),
+			platform: { env }
+		} as never);
+
+	// The job runs through the shared scheduler (src/lib/server/scheduler), which
+	// owns authorization, claims and run history; its own tests cover those.
+	it('prunes with the shared secret and refuses everything else', async () => {
+		await expect(call({ DB: db })).rejects.toMatchObject({ status: 503 });
+		await expect(call({ DB: db, CRON_SECRET: 's' })).rejects.toMatchObject({ status: 401 });
+		await expect(call({ DB: db, CRON_SECRET: 's' }, 'Bearer wrong')).rejects.toMatchObject({
+			status: 401
+		});
 		await db
 			.prepare(
 				`INSERT INTO admin_actions (id, actor_login, action, summary, created_at) VALUES ('o','a','x','s','2000-01-01T00:00:00Z')`
 			)
 			.run();
-		await recordAudit(db, { actorLogin: 'ada', action: 'user.delete', summary: 's' });
-		expect(await pruneAudit(db, AUDIT_RETENTION_DAYS)).toBe(1);
-		expect(await rows()).toHaveLength(1);
+		const res = await call({ DB: db, CRON_SECRET: 's' }, 'Bearer s');
+		const body = await res.json();
+		expect(body.outcome).toBe('succeeded');
+		expect(body.detail).toEqual({ retentionDays: 365, pruned: 1, prunedSignIns: 0 });
 	});
 
 	it('serves the page to owners and superadmins only', async () => {
