@@ -15,7 +15,10 @@
 		{ path: '/admin', label: 'Dashboard', icon: 'home' },
 		...(data.canViewStats ? [{ path: '/admin/stats', label: 'Stats', icon: 'chart' }] : []),
 		...(data.canManageAnalytics
-			? [{ path: '/admin/analytics', label: 'Analytics', icon: 'activity' }]
+			? [
+					{ path: '/admin/settings/pricing', label: 'Regional Pricing', icon: 'chart' },
+					{ path: '/admin/analytics', label: 'Analytics', icon: 'activity' }
+				]
 			: []),
 		{ path: '/admin/users', label: 'Users', icon: 'users' },
 		{ path: '/admin/auth-keys', label: 'Auth Keys', icon: 'key' },
