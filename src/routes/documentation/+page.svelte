@@ -105,6 +105,7 @@ npm run deploy`
 			<a href="#database-migrations">Database Migrations</a>
 			<a href="#auth-and-setup">Auth and Setup</a>
 			<a href="#admin-analytics">Admin Analytics</a>
+			<a href="#seo-and-hosts">SEO, Redirects and Lighthouse</a>
 			<a href="#agent-readiness">Agent Readiness</a>
 			<a href="#testing">Testing</a>
 			<a href="#project-structure">Structure</a>
@@ -874,6 +875,68 @@ npm run test:all</code
 					state.
 				</li>
 			</ul>
+		</section>
+
+		<section id="seo-and-hosts" class="docs-section">
+			<h2>SEO, Redirects and Lighthouse</h2>
+			<div class="callout-grid">
+				<div class="callout-card">
+					<h3>Structured data</h3>
+					<p>
+						<code>SharingMeta</code> emits one JSON-LD <code>@graph</code> per page: Organization,
+						WebSite, WebPage, plus a BreadcrumbList, an ItemList or an Article when the page passes
+						them in its <code>structured</code> prop. Ids are built from <code>site.url</code>, and
+						a noindex page emits none. Notes in <code>docs/STRUCTURED_DATA.md</code>.
+					</p>
+				</div>
+				<div class="callout-card">
+					<h3>Redirects</h3>
+					<p>
+						Admins manage old-to-new addresses at <code>/admin/redirects</code> (migration
+						<code>0017_redirects.sql</code>): pick 301, 302, 307 or 308 and see how many times each
+						one was used. A redirect is looked up only when the site would otherwise answer "not
+						found", so it never hides a live page and costs healthy pages nothing. The new address
+						is a path on this site or an https address on an allowed host: the site's own, plus any
+						you list in <code>REDIRECT_ALLOWED_HOSTS</code> (comma-separated). Loops and off-site targets
+						are refused when you save, and again when a visitor is redirected.
+					</p>
+				</div>
+				<div class="callout-card">
+					<h3>Canonical host</h3>
+					<p>
+						The session cookie belongs to one host, so a visitor signed in on the bare domain would
+						look signed out on <code>www</code>. The site sends <code>www.</code> + the host in
+						<code>site.url</code> to that host (301 for reads, 308 for anything else), except
+						webhook and cron paths. It never redirects on localhost, <code>*.pages.dev</code>,
+						previews or tunnels. Every host that is not the one in <code>site.url</code> is served
+						with <code>X-Robots-Tag: noindex</code>, so a preview never competes with production in
+						search.
+					</p>
+				</div>
+				<div class="callout-card">
+					<h3>Security contact</h3>
+					<p>
+						<code>/.well-known/security.txt</code> (RFC 9116) tells researchers where to send a
+						vulnerability report. Set <code>SECURITY_CONTACT</code> to an email address or an https
+						URL (comma-separated for several) and the file is served, with an
+						<code>Expires</code> date recomputed on every request, 180 days ahead. Until then the
+						path answers 404.
+					</p>
+				</div>
+				<div class="callout-card">
+					<h3>Lighthouse, two ways</h3>
+					<p>
+						The scores on the home page come from <code>bun run lighthouse</code>, which runs
+						Lighthouse locally and commits the reports. <code>/admin/lighthouse</code> is the live
+						counterpart: it audits the public pages in the sitemap through Google's PageSpeed
+						Insights API (migration <code>0018_lighthouse_audits.sql</code>), lists them worst
+						first with the audits that failed, and has a <strong>Run now</strong> button.
+						PageSpeed can only reach a public URL, so <code>site.url</code> has to be real.
+						<code>PAGESPEED_API_KEY</code> is optional and only raises the rate limit. Notes in
+						<code>docs/LIGHTHOUSE_MONITORING.md</code>.
+					</p>
+				</div>
+			</div>
 		</section>
 
 		<section id="agent-readiness" class="docs-section">

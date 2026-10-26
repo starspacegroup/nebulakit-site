@@ -324,4 +324,54 @@ describe('Documentation Page', () => {
 			expect(board.textContent).toMatch(/clock.*checklist.*meter/is);
 		});
 	});
+
+	// AGENTS.md section 7: /admin/redirects, /admin/lighthouse, security.txt and the
+	// canonical host are user-visible routes and bindings an operator sets.
+	describe('SEO, redirects and Lighthouse', () => {
+		const section = () =>
+			screen
+				.getByRole('heading', { name: /SEO, Redirects and Lighthouse/i, level: 2 })
+				.closest('section') as HTMLElement;
+
+		it('documents the redirect manager', () => {
+			render(Page);
+			const scoped = within(section());
+			for (const text of ['/admin/redirects', '0017_redirects.sql', 'REDIRECT_ALLOWED_HOSTS']) {
+				expect(scoped.getAllByText(text).length).toBeGreaterThan(0);
+			}
+			expect(scoped.getByText(/Loops and off-site targets are refused/i)).toBeInTheDocument();
+		});
+
+		it('documents the canonical host and noindex rule', () => {
+			render(Page);
+			const scoped = within(section());
+			expect(scoped.getByRole('heading', { name: 'Canonical host' })).toBeInTheDocument();
+			expect(scoped.getAllByText('site.url').length).toBeGreaterThan(0);
+			expect(scoped.getByText(/X-Robots-Tag: noindex/)).toBeInTheDocument();
+		});
+
+		it('documents security.txt and that it is off until configured', () => {
+			render(Page);
+			const scoped = within(section());
+			expect(scoped.getAllByText('/.well-known/security.txt').length).toBeGreaterThan(0);
+			expect(scoped.getAllByText('SECURITY_CONTACT').length).toBeGreaterThan(0);
+			expect(scoped.getByText(/path answers 404/)).toBeInTheDocument();
+		});
+
+		it('documents structured data and both Lighthouse paths', () => {
+			render(Page);
+			const scoped = within(section());
+			expect(scoped.getByRole('heading', { name: 'Structured data' })).toBeInTheDocument();
+			expect(scoped.getAllByText('/admin/lighthouse').length).toBeGreaterThan(0);
+			expect(scoped.getAllByText('0018_lighthouse_audits.sql').length).toBeGreaterThan(0);
+			expect(scoped.getAllByText('bun run lighthouse').length).toBeGreaterThan(0);
+			expect(scoped.getAllByText('PAGESPEED_API_KEY').length).toBeGreaterThan(0);
+		});
+
+		it('is in the nav', () => {
+			render(Page);
+			const nav = screen.getByRole('navigation', { name: /documentation navigation/i });
+			expect(nav.querySelector('a[href="#seo-and-hosts"]')).toBeTruthy();
+		});
+	});
 });
