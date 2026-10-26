@@ -21,7 +21,7 @@ import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 
 // Auth handling hook
-const authHandler: Handle = async ({ event, resolve }) => {
+export const authHandler: Handle = async ({ event, resolve }) => {
 	// The cookie is an OPAQUE session id, not the user object. The trusted payload
 	// lives server-side in sessions.data (see createAuthSession) and is read back
 	// here on every request, so isOwner/isAdmin cannot be forged by editing the

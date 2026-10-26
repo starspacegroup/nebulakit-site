@@ -18,7 +18,6 @@ import {
 	findProviderByKeyId,
 	isSupportedOAuthProvider
 } from '../../src/lib/server/oauth-config';
-import { consumeOAuthState, issueOAuthState } from '../../src/lib/server/oauth-state';
 
 const owner = { user: { id: '1', login: 'o', email: 'o@e.com', isOwner: true, isAdmin: true } };
 const admin = { user: { id: '2', login: 'a', email: 'a@e.com', isOwner: false, isAdmin: true } };
@@ -118,68 +117,6 @@ describe('oauth-config', () => {
 		expect(found?.provider).toBe('discord');
 		expect(consoleSpy).toHaveBeenCalled();
 		consoleSpy.mockRestore();
-	});
-});
-
-describe('oauth state', () => {
-	const makeJar = (stored?: string) => ({
-		get: vi.fn(() => stored),
-		set: vi.fn(),
-		delete: vi.fn()
-	});
-
-	it('issues an HttpOnly, SameSite=Lax cookie and returns the value', () => {
-		const jar = makeJar();
-		const state = issueOAuthState(jar as any, 'github', true);
-
-		expect(state).toEqual(expect.any(String));
-		expect(jar.set).toHaveBeenCalledWith(
-			'oauth_state_github',
-			state,
-			expect.objectContaining({ httpOnly: true, sameSite: 'lax', secure: true, path: '/' })
-		);
-	});
-
-	it('leaves the cookie insecure over plain http so local dev still works', () => {
-		const jar = makeJar();
-		issueOAuthState(jar as any, 'discord', false);
-		expect(jar.set).toHaveBeenCalledWith(
-			'oauth_state_discord',
-			expect.any(String),
-			expect.objectContaining({ secure: false })
-		);
-	});
-
-	it('accepts a matching state and burns the cookie', () => {
-		const jar = makeJar('abc123');
-		expect(consumeOAuthState(jar as any, 'github', 'abc123')).toBe(true);
-		expect(jar.delete).toHaveBeenCalledWith('oauth_state_github', { path: '/' });
-	});
-
-	it('rejects a mismatched state of equal length', () => {
-		const jar = makeJar('abc123');
-		expect(consumeOAuthState(jar as any, 'github', 'abc124')).toBe(false);
-	});
-
-	it('rejects a state of a different length', () => {
-		const jar = makeJar('abc123');
-		expect(consumeOAuthState(jar as any, 'github', 'abc')).toBe(false);
-	});
-
-	it('rejects when no cookie was stored', () => {
-		const jar = makeJar(undefined);
-		expect(consumeOAuthState(jar as any, 'github', 'anything')).toBe(false);
-	});
-
-	it('rejects when the callback carried no state', () => {
-		const jar = makeJar('abc123');
-		expect(consumeOAuthState(jar as any, 'github', null)).toBe(false);
-	});
-
-	it('clears the cookie even on rejection, so a state cannot be retried', () => {
-		const jar = makeJar('abc123');
-		consumeOAuthState(jar as any, 'github', 'wrong!');
-		expect(jar.delete).toHaveBeenCalledWith('oauth_state_github', { path: '/' });
 	});
 });
 

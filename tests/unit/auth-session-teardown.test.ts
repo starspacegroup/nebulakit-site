@@ -1,6 +1,6 @@
 import { webcrypto } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createAuthSession, getAuthSession } from '../../src/lib/utils/db';
+import { createAuthSession, getAuthSession, hashSessionToken } from '../../src/lib/utils/db';
 
 vi.mock('@sveltejs/kit', async () => {
 	const actual = await vi.importActual<typeof import('@sveltejs/kit')>('@sveltejs/kit');
@@ -22,6 +22,11 @@ function makeSessionDb() {
 	const db = {
 		prepare(sql: string) {
 			return {
+				// main's reset route also issues unbound statements (table wipes);
+				// they don't touch the sessions map this stub models.
+				async run() {
+					return { success: true };
+				},
 				bind(...args: unknown[]) {
 					return {
 						async run() {
@@ -76,7 +81,8 @@ describe('session teardown revokes the server-side row', () => {
 			location: '/auth/login'
 		});
 
-		expect(deleteSpy).toHaveBeenCalledWith(id);
+		// The DELETE binds the digest — the raw cookie value never touches the DB.
+		expect(deleteSpy).toHaveBeenCalledWith(await hashSessionToken(id));
 		expect(cookies.delete).toHaveBeenCalledWith('session', { path: '/' });
 		// ...and is gone afterward — replay of the same cookie fails.
 		expect(await getAuthSession(db, id)).toBeNull();
@@ -124,7 +130,8 @@ describe('session teardown revokes the server-side row', () => {
 		} as any);
 
 		expect(response.status).toBe(200);
-		expect(deleteSpy).toHaveBeenCalledWith(id);
+		// The DELETE binds the digest — the raw cookie value never touches the DB.
+		expect(deleteSpy).toHaveBeenCalledWith(await hashSessionToken(id));
 		expect(cookies.delete).toHaveBeenCalledWith('session', { path: '/' });
 	});
 });
