@@ -27,6 +27,27 @@ describe('Documentation Page', () => {
 		).toBeInTheDocument();
 	});
 
+	// AGENTS.md — /admin/pages, /admin/api-keys, /p/[slug] and /api/v1 are
+	// user-visible routes, and ORCHESTRATOR_KEY_SHA256 is a binding an operator sets.
+	it('documents the page builder, API keys and the site API', () => {
+		render(Page);
+		const scoped = within(
+			screen
+				.getByRole('heading', { name: /Pages and the Site API/i })
+				.closest('section') as HTMLElement
+		);
+		for (const text of [
+			'/admin/pages',
+			'/admin/api-keys',
+			'/p/[slug]',
+			'/api/v1/openapi.json',
+			'ORCHESTRATOR_KEY_SHA256'
+		]) {
+			expect(scoped.getAllByText(text).length).toBeGreaterThan(0);
+		}
+		expect(scoped.getByText(/Security updates are forced to every site/i)).toBeInTheDocument();
+	});
+
 	it('documents the drag-and-drop board and points at the live one', () => {
 		render(Page);
 
