@@ -1,3 +1,4 @@
+import '../helpers/server-response';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // The OAuth routes now round-trip a `state` value through an HttpOnly cookie:

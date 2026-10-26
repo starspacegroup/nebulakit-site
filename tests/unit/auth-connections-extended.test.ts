@@ -1,3 +1,4 @@
+import '../helpers/server-response';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Auth Connections API - Extended Branch Coverage', () => {
