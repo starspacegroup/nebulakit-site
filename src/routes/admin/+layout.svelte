@@ -20,6 +20,7 @@
 		{ path: '/admin/users', label: 'Users', icon: 'users' },
 		{ path: '/admin/auth-keys', label: 'Auth Keys', icon: 'key' },
 		{ path: '/admin/ai-keys', label: 'AI Keys', icon: 'sparkles' },
+		{ path: '/admin/scheduled-jobs', label: 'Scheduled Jobs', icon: 'clock' },
 		{ path: '/admin/cms', label: 'Content', icon: 'document' },
 		{ path: '/admin/contact-form-submissions', label: 'Contact Forms', icon: 'mail' }
 	];
@@ -166,6 +167,19 @@
 							stroke-width="2"
 						>
 							<polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+						</svg>
+					{:else if item.icon === 'clock'}
+						<svg
+							class="nav-icon"
+							width="20"
+							height="20"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<circle cx="12" cy="12" r="9" />
+							<polyline points="12 7 12 12 15 14" />
 						</svg>
 					{/if}
 					<span>{item.label}</span>

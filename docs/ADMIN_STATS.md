@@ -38,8 +38,9 @@ An optional Google Analytics tag can be connected alongside it at
    ```
 
 3. **Schedule the retention prune** (optional but recommended — without it the
-   counter tables grow one row per day forever). Set `CRON_SECRET` and POST to
-   the endpoint from any scheduler:
+   counter tables grow one row per day forever). The `cron-worker/` Worker fires
+   it daily (see [SCHEDULED_JOBS.md](./SCHEDULED_JOBS.md)); any scheduler that can
+   POST works too, with `CRON_SECRET`:
 
    ```bash
    curl -X POST https://your-app.example.com/api/cron/prune-view-stats \
