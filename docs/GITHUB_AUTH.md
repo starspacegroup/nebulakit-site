@@ -33,6 +33,8 @@ Create a `.dev.vars` file in the project root:
 GITHUB_CLIENT_ID=your_client_id_here
 GITHUB_CLIENT_SECRET=your_client_secret_here
 GITHUB_OWNER_ID=your_github_user_id_here
+SESSION_SECRET=generate_a_random_secret_here
+SETUP_SECRET=generate_a_different_random_secret_here
 ```
 
 **Option B: Using wrangler.toml**
@@ -46,7 +48,9 @@ GITHUB_OWNER_ID = "your_github_user_id_here"
 
 **Option C: Using the /setup page**
 
-Visit `/setup` in your browser and enter your credentials through the web interface.
+Set `SESSION_SECRET` and `SETUP_SECRET`, then visit `/setup` and enter the setup secret, OAuth
+credentials, and owner username. Once an owner or provider configuration exists, only the
+authenticated owner can change setup.
 
 #### Finding Your GitHub User ID
 
@@ -86,6 +90,8 @@ For Cloudflare Workers deployment, set these environment variables:
 # Set secrets (for sensitive data)
 wrangler secret put GITHUB_CLIENT_ID
 wrangler secret put GITHUB_CLIENT_SECRET
+wrangler secret put SESSION_SECRET
+wrangler secret put SETUP_SECRET
 
 # Set vars (can be public, defined in wrangler.toml or set via CLI)
 wrangler secret put GITHUB_OWNER_ID
@@ -103,6 +109,8 @@ GITHUB_OWNER_ID = "583231"  # Replace with your actual GitHub user ID
 - `GITHUB_CLIENT_ID`: Your GitHub OAuth App Client ID
 - `GITHUB_CLIENT_SECRET`: Your GitHub OAuth App Client Secret
 - `GITHUB_OWNER_ID`: Your GitHub user ID (numeric) - **only this user can access /admin**
+- `SESSION_SECRET`: Random secret used to sign the OAuth state cookie
+- `SETUP_SECRET`: Separate bearer secret accepted only during first-time bootstrap
 
 ⚠️ **Important:** Without setting `GITHUB_OWNER_ID`, you will be able to log in with GitHub, but `isOwner` will be `false` and you won't have admin access.
 
@@ -113,9 +121,9 @@ GITHUB_OWNER_ID = "583231"  # Replace with your actual GitHub user ID
 1. **Login**: User clicks "Continue with GitHub" on `/auth/login`
 2. **OAuth**: User is redirected to GitHub to authorize the app
 3. **Callback**: GitHub redirects back to `/api/auth/github/callback` with an authorization code
-4. **Token Exchange**: The app exchanges the code for an access token
-5. **User Info**: The app fetches user details from GitHub API
-6. **Session**: A session cookie is created with user information
+4. **State check**: The signed state cookie and an unexpired one-time `oauth_transactions` row must both match; the row is consumed after the provider answers, so a callback cannot be replayed
+5. **Token Exchange and User Info**: The app exchanges the code for an access token, fetches the user from the GitHub API, and does not store the token
+6. **Session**: An opaque token goes in the cookie; its digest, expiry and identity are stored in D1
 7. **Redirect**:
    - If user is the OAuth app owner → redirected to `/admin`
    - Otherwise → redirected to home page
@@ -123,7 +131,7 @@ GITHUB_OWNER_ID = "583231"  # Replace with your actual GitHub user ID
 ### Admin Access Control
 
 - **Protected Routes**: All routes under `/admin` require authentication
-- **Owner-Only**: Only the GitHub user who created the OAuth app can access `/admin`
+- **Owner-Only**: Only the GitHub user whose numeric id is `GITHUB_OWNER_ID` is the owner (a username can be released and reclaimed, so it only counts when no id is set)
 - **Server-Side Check**: Protection is enforced server-side in `+layout.server.ts`
 
 ### User Interface
@@ -176,8 +184,8 @@ The implementation follows TDD principles with 100% test coverage for auth logic
 ## Production Considerations
 
 1. **Secrets Management**: Use Cloudflare Workers secrets, never commit credentials
-2. **Session Storage**: Consider using D1 or KV for session storage instead of cookies
-3. **Token Encryption**: Encrypt sensitive data before storage
+2. **Session Storage**: Apply the D1 migrations before enabling login; authentication fails closed without D1
+3. **Secret Separation**: Use different high-entropy values for `SESSION_SECRET` and `SETUP_SECRET`; stored AI and OAuth client secrets are encrypted (see [SECURITY.md](./SECURITY.md))
 4. **HTTPS**: Always use HTTPS in production for secure cookies
 5. **Error Handling**: Implement proper error logging and user feedback
 

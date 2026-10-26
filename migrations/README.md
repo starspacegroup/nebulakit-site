@@ -11,7 +11,7 @@ This project uses **Cloudflare D1 migrations** with automatic tracking. D1 recor
 ### How to tell if a migration is "applied"
 
 - Any migration file already committed to `main` should be treated as applied in production.
-- Run `npm run db:migrate:list` to see which migrations have been applied.
+- Run `bun run db:migrate:list` to see which migrations have been applied.
 - When in doubt, assume it has been applied and create a new migration instead.
 
 ### What you MUST do
@@ -20,6 +20,10 @@ This project uses **Cloudflare D1 migrations** with automatic tracking. D1 recor
 2. **Use `ALTER TABLE`** to modify existing tables, not `CREATE TABLE`
 3. **Use `IF NOT EXISTS` / `IF EXISTS`** guards where appropriate
 4. **Keep migrations small and focused** - one logical change per file
+
+Run `bun run check:migrations` before committing; CI runs it too. It fails on a badly named file,
+a duplicate or skipped number, and (with `--base origin/main`) an edit, rename or deletion of a
+migration already on the base branch.
 
 ### What you MUST NOT do
 
@@ -46,13 +50,13 @@ NNNN_short_description.sql
 
 ```bash
 # Apply all pending migrations to remote D1
-npm run db:migrate
+bun run db:migrate
 
 # Apply all pending migrations to local D1
-npm run db:migrate:local
+bun run db:migrate:local
 
 # List migrations and their status (applied / pending)
-npm run db:migrate:list
+bun run db:migrate:list
 ```
 
 ## How It Works
@@ -72,8 +76,8 @@ Migrations that have already run are **skipped automatically** - they will never
 1. Find the highest existing migration number
 2. Create a new file with the next number: `migrations/NNNN_your_change.sql`
 3. Write your SQL (ALTER TABLE, CREATE TABLE, CREATE INDEX, etc.)
-4. Test locally: `npm run db:migrate:local`
-5. Verify: `npm run db:migrate:list`
+4. Test locally: `bun run db:migrate:local`
+5. Verify: `bun run db:migrate:list`
 6. Commit and deploy
 
 ## Current Migrations

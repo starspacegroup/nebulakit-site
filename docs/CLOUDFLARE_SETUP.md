@@ -77,6 +77,26 @@ bun run db:migrate
 
 </details>
 
+## Secrets
+
+Three Worker secrets protect sign-in and stored credentials. Set them once the project exists:
+
+```bash
+bunx wrangler pages secret put SESSION_SECRET      # signs the OAuth state cookie (openssl rand -base64 32)
+bunx wrangler pages secret put SETUP_SECRET        # bootstrap password for /setup (a different value)
+bun run generate:encryption-key
+bunx wrangler pages secret put ENCRYPTION_KEY      # paste the generated value
+```
+
+`SESSION_SECRET` is required: OAuth sign-in fails closed without it. `ENCRYPTION_KEY` is optional
+(without it a key is generated and stored in the same KV namespace, which is weaker), but it is the
+only thing that keeps a KV leak from revealing saved AI keys and OAuth client secrets. Never copy or
+restore KV data into a project with a different `ENCRYPTION_KEY` without also setting the source's
+key as `ENCRYPTION_KEY_PREVIOUS`. Details and rotation: [SECURITY.md](./SECURITY.md#secrets-at-rest).
+
+Apply migrations 0013 and 0014 before deploying this version. Everyone is signed out once at
+deploy, because session ids are now stored as digests.
+
 ## The database name
 
 `db:migrate` reads `database_name` from `wrangler.toml` rather than hardcoding
