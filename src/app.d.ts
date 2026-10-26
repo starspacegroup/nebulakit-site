@@ -21,7 +21,15 @@ declare global {
 				avatarUrl?: string;
 				isOwner: boolean;
 				isAdmin?: boolean;
+				/** Extension point for downstream apps that add a tier ABOVE owner.
+				 *  NebulaKit never sets it; both `auth-guards.ts` and `stats-guard.ts`
+				 *  honour it, and they must agree — see the note in `auth-guards.ts`. */
+				isSuperAdmin?: boolean;
 				canViewStats?: boolean;
+				/** Effective role, re-read from `users` on every request (roles.ts). */
+				role?: 'user' | 'admin' | 'superadmin' | 'owner';
+				/** Granted admin areas (permissions.ts), re-read on every request. */
+				permissions?: string[];
 				isPretend?: boolean;
 			};
 			/** Set by the CMS content route so the page-view hook can attribute the
@@ -46,6 +54,16 @@ declare global {
 				DEV_AUTH_BYPASS?: string;
 				/** Shared bearer secret for /api/cron/* scheduler endpoints. */
 				CRON_SECRET?: string;
+				/** SHA-256 (hex) of the Ammoura control room's API key, set when Ammoura
+				 *  deploys the site. See packages/security/src/api-keys.ts. */
+				ORCHESTRATOR_KEY_SHA256?: string;
+				/** Shop checkout settings, set per site — never read from a request.
+				 *  See src/lib/server/site-info.ts. */
+				COMMERCE_TAX_RATE_PERCENT?: string;
+				COMMERCE_PRICES_INCLUDE_TAX?: string;
+				COMMERCE_FLAT_SHIPPING_CENTS?: string;
+				STRIPE_SECRET_KEY?: string;
+				STRIPE_WEBHOOK_SECRET?: string;
 			};
 			/** Cloudflare request metadata. `cf.country` is the edge-provided ISO
 			 *  3166-1 alpha-2 code used by page-view stats — undefined locally. */

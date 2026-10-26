@@ -21,6 +21,11 @@
 		{ path: '/admin/auth-keys', label: 'Auth Keys', icon: 'key' },
 		{ path: '/admin/ai-keys', label: 'AI Keys', icon: 'sparkles' },
 		{ path: '/admin/cms', label: 'Content', icon: 'document' },
+		{ path: '/admin/pages', label: 'Pages', icon: 'layout' },
+		// Owner-only: a key can carry site:admin (see /admin/api-keys).
+		...(data.user?.isOwner || data.user?.isSuperAdmin
+			? [{ path: '/admin/api-keys', label: 'API Keys', icon: 'key' }]
+			: []),
 		{ path: '/admin/contact-form-submissions', label: 'Contact Forms', icon: 'mail' }
 	];
 
@@ -84,6 +89,20 @@
 							<circle cx="9" cy="7" r="4" />
 							<path d="M23 21v-2a4 4 0 0 0-3-3.87" />
 							<path d="M16 3.13a4 4 0 0 1 0 7.75" />
+						</svg>
+					{:else if item.icon === 'layout'}
+						<svg
+							class="nav-icon"
+							width="20"
+							height="20"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<rect x="3" y="3" width="18" height="18" rx="2" />
+							<line x1="3" y1="9" x2="21" y2="9" />
+							<line x1="9" y1="21" x2="9" y2="9" />
 						</svg>
 					{:else if item.icon === 'key'}
 						<svg
