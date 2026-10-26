@@ -21,6 +21,15 @@ const lighthouseReports = readdirSync('static/lighthouse')
 const config = {
 	preprocess: vitePreprocess(),
 	kit: {
+		// Enforces what is safe for every site (see src/lib/server/security-headers.ts).
+		csp: {
+			mode: 'auto',
+			directives: {
+				'object-src': ['none'],
+				'base-uri': ['self'],
+				'frame-ancestors': ['self']
+			}
+		},
 		adapter: adapter({
 			routes: {
 				include: ['/*'],
