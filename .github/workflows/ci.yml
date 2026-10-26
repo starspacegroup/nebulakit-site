@@ -22,6 +22,13 @@ jobs:
         with:
           bun-version: ${{ env.BUN_VERSION }}
 
+      # Vitest runs on Node. The default runner Node is older than the Vite 8 /
+      # Vitest 4 toolchain wants, so pin it to match the NebulaKit template.
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
@@ -57,6 +64,13 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
+
+      # Vitest runs on Node. The default runner Node is older than the Vite 8 /
+      # Vitest 4 toolchain wants, so pin it to match the NebulaKit template.
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
 
       - name: Install dependencies
         run: bun install --frozen-lockfile

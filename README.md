@@ -102,6 +102,21 @@ TUNNEL_TOKEN=<your-token> bun run tunnel
 
 The tunnel script lives at `scripts/tunnel.js` and respects a `PORT` env var if you change the dev port.
 
+### Toolchain
+
+Svelte 5, SvelteKit 2.70, Vite 8, Vitest 4, `@sveltejs/adapter-cloudflare` 7 and
+Node 24 or newer (the same stack as the NebulaKit template, so template code
+copies across). The 220 components are still written in Svelte 4 syntax, which
+Svelte 5 compiles in legacy mode; there is no need to rewrite them to runes.
+
+Testing notes for the new stack:
+
+- Listen to a `createEventDispatcher` event in a test with the mount `events`
+  option (`render(C, { props, events: { change: fn } })`), and update props
+  with `rerender`. `component.$on` and `component.$set` no longer exist.
+- happy-dom hides `Set-Cookie` from `Response`. Route-handler tests that read
+  it import `tests/helpers/server-response.ts` first.
+
 ## 🧪 Testing (TDD Required!)
 
 NebulaKit follows **Test-Driven Development** with 90%+ code coverage requirements:
