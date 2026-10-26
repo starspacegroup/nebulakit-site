@@ -74,6 +74,20 @@ declare global {
 				 *  comma-separated for several. Unset means /.well-known/security.txt is a
 				 *  404. See src/lib/server/security-txt.ts. */
 				SECURITY_CONTACT?: string;
+				/** SHA-256 (hex) of the Ammoura control room's API key, set when Ammoura
+				 *  deploys the site. See packages/security/src/api-keys.ts. */
+				ORCHESTRATOR_KEY_SHA256?: string;
+				/** Shop checkout settings, set per site — never read from a request.
+				 *  See src/lib/server/site-info.ts. */
+				COMMERCE_TAX_RATE_PERCENT?: string;
+				COMMERCE_PRICES_INCLUDE_TAX?: string;
+				COMMERCE_FLAT_SHIPPING_CENTS?: string;
+				STRIPE_SECRET_KEY?: string;
+				STRIPE_WEBHOOK_SECRET?: string;
+				/** Transactional email (Resend). See src/lib/server/email.ts. */
+				RESEND_API_KEY?: string;
+				EMAIL_FROM?: string;
+				EMAIL_REPLY_TO?: string;
 			};
 			/** Cloudflare request metadata. `cf.country` is the edge-provided ISO
 			 *  3166-1 alpha-2 code used by page-view stats — undefined locally. */

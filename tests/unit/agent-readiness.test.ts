@@ -43,7 +43,6 @@ import { GET as skillDocGet } from '../../src/routes/[x+2e]well-known/agent-skil
 import { pageDirectoriesOf, rendersAPage } from '../helpers/route-pages';
 
 import { emptyPage, savePage } from '@nebulakit/builder';
-import { createSqliteD1 } from '../helpers/sqlite-d1';
 
 const ORIGIN = 'https://example.test';
 

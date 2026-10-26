@@ -27,27 +27,6 @@ describe('Documentation Page', () => {
 		).toBeInTheDocument();
 	});
 
-	// AGENTS.md — /admin/pages, /admin/api-keys, /p/[slug] and /api/v1 are
-	// user-visible routes, and ORCHESTRATOR_KEY_SHA256 is a binding an operator sets.
-	it('documents the page builder, API keys and the site API', () => {
-		render(Page);
-		const scoped = within(
-			screen
-				.getByRole('heading', { name: /Pages and the Site API/i })
-				.closest('section') as HTMLElement
-		);
-		for (const text of [
-			'/admin/pages',
-			'/admin/api-keys',
-			'/p/[slug]',
-			'/api/v1/openapi.json',
-			'ORCHESTRATOR_KEY_SHA256'
-		]) {
-			expect(scoped.getAllByText(text).length).toBeGreaterThan(0);
-		}
-		expect(scoped.getByText(/Security updates are forced to every site/i)).toBeInTheDocument();
-	});
-
 	it('documents the drag-and-drop board and points at the live one', () => {
 		render(Page);
 
@@ -59,21 +38,6 @@ describe('Documentation Page', () => {
 		expect(screen.getByRole('heading', { name: /keyboard control/i })).toBeInTheDocument();
 		expect(screen.getByText(/pick the widget up, and put it down again/i)).toBeInTheDocument();
 		expect(screen.getByText(/must be inert/i)).toBeInTheDocument();
-	});
-
-	it('documents how stored secrets are encrypted and how to rotate the key', () => {
-		render(Page);
-
-		expect(screen.getByRole('heading', { name: /Secrets at Rest/i })).toBeInTheDocument();
-		expect(screen.getAllByText(/ENCRYPTION_KEY_PREVIOUS/).length).toBeGreaterThan(0);
-		expect(screen.getByText(/generate:encryption-key/)).toBeInTheDocument();
-	});
-
-	it('documents the security hardening and the migration check', () => {
-		render(Page);
-
-		expect(screen.getByRole('heading', { name: /Security Hardening/i })).toBeInTheDocument();
-		expect(screen.getByText(/check:migrations/)).toBeInTheDocument();
 	});
 
 	it('documents core product features and operator workflows', () => {
@@ -361,6 +325,21 @@ describe('Documentation Page', () => {
 		});
 	});
 
+	it('documents how stored secrets are encrypted and how to rotate the key', () => {
+		render(Page);
+
+		expect(screen.getByRole('heading', { name: /Secrets at Rest/i })).toBeInTheDocument();
+		expect(screen.getAllByText(/ENCRYPTION_KEY_PREVIOUS/).length).toBeGreaterThan(0);
+		expect(screen.getByText(/generate:encryption-key/)).toBeInTheDocument();
+	});
+
+	it('documents the security hardening and the migration check', () => {
+		render(Page);
+
+		expect(screen.getByRole('heading', { name: /Security Hardening/i })).toBeInTheDocument();
+		expect(screen.getByText(/check:migrations/)).toBeInTheDocument();
+	});
+
 	// AGENTS.md §7 — the role ladder and per-area permissions are an admin
 	// change, so the page has to say how they work and what upgrading does.
 	it('documents the role ladder and per-area permissions', () => {
@@ -400,6 +379,8 @@ describe('Documentation Page', () => {
 		expect(text).toMatch(/never the raw browser string/i);
 		expect(text).toMatch(/90 days/);
 		expect(text).toMatch(/never\s+block a sign-in/i);
+	});
+
 	// AGENTS.md section 7: /admin/redirects, /admin/lighthouse, security.txt and the
 	// canonical host are user-visible routes and bindings an operator sets.
 	describe('SEO, redirects and Lighthouse', () => {
@@ -407,6 +388,7 @@ describe('Documentation Page', () => {
 			screen
 				.getByRole('heading', { name: /SEO, Redirects and Lighthouse/i, level: 2 })
 				.closest('section') as HTMLElement;
+
 		it('documents the redirect manager', () => {
 			render(Page);
 			const scoped = within(section());
@@ -415,6 +397,7 @@ describe('Documentation Page', () => {
 			}
 			expect(scoped.getByText(/Loops and off-site targets are refused/i)).toBeInTheDocument();
 		});
+
 		it('documents the canonical host and noindex rule', () => {
 			render(Page);
 			const scoped = within(section());
@@ -422,6 +405,7 @@ describe('Documentation Page', () => {
 			expect(scoped.getAllByText('site.url').length).toBeGreaterThan(0);
 			expect(scoped.getByText(/X-Robots-Tag: noindex/)).toBeInTheDocument();
 		});
+
 		it('documents security.txt and that it is off until configured', () => {
 			render(Page);
 			const scoped = within(section());
@@ -429,6 +413,7 @@ describe('Documentation Page', () => {
 			expect(scoped.getAllByText('SECURITY_CONTACT').length).toBeGreaterThan(0);
 			expect(scoped.getByText(/path answers 404/)).toBeInTheDocument();
 		});
+
 		it('documents structured data and both Lighthouse paths', () => {
 			render(Page);
 			const scoped = within(section());
@@ -438,26 +423,60 @@ describe('Documentation Page', () => {
 			expect(scoped.getAllByText('bun run lighthouse').length).toBeGreaterThan(0);
 			expect(scoped.getAllByText('PAGESPEED_API_KEY').length).toBeGreaterThan(0);
 		});
+
 		it('is in the nav', () => {
 			render(Page);
 			const nav = screen.getByRole('navigation', { name: /documentation navigation/i });
 			expect(nav.querySelector('a[href="#seo-and-hosts"]')).toBeTruthy();
 		});
+	});
+
 	// AGENTS.md: /admin/scheduled-jobs, the cron Worker and CRON_SECRET are a
 	// user-visible admin route and a deployment step, so the documentation has to say so.
 	it('documents the cron Worker and the scheduled jobs admin page', () => {
+		render(Page);
 		const scoped = within(
+			screen
 				.getByRole('heading', { name: /Scheduled Jobs/i, level: 2 })
 				.closest('section') as HTMLElement
 		);
+
 		expect(scoped.getAllByText(/cron-worker\//).length).toBeGreaterThan(0);
 		expect(scoped.getByText('/admin/scheduled-jobs')).toBeInTheDocument();
 		expect(scoped.getByText(/wrangler secret put CRON_SECRET/)).toBeInTheDocument();
 		expect(scoped.getByText('0019_scheduled_job_runs.sql')).toBeInTheDocument();
+	});
+
+	// AGENTS.md — /admin/pages, /admin/api-keys, /p/[slug] and /api/v1 are
+	// user-visible routes, and ORCHESTRATOR_KEY_SHA256 is a binding an operator sets.
+	it('documents the page builder, API keys and the site API', () => {
+		render(Page);
+		const scoped = within(
+			screen
+				.getByRole('heading', { name: /Pages and the Site API/i })
+				.closest('section') as HTMLElement
+		);
+		for (const text of [
+			'/admin/pages',
+			'/admin/api-keys',
+			'/p/[slug]',
+			'/api/v1/openapi.json',
+			'ORCHESTRATOR_KEY_SHA256'
+		]) {
+			expect(scoped.getAllByText(text).length).toBeGreaterThan(0);
+		}
+		expect(scoped.getByText(/Security updates are forced to every site/i)).toBeInTheDocument();
+	});
+
 	// AGENTS.md §7 — /shop, /cart, /admin/settings/pricing, the Stripe webhook,
 	// order status and the email settings are user-visible routes and bindings.
 	it('documents the shop, payments, order status and email', () => {
+		render(Page);
+		const scoped = within(
+			screen
 				.getByRole('heading', { name: /Shop, Payments and Email/i })
+				.closest('section') as HTMLElement
+		);
 		for (const text of [
 			'/shop',
 			'/cart',
@@ -469,8 +488,15 @@ describe('Documentation Page', () => {
 		]) {
 			expect(scoped.getAllByText(text).length).toBeGreaterThan(0);
 		}
+	});
+
 	it('documents regional pricing', () => {
+		render(Page);
+		const scoped = within(
+			screen
 				.getByRole('heading', { name: /Shop, Payments and Email/i })
+				.closest('section') as HTMLElement
+		);
 		for (const text of [
 			'/admin/settings/pricing',
 			'POST /api/v1/checkout/quote',
