@@ -111,6 +111,7 @@ npm run deploy`
 			<a href="#audit-log">Audit Log</a>
 			<a href="#sign-in-tracking">Sign-in Tracking</a>
 			<a href="#seo-and-hosts">SEO, Redirects and Lighthouse</a>
+			<a href="#scheduled-jobs">Scheduled Jobs</a>
 			<a href="#agent-readiness">Agent Readiness</a>
 			<a href="#testing">Testing</a>
 			<a href="#project-structure">Structure</a>
@@ -1066,6 +1067,29 @@ npm run test:all</code
 					</p>
 				</div>
 			</div>
+		<section id="scheduled-jobs" class="docs-section">
+			<h2>Scheduled Jobs</h2>
+			<p>
+				Cloudflare Pages cannot run Cron Triggers, so a standalone Worker in
+				<code>cron-worker/</code> wakes on a schedule and POSTs to the app's
+				<code>/api/cron/*</code> routes with <code>CRON_SECRET</code>, retrying three times with
+				exponential backoff. The app claims each job once per scheduled minute, so a retry or
+				overlapping delivery never runs it twice, and records every run.
+			</p>
+			<p>
+				<code>/admin/scheduled-jobs</code> lists each job with its last run, status and next
+				expected run, and has a <strong>Run now</strong> button for the owner.
+			</p>
+			<pre><code
+					>{`cd cron-worker
+# set TARGET_URL in wrangler.toml to your site's origin
+bunx wrangler deploy
+bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}</code
+				></pre>
+			<p>
+				It needs migration <code>0019_scheduled_job_runs.sql</code>. Adding a job and the details
+				are in <code>docs/SCHEDULED_JOBS.md</code>.
+			</p>
 		</section>
 
 		<section id="agent-readiness" class="docs-section">

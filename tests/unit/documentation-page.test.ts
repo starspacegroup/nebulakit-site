@@ -422,5 +422,16 @@ describe('Documentation Page', () => {
 			const nav = screen.getByRole('navigation', { name: /documentation navigation/i });
 			expect(nav.querySelector('a[href="#seo-and-hosts"]')).toBeTruthy();
 		});
+	// AGENTS.md: /admin/scheduled-jobs, the cron Worker and CRON_SECRET are a
+	// user-visible admin route and a deployment step, so the documentation has to say so.
+	it('documents the cron Worker and the scheduled jobs admin page', () => {
+		const scoped = within(
+				.getByRole('heading', { name: /Scheduled Jobs/i, level: 2 })
+				.closest('section') as HTMLElement
+		);
+		expect(scoped.getAllByText(/cron-worker\//).length).toBeGreaterThan(0);
+		expect(scoped.getByText('/admin/scheduled-jobs')).toBeInTheDocument();
+		expect(scoped.getByText(/wrangler secret put CRON_SECRET/)).toBeInTheDocument();
+		expect(scoped.getByText('0019_scheduled_job_runs.sql')).toBeInTheDocument();
 	});
 });
