@@ -1,4 +1,5 @@
 import type { KVNamespace } from '@cloudflare/workers-types';
+import { timingSafeEqualStrings } from './timing-safe';
 
 /**
  * The stats token (docs/ADMIN_STATS.md, "Reading the numbers from outside").
@@ -124,15 +125,6 @@ export function bearerToken(authorization: string | null | undefined): string | 
 	return match ? match[1] : null;
 }
 
-function timingSafeEqual(a: string, b: string): boolean {
-	if (a.length !== b.length) return false;
-	let mismatch = 0;
-	for (let i = 0; i < a.length; i++) {
-		mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
-	}
-	return mismatch === 0;
-}
-
 export type StatsTokenVerdict = 'ok' | 'missing' | 'invalid';
 
 /**
@@ -154,5 +146,5 @@ export async function verifyStatsToken(
 	if (!presented || !presented.startsWith(STATS_TOKEN_PREFIX)) return 'invalid';
 
 	const hash = await hashStatsToken(presented);
-	return timingSafeEqual(hash, stored.hash) ? 'ok' : 'invalid';
+	return timingSafeEqualStrings(hash, stored.hash) ? 'ok' : 'invalid';
 }
