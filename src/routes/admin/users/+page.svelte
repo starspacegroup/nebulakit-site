@@ -369,7 +369,7 @@
 	<div class="modal-overlay" on:click={closeInviteModal}>
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-		<div class="modal" on:click|stopPropagation role="dialog" aria-modal="true">
+		<div class="modal" on:click|stopPropagation role="dialog" tabindex="-1" aria-modal="true">
 			<div class="modal-header">
 				<h2>Invite GitHub User</h2>
 				<button aria-label="Close" class="btn-close" on:click={closeInviteModal}>

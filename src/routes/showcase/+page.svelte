@@ -463,8 +463,7 @@
 
 	/* Prose links carry an underline at rest — colour alone cannot mark a link
 	   inside a block of text (WCAG 1.4.1). */
-	.showcase__section p a,
-	.showcase__section li a {
+	.showcase__section p a {
 		text-decoration: underline;
 		text-underline-offset: 0.15em;
 	}

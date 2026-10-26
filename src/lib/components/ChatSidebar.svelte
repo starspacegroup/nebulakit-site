@@ -122,12 +122,23 @@
 				<div class="conversation-group" in:slide={{ duration: 200 }}>
 					<div class="group-label">{group.label}</div>
 					{#each group.conversations as conversation (conversation.id)}
-						<button
+						<!-- A div, not a button: it holds the delete button, and a button inside
+						     a button is invalid HTML that Svelte 5 refuses to compile. -->
+						<div
+							role="button"
+							tabindex="0"
 							class="conversation-item"
 							class:selected={conversation.id === currentId}
 							data-conversation-id={conversation.id}
 							data-selected={conversation.id === currentId}
 							on:click={() => handleSelectConversation(conversation.id)}
+							on:keydown={(e) => {
+								if (e.target !== e.currentTarget) return;
+								if (e.key === 'Enter' || e.key === ' ') {
+									e.preventDefault();
+									handleSelectConversation(conversation.id);
+								}
+							}}
 							aria-label="Select conversation: {conversation.title}"
 							title={conversation.title}
 							in:fly={{ x: -20, duration: 200, easing: quintOut }}
@@ -168,7 +179,7 @@
 									/>
 								</svg>
 							</button>
-						</button>
+						</div>
 					{/each}
 				</div>
 			{/each}

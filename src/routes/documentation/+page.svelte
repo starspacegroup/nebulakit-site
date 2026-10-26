@@ -189,16 +189,16 @@ npm run deploy`
 				<div class="quickstart-window" data-manager={selectedPackageManager}>
 					<div class="quickstart-window-header">
 						<div class="window-controls" aria-hidden="true">
-							<span class="window-dot" />
-							<span class="window-dot" />
-							<span class="window-dot" />
+							<span class="window-dot"></span>
+							<span class="window-dot"></span>
+							<span class="window-dot"></span>
 						</div>
 						<p class="quickstart-window-title">terminal {selectedPackageManager}</p>
 					</div>
 					<pre class="quickstart-code"><code
 							>{#each highlightedQuickStartLines as line}
 								{#if line.kind === 'blank'}
-									<span class="quickstart-line quickstart-line--blank" />
+									<span class="quickstart-line quickstart-line--blank"></span>
 								{:else if line.kind === 'comment'}
 									<span class="quickstart-line quickstart-line--comment"
 										><span class="token-comment"># {line.text}</span></span
