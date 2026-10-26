@@ -76,6 +76,27 @@ globalThis.IntersectionObserver = class IntersectionObserver {
 	disconnect() {}
 } as any;
 
+// Svelte 5 implements transitions with the Web Animations API. happy-dom does
+// not provide it yet, so complete animations on a microtask after Svelte has
+// attached its `onfinish` callback.
+if (typeof Element !== 'undefined' && typeof Element.prototype.animate !== 'function') {
+	Object.defineProperty(Element.prototype, 'animate', {
+		configurable: true,
+		value: function animate(): Animation {
+			const animation = {
+				cancel: vi.fn(),
+				currentTime: 0,
+				effect: null,
+				onfinish: null as ((event: AnimationPlaybackEvent) => void) | null,
+				playState: 'finished'
+			};
+
+			queueMicrotask(() => animation.onfinish?.(new Event('finish') as AnimationPlaybackEvent));
+			return animation as unknown as Animation;
+		}
+	});
+}
+
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
 	writable: true,

@@ -1,6 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
+import { svelteTesting } from '@testing-library/svelte/vite';
 import { defineConfig } from 'vitest/config';
-import { site } from './src/lib/site.config';
+import { site } from './src/lib/site.config.ts';
 
 /**
  * Vite plugin that fixes stale dep hash 504s when serving through cloudflared.
@@ -33,12 +34,7 @@ function staleDepsFix() {
 }
 
 export default defineConfig({
-	plugins: [staleDepsFix(), sveltekit()],
-	// Resolve Svelte's browser build under Vitest. Without this, `svelte` resolves
-	// to its server export, where `onMount` is a no-op — component tests render
-	// fine but nothing that happens on mount ever runs, so a test asserting on
-	// mounted behaviour silently checks the pre-mount markup instead.
-	resolve: process.env.VITEST ? { conditions: ['browser'] } : {},
+	plugins: [staleDepsFix(), sveltekit(), svelteTesting()],
 	// Preview (vite preview) reuses the dev port so local URLs stay stable.
 	preview: {
 		port: site.devPort,
@@ -128,11 +124,8 @@ export default defineConfig({
 				statements: 95
 			}
 		},
-		poolOptions: {
-			threads: {
-				singleThread: true
-			}
-		},
+		pool: 'threads',
+		fileParallelism: false,
 		teardownTimeout: 5000
 	}
 });
