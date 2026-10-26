@@ -8,12 +8,12 @@ import type { ContentItemFilters } from '$lib/cms/types';
 import { getContentTypeRoutePrefix, validateFields } from '$lib/cms/utils';
 import { runTimestampProofJob } from '$lib/content-proof/proof-job';
 import { createContentItem, getContentTypeBySlug, listContentItems } from '$lib/services/cms';
-import { requireAdmin } from '$lib/server/auth-guard';
+import { requirePermission } from '$lib/server/auth-guards';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ platform, locals, params, url }) => {
-	requireAdmin(locals);
+	requirePermission(locals, 'cms');
 
 	const db = platform?.env?.DB;
 	if (!db) {
@@ -60,12 +60,7 @@ export const GET: RequestHandler = async ({ platform, locals, params, url }) => 
 };
 
 export const POST: RequestHandler = async ({ platform, locals, params, request, url }) => {
-	if (!locals.user) {
-		throw error(401, 'Unauthorized');
-	}
-	if (!locals.user.isOwner && !locals.user.isAdmin) {
-		throw error(403, 'Forbidden');
-	}
+	const user = requirePermission(locals, 'cms');
 
 	const db = platform?.env?.DB;
 	if (!db) {
@@ -100,7 +95,7 @@ export const POST: RequestHandler = async ({ platform, locals, params, request, 
 			seoDescription: body.seoDescription,
 			seoImage: body.seoImage,
 			showInCommandPalette: body.showInCommandPalette,
-			authorId: locals.user.id,
+			authorId: user.id,
 			tagIds: body.tagIds
 		});
 

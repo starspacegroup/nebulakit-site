@@ -1,4 +1,4 @@
-import { requireAdmin } from '$lib/server/auth-guard';
+import { requireOwner } from '$lib/server/auth-guards';
 import { authConfigKey, findProviderByKeyId } from '$lib/server/oauth-config';
 import { error, json } from '@sveltejs/kit';
 import type { KVNamespace } from '@cloudflare/workers-types';
@@ -31,7 +31,7 @@ async function assertNotSetupKey(kv: KVNamespace, id: string, action: string): P
 
 // PUT - Update auth key
 export const PUT: RequestHandler = async ({ params, request, platform, locals }) => {
-	requireAdmin(locals);
+	requireOwner(locals);
 
 	try {
 		const { id } = params;
@@ -91,7 +91,7 @@ export const PUT: RequestHandler = async ({ params, request, platform, locals })
 
 // DELETE - Delete auth key
 export const DELETE: RequestHandler = async ({ params, platform, locals }) => {
-	requireAdmin(locals);
+	requireOwner(locals);
 
 	try {
 		const { id } = params;

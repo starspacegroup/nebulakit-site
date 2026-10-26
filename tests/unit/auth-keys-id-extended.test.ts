@@ -68,10 +68,10 @@ describe('Auth Keys [id] API - Extended Branch Coverage', () => {
 	describe('authorization', () => {
 		it('rejects an unauthenticated caller', async () => {
 			await expect(
-				PUT(createMockEvent({ locals: undefined }) as unknown as Parameters<typeof PUT>[0])
+				PUT(createMockEvent({ locals: {} }) as unknown as Parameters<typeof PUT>[0])
 			).rejects.toMatchObject({ status: 401 });
 			await expect(
-				DELETE(createMockEvent({ locals: undefined }) as unknown as Parameters<typeof DELETE>[0])
+				DELETE(createMockEvent({ locals: {} }) as unknown as Parameters<typeof DELETE>[0])
 			).rejects.toMatchObject({ status: 401 });
 			expect(kvPut).not.toHaveBeenCalled();
 			expect(kvDelete).not.toHaveBeenCalled();

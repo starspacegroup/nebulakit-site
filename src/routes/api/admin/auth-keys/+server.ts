@@ -1,11 +1,11 @@
-import { requireAdmin } from '$lib/server/auth-guard';
+import { requireOwner } from '$lib/server/auth-guards';
 import { OAUTH_PROVIDERS, isSupportedOAuthProvider } from '$lib/server/oauth-config';
 import { error, isHttpError, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 // GET - List all auth keys
 export const GET: RequestHandler = async ({ platform, locals }) => {
-	requireAdmin(locals);
+	requireOwner(locals);
 
 	try {
 		const keys: any[] = [];
@@ -60,7 +60,7 @@ export const GET: RequestHandler = async ({ platform, locals }) => {
 
 // POST - Create new auth key
 export const POST: RequestHandler = async ({ request, platform, locals }) => {
-	requireAdmin(locals);
+	requireOwner(locals);
 
 	try {
 		const data = await request.json();

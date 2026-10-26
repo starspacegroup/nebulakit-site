@@ -19,7 +19,7 @@ const submission = {
 };
 
 function loadEvent(opts: {
-	user?: { isOwner?: boolean; isAdmin?: boolean };
+	user?: { isOwner?: boolean; isAdmin?: boolean; permissions?: string[] };
 	cookie?: string;
 	db?: unknown;
 }) {
@@ -37,6 +37,11 @@ beforeEach(() => {
 });
 
 describe('admin submission detail load', () => {
+	it('rejects unauthenticated reads before touching D1', async () => {
+		await expect(load(loadEvent({}) as never)).rejects.toMatchObject({ status: 401 });
+		expect(contactMocks.getContactFormSubmission).not.toHaveBeenCalled();
+	});
+
 	it('throws 500 without a database', async () => {
 		await expect(
 			load(loadEvent({ user: { isOwner: true }, db: null }) as never)
@@ -51,7 +56,9 @@ describe('admin submission detail load', () => {
 	});
 
 	it('masks name/email by default', async () => {
-		const data = (await load(loadEvent({ user: { isAdmin: true } }) as never)) as {
+		const data = (await load(
+			loadEvent({ user: { isAdmin: true, permissions: ['contact'] } }) as never
+		)) as {
 			submission: { name: string; email: string };
 		};
 		expect(data.submission.name).toBe('A** L*******');
@@ -67,16 +74,36 @@ describe('admin submission detail load', () => {
 });
 
 describe('resolve action', () => {
+	it('rejects anonymous and regular-user mutations', async () => {
+		const event = (user?: { isOwner?: boolean; isAdmin?: boolean; permissions?: string[] }) => ({
+			locals: { user },
+			platform: { env: { DB: {} } },
+			params: { id: 'id-1' }
+		});
+
+		await expect(actions.resolve(event() as never)).rejects.toMatchObject({ status: 401 });
+		await expect(actions.resolve(event({}) as never)).rejects.toMatchObject({ status: 403 });
+		expect(contactMocks.resolveContactFormSubmission).not.toHaveBeenCalled();
+	});
+
 	it('resolves then redirects to the inbox', async () => {
 		await expect(
-			actions.resolve({ platform: { env: { DB: {} } }, params: { id: 'id-1' } } as never)
+			actions.resolve({
+				locals: { user: { isAdmin: true, permissions: ['contact'] } },
+				platform: { env: { DB: {} } },
+				params: { id: 'id-1' }
+			} as never)
 		).rejects.toMatchObject({ status: 302, location: '/admin/contact-form-submissions' });
 		expect(contactMocks.resolveContactFormSubmission).toHaveBeenCalledWith({}, 'id-1');
 	});
 
 	it('throws 500 without a database', async () => {
 		await expect(
-			actions.resolve({ platform: { env: { DB: null } }, params: { id: 'id-1' } } as never)
+			actions.resolve({
+				locals: { user: { isAdmin: true, permissions: ['contact'] } },
+				platform: { env: { DB: null } },
+				params: { id: 'id-1' }
+			} as never)
 		).rejects.toMatchObject({ status: 500 });
 	});
 });

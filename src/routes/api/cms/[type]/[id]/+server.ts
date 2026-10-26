@@ -14,12 +14,12 @@ import {
 	getContentTypeBySlug,
 	updateContentItem
 } from '$lib/services/cms';
-import { requireAdmin } from '$lib/server/auth-guard';
+import { requirePermission } from '$lib/server/auth-guards';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ platform, locals, params }) => {
-	requireAdmin(locals);
+	requirePermission(locals, 'cms');
 
 	const db = platform?.env?.DB;
 	if (!db) {
@@ -41,12 +41,7 @@ export const GET: RequestHandler = async ({ platform, locals, params }) => {
 };
 
 export const PUT: RequestHandler = async ({ platform, locals, params, request, url }) => {
-	if (!locals.user) {
-		throw error(401, 'Unauthorized');
-	}
-	if (!locals.user.isOwner && !locals.user.isAdmin) {
-		throw error(403, 'Forbidden');
-	}
+	const user = requirePermission(locals, 'cms');
 
 	const db = platform?.env?.DB;
 	if (!db) {
@@ -83,7 +78,7 @@ export const PUT: RequestHandler = async ({ platform, locals, params, request, u
 				tagIds: body.tagIds
 			},
 			// Provenance actor comes from the session, never the request body.
-			locals.user.id
+			user.id
 		);
 
 		if (!item) {
@@ -105,12 +100,7 @@ export const PUT: RequestHandler = async ({ platform, locals, params, request, u
 };
 
 export const DELETE: RequestHandler = async ({ platform, locals, params }) => {
-	if (!locals.user) {
-		throw error(401, 'Unauthorized');
-	}
-	if (!locals.user.isOwner && !locals.user.isAdmin) {
-		throw error(403, 'Forbidden');
-	}
+	requirePermission(locals, 'cms');
 
 	const db = platform?.env?.DB;
 	if (!db) {

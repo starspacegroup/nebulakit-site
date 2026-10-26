@@ -1,4 +1,4 @@
-import { requireOwner } from '$lib/server/auth-guard';
+import { requireOwner } from '$lib/server/auth-guards';
 import { deleteSession } from '$lib/utils/db';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';

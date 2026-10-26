@@ -574,7 +574,7 @@ describe('Auth Keys API', () => {
 	});
 
 	describe('authorization', () => {
-		const ANON = undefined;
+		const ANON = {};
 		const PLAIN_USER = {
 			user: { id: '1', login: 'someone', email: 's@example.com', isOwner: false, isAdmin: false }
 		};

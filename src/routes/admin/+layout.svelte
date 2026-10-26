@@ -4,25 +4,41 @@
 	import { setContext } from 'svelte';
 	import { writable } from 'svelte/store';
 	import PiiPrivacyToggle from '$lib/components/admin/PiiPrivacyToggle.svelte';
+	import { heldPermissions } from '$lib/access/permissions';
 	import type { LayoutData } from './$types';
 
 	export let data: LayoutData;
 
-	// Stats is gated on the per-admin `can_view_stats` grant, Analytics on owner
-	// (`canManageStatsConnection`). Both routes enforce it as well; hiding the
-	// links just avoids offering a 403.
+	// A link shows only if this admin can use it, from the same permission list
+	// the routes enforce (permissions.ts). Hiding a link is a courtesy, not
+	// authorization: every load and API still guards itself. The Dashboard is
+	// every admin's landing page. Analytics, Auth Keys, AI Keys, the audit log
+	// and sign-ins stay with the owner and superadmins.
+	$: held = new Set<string>(heldPermissions(data.user));
+	$: ownerLevel = Boolean(data.user?.isOwner || data.user?.isSuperAdmin);
 	$: navItems = [
 		{ path: '/admin', label: 'Dashboard', icon: 'home' },
-		...(data.canViewStats ? [{ path: '/admin/stats', label: 'Stats', icon: 'chart' }] : []),
+		{ path: '/admin/stats', label: 'Stats', icon: 'chart', permission: 'stats' },
 		...(data.canManageAnalytics
 			? [{ path: '/admin/analytics', label: 'Analytics', icon: 'activity' }]
 			: []),
-		{ path: '/admin/users', label: 'Users', icon: 'users' },
-		{ path: '/admin/auth-keys', label: 'Auth Keys', icon: 'key' },
-		{ path: '/admin/ai-keys', label: 'AI Keys', icon: 'sparkles' },
-		{ path: '/admin/cms', label: 'Content', icon: 'document' },
-		{ path: '/admin/contact-form-submissions', label: 'Contact Forms', icon: 'mail' }
-	];
+		{ path: '/admin/users', label: 'Users', icon: 'users', permission: 'users' },
+		...(ownerLevel
+			? [
+					{ path: '/admin/auth-keys', label: 'Auth Keys', icon: 'key' },
+					{ path: '/admin/ai-keys', label: 'AI Keys', icon: 'sparkles' },
+					{ path: '/admin/audit', label: 'Audit log', icon: 'activity' },
+					{ path: '/admin/sign-ins', label: 'Sign-ins', icon: 'users' }
+				]
+			: []),
+		{ path: '/admin/cms', label: 'Content', icon: 'document', permission: 'cms' },
+		{
+			path: '/admin/contact-form-submissions',
+			label: 'Contact Forms',
+			icon: 'mail',
+			permission: 'contact'
+		}
+	].filter((item) => !('permission' in item) || held.has(item.permission as string));
 
 	// PII reveal state shared with admin views via context. The store tracks the
 	// server-provided value; toggling posts to the reveal endpoint and reloads so

@@ -8,14 +8,14 @@ import {
 import { validateContactInput } from '$lib/utils/contact-validation';
 import { verifyTurnstile, turnstileEnabled } from '$lib/server/turnstile';
 import { isPiiRevealed, maskName, maskEmail, PII_REVEAL_COOKIE } from '$lib/server/pii-mask';
+import { requirePermission } from '$lib/server/auth-guards';
 
 /**
  * Admin: list contact submissions as JSON (paginated). Guarded to owner/admin;
  * names + emails are masked unless the owner has PII reveal on.
  */
 export const GET: RequestHandler = async ({ locals, platform, url, cookies }) => {
-	if (!locals.user) throw error(401, 'Unauthorized');
-	if (!locals.user.isOwner && !locals.user.isAdmin) throw error(403, 'Forbidden');
+	requirePermission(locals, 'contact');
 
 	const db = platform?.env?.DB;
 	if (!db) throw error(500, 'Database not available');

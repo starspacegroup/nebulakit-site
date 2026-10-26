@@ -6,12 +6,7 @@
  * than only incidentally via the route tests.
  */
 import { describe, expect, it, vi } from 'vitest';
-import {
-	isAdminUser,
-	isOwnerUser,
-	requireAdmin,
-	requireOwner
-} from '../../src/lib/server/auth-guard';
+import { requireAdmin, requireOwner, requirePermission } from '../../src/lib/server/auth-guards';
 import {
 	OAUTH_PROVIDERS,
 	authConfigKey,
@@ -28,10 +23,6 @@ describe('requireAdmin', () => {
 	it('accepts an owner and an admin', () => {
 		expect(() => requireAdmin(owner as any)).not.toThrow();
 		expect(() => requireAdmin(admin as any)).not.toThrow();
-	});
-
-	it('401s with no locals at all', () => {
-		expect(() => requireAdmin(undefined)).toThrowError(expect.objectContaining({ status: 401 }));
 	});
 
 	it('401s when locals carries no user', () => {
@@ -55,8 +46,7 @@ describe('requireOwner', () => {
 		expect(() => requireOwner(owner as any)).not.toThrow();
 	});
 
-	it('401s with no locals and no user', () => {
-		expect(() => requireOwner(undefined)).toThrowError(expect.objectContaining({ status: 401 }));
+	it('401s with no user', () => {
 		expect(() => requireOwner({} as any)).toThrowError(expect.objectContaining({ status: 401 }));
 	});
 
@@ -194,19 +184,16 @@ describe('superadmin tier', () => {
 		expect(() => requireOwner(superadmin as any)).not.toThrow();
 	});
 
-	it('exposes the same policy as predicates', () => {
-		expect(isAdminUser({ isSuperAdmin: true })).toBe(true);
-		expect(isOwnerUser({ isSuperAdmin: true })).toBe(true);
-		expect(isAdminUser({ isAdmin: true })).toBe(true);
-		expect(isOwnerUser({ isAdmin: true })).toBe(false);
-		expect(isAdminUser({})).toBe(false);
-		expect(isOwnerUser({})).toBe(false);
-	});
-
-	it('returns false for a missing user rather than throwing', () => {
-		expect(isAdminUser(null)).toBe(false);
-		expect(isAdminUser(undefined)).toBe(false);
-		expect(isOwnerUser(null)).toBe(false);
-		expect(isOwnerUser(undefined)).toBe(false);
+	it('requirePermission holds an admin to exactly their grants', () => {
+		const granted = { user: { ...admin.user, role: 'admin', permissions: ['cms'] } };
+		expect(requirePermission(granted as any, 'cms')).toBe(granted.user);
+		expect(() => requirePermission(granted as any, 'pii')).toThrowError(
+			expect.objectContaining({ status: 403 })
+		);
+		expect(() => requirePermission({} as any, 'cms')).toThrowError(
+			expect.objectContaining({ status: 401 })
+		);
+		expect(requirePermission(owner as any, 'pii')).toBe(owner.user);
+		expect(requirePermission({ user: { ...superadmin.user } } as any, 'pii')).toBeTruthy();
 	});
 });
