@@ -58,6 +58,9 @@ export async function resolveOwnerStatus(
 ): Promise<boolean> {
 	let ownerId = platform?.env?.GITHUB_OWNER_ID;
 	let ownerUsername: string | null = null;
+	if (ownerId && user.id === ownerId) {
+		return true;
+	}
 
 	if (ownerId && Number.isNaN(Number.parseInt(ownerId, 10))) {
 		ownerUsername = ownerId;
@@ -77,7 +80,14 @@ export async function resolveOwnerStatus(
 		}
 	}
 
-	if (ownerUsername && user.github_login?.toLowerCase() === ownerUsername.toLowerCase()) {
+	// A GitHub username can be released and claimed by someone else, so it only
+	// identifies the owner when no numeric GitHub id is configured. With an id,
+	// the id decides (below).
+	if (
+		!ownerId &&
+		ownerUsername &&
+		user.github_login?.toLowerCase() === ownerUsername.toLowerCase()
+	) {
 		return true;
 	}
 

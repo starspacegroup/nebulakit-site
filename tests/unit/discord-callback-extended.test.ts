@@ -1,35 +1,61 @@
-import '../helpers/server-response';
+import { webcrypto } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// The OAuth routes now round-trip a `state` value through an HttpOnly cookie:
-// the init route sets it, the callback requires it back. Tests therefore need
-// a cookie jar whose state lookups answer, and callback URLs carrying a
-// matching `state` param.
-const TEST_OAUTH_STATE = 'test-oauth-state';
-function makeOAuthCookies(sessionValue: unknown = null) {
+vi.mock('$lib/utils/oauth-state', async () => {
+	const actual = await vi.importActual<typeof import('../../src/lib/utils/oauth-state')>(
+		'../../src/lib/utils/oauth-state'
+	);
 	return {
-		get: vi.fn((name: string) =>
-			name.startsWith('oauth_state_') ? TEST_OAUTH_STATE : sessionValue
-		),
-		set: vi.fn(),
-		delete: vi.fn()
+		...actual,
+		consumeOAuthState: vi.fn(async (provider: 'github' | 'discord') => ({
+			provider,
+			state: 'legacy-valid-state',
+			intent: 'login',
+			issuedAt: Date.now()
+		})),
+		verifyOAuthTransaction: vi.fn(async (_db: unknown, provider: 'github' | 'discord') => ({
+			provider,
+			state: 'legacy-valid-state',
+			intent: 'login',
+			issuedAt: Date.now()
+		})),
+		consumeOAuthTransaction: vi.fn(async (_db: unknown, provider: 'github' | 'discord') => ({
+			provider,
+			state: 'legacy-valid-state',
+			intent: 'login',
+			issuedAt: Date.now()
+		}))
 	};
-}
+});
 
-// A permissive session-capable DB. A successful login now stores its payload
-// server-side (createAuthSession) before issuing the opaque-id cookie, so tests
-// exercising the success path need the store; without it the handler fails closed.
-function makeSessionDb() {
+vi.mock('$lib/utils/db', async () => {
+	const actual =
+		await vi.importActual<typeof import('../../src/lib/utils/db')>('../../src/lib/utils/db');
 	return {
-		prepare: vi.fn().mockReturnValue({
-			bind: vi.fn().mockReturnValue({
-				first: vi.fn().mockResolvedValue(null),
-				all: vi.fn().mockResolvedValue({ results: [] }),
-				run: vi.fn().mockResolvedValue({ success: true })
-			})
-		})
+		...actual,
+		createSession: vi.fn(async (_db: unknown, userId: string) => ({
+			id: 'stored-session-digest',
+			token: 'opaque-session-token',
+			user_id: userId,
+			expires_at: new Date('2099-01-01T00:00:00.000Z')
+		})),
+		replaceSession: vi.fn(async (_db: unknown, userId: string) => ({
+			id: 'stored-session-digest',
+			token: 'opaque-session-token',
+			user_id: userId,
+			expires_at: new Date('2099-01-01T00:00:00.000Z')
+		}))
 	};
-}
+});
+
+vi.mock('$lib/services/account-merge', async () => {
+	const actual = await vi.importActual<typeof import('../../src/lib/services/account-merge')>(
+		'../../src/lib/services/account-merge'
+	);
+	return { ...actual, mergeAccounts: vi.fn(actual.mergeAccounts) };
+});
+
+import { mergeAccounts } from '$lib/services/account-merge';
 
 // Mock console to avoid noise
 vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -42,7 +68,8 @@ describe('Discord Callback Server - Extended Coverage', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		vi.resetModules();
-		vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid-123' });
+		vi.stubGlobal('crypto', webcrypto as Crypto);
+		vi.stubEnv('DEV', true);
 
 		mockFetch = vi.fn();
 		vi.stubGlobal('fetch', mockFetch);
@@ -52,14 +79,14 @@ describe('Discord Callback Server - Extended Coverage', () => {
 		it('should redirect to login with error when no code provided', async () => {
 			const mockEvent = {
 				url: new URL('http://localhost/api/auth/discord/callback'),
-				cookies: makeOAuthCookies(null),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {}
 			};
 
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
 			try {
-				await GET(mockEvent as any);
+				await GET(withDatabase(mockEvent) as any);
 				expect.fail('Should have redirected');
 			} catch (err: any) {
 				expect(err.status).toBe(302);
@@ -102,21 +129,18 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			});
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
-						KV: mockKV,
-						DB: makeSessionDb()
+						KV: mockKV
 					}
 				}
 			};
 
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
-			const response = await GET(mockEvent as any);
+			const response = await GET(withDatabase(mockEvent) as any);
 			expect(response.status).toBe(302);
 			expect(mockKV.get).toHaveBeenCalledWith('auth_config:discord');
 		});
@@ -127,14 +151,11 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			};
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
-						KV: mockKV,
-						DB: makeSessionDb()
+						KV: mockKV
 					}
 				}
 			};
@@ -142,7 +163,7 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
 			try {
-				await GET(mockEvent as any);
+				await GET(withDatabase(mockEvent) as any);
 				expect.fail('Should have redirected');
 			} catch (err: any) {
 				// Should redirect with not_configured since KV failed and no env vars
@@ -153,10 +174,8 @@ describe('Discord Callback Server - Extended Coverage', () => {
 
 		it('should redirect with not_configured when no OAuth config found', async () => {
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {}
 				}
@@ -165,7 +184,7 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
 			try {
-				await GET(mockEvent as any);
+				await GET(withDatabase(mockEvent) as any);
 				expect.fail('Should have redirected');
 			} catch (err: any) {
 				expect(err.status).toBe(302);
@@ -175,7 +194,49 @@ describe('Discord Callback Server - Extended Coverage', () => {
 	});
 
 	describe('Token exchange errors', () => {
+		it('rejects a callback whose transaction preflight is no longer valid', async () => {
+			const { verifyOAuthTransaction } = await import('../../src/lib/utils/oauth-state');
+			vi.mocked(verifyOAuthTransaction).mockResolvedValueOnce(null);
+			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
+
+			await expect(
+				GET(
+					withDatabase({
+						url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+						cookies: { get: vi.fn(), set: vi.fn() },
+						platform: { env: {} }
+					}) as any
+				)
+			).rejects.toMatchObject({ location: '/auth/login?error=invalid_state' });
+			expect(mockFetch).not.toHaveBeenCalled();
+		});
+
+		it('rejects a callback when another request consumes the transaction first', async () => {
+			const { consumeOAuthTransaction } = await import('../../src/lib/utils/oauth-state');
+			vi.mocked(consumeOAuthTransaction).mockResolvedValueOnce(null);
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				json: vi.fn().mockResolvedValue({ access_token: 'token' })
+			});
+			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
+
+			await expect(
+				GET(
+					withDatabase({
+						url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+						cookies: { get: vi.fn(), set: vi.fn() },
+						platform: {
+							env: { DISCORD_CLIENT_ID: 'id', DISCORD_CLIENT_SECRET: 'secret' }
+						}
+					}) as any
+				)
+			).rejects.toMatchObject({ location: '/auth/login?error=invalid_state' });
+			expect(mockFetch).toHaveBeenCalledOnce();
+		});
+
 		it('should redirect with error when token exchange fails', async () => {
+			const { consumeOAuthTransaction, verifyOAuthTransaction } =
+				await import('../../src/lib/utils/oauth-state');
 			mockFetch.mockResolvedValueOnce({
 				ok: false,
 				status: 400,
@@ -183,15 +244,12 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			});
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
-						DISCORD_CLIENT_SECRET: 'client-secret',
-						DB: makeSessionDb()
+						DISCORD_CLIENT_SECRET: 'client-secret'
 					}
 				}
 			};
@@ -199,12 +257,14 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
 			try {
-				await GET(mockEvent as any);
+				await GET(withDatabase(mockEvent) as any);
 				expect.fail('Should have redirected');
 			} catch (err: any) {
 				expect(err.status).toBe(302);
 				expect(err.location).toBe('/auth/login?error=token_exchange_failed');
 			}
+			expect(verifyOAuthTransaction).toHaveBeenCalledOnce();
+			expect(consumeOAuthTransaction).not.toHaveBeenCalled();
 		});
 
 		it('should redirect with error when no access token in response', async () => {
@@ -214,15 +274,12 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			});
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
-						DISCORD_CLIENT_SECRET: 'client-secret',
-						DB: makeSessionDb()
+						DISCORD_CLIENT_SECRET: 'client-secret'
 					}
 				}
 			};
@@ -230,7 +287,7 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
 			try {
-				await GET(mockEvent as any);
+				await GET(withDatabase(mockEvent) as any);
 				expect.fail('Should have redirected');
 			} catch (err: any) {
 				expect(err.status).toBe(302);
@@ -241,6 +298,7 @@ describe('Discord Callback Server - Extended Coverage', () => {
 
 	describe('User info fetch errors', () => {
 		it('should redirect with error when user fetch fails', async () => {
+			const { consumeOAuthTransaction } = await import('../../src/lib/utils/oauth-state');
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				json: () => Promise.resolve({ access_token: 'test-token' })
@@ -252,15 +310,12 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			});
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
-						DISCORD_CLIENT_SECRET: 'client-secret',
-						DB: makeSessionDb()
+						DISCORD_CLIENT_SECRET: 'client-secret'
 					}
 				}
 			};
@@ -268,12 +323,13 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
 			try {
-				await GET(mockEvent as any);
+				await GET(withDatabase(mockEvent) as any);
 				expect.fail('Should have redirected');
 			} catch (err: any) {
 				expect(err.status).toBe(302);
 				expect(err.location).toBe('/auth/login?error=user_fetch_failed');
 			}
+			expect(consumeOAuthTransaction).toHaveBeenCalledOnce();
 		});
 	});
 
@@ -297,22 +353,19 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			});
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
-						DISCORD_CLIENT_SECRET: 'client-secret',
-						DB: makeSessionDb()
+						DISCORD_CLIENT_SECRET: 'client-secret'
 					}
 				}
 			};
 
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
-			const response = await GET(mockEvent as any);
+			const response = await GET(withDatabase(mockEvent) as any);
 			expect(response.status).toBe(302);
 		});
 	});
@@ -345,23 +398,20 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			});
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
 						DISCORD_CLIENT_SECRET: 'client-secret',
-						KV: mockKV,
-						DB: makeSessionDb()
+						KV: mockKV
 					}
 				}
 			};
 
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
-			const response = await GET(mockEvent as any);
+			const response = await GET(withDatabase(mockEvent) as any);
 			expect(response.status).toBe(302);
 			expect(mockKV.get).toHaveBeenCalledWith('github_owner_id');
 		});
@@ -393,16 +443,13 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			});
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
 						DISCORD_CLIENT_SECRET: 'client-secret',
-						KV: mockKV,
-						DB: makeSessionDb()
+						KV: mockKV
 					}
 				}
 			};
@@ -410,7 +457,7 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
 			// Should not throw, should continue
-			const response = await GET(mockEvent as any);
+			const response = await GET(withDatabase(mockEvent) as any);
 			expect(response.status).toBe(302);
 		});
 	});
@@ -434,15 +481,12 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			});
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies('invalid-base64!!!'),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue('invalid-base64!!!'), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
-						DISCORD_CLIENT_SECRET: 'client-secret',
-						DB: makeSessionDb()
+						DISCORD_CLIENT_SECRET: 'client-secret'
 					}
 				}
 			};
@@ -450,17 +494,27 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
 			// Should not throw, treat as new login
-			const response = await GET(mockEvent as any);
+			const response = await GET(withDatabase(mockEvent) as any);
 			expect(response.status).toBe(302);
 		});
 
 		it('should link Discord account to existing user', async () => {
-			const existingSession = btoa(
-				JSON.stringify({ id: 'existing-user-123', login: 'existinguser' })
-			)
-				.replace(/\+/g, '-')
-				.replace(/\//g, '_')
-				.replace(/=+$/, '');
+			const { consumeOAuthTransaction, verifyOAuthTransaction } =
+				await import('../../src/lib/utils/oauth-state');
+			vi.mocked(verifyOAuthTransaction).mockResolvedValueOnce({
+				provider: 'discord',
+				state: 'legacy-valid-state',
+				intent: 'link',
+				userId: 'existing-user-123',
+				issuedAt: Date.now()
+			});
+			vi.mocked(consumeOAuthTransaction).mockResolvedValueOnce({
+				provider: 'discord',
+				state: 'legacy-valid-state',
+				intent: 'link',
+				userId: 'existing-user-123',
+				issuedAt: Date.now()
+			});
 
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
@@ -499,10 +553,11 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			};
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(existingSession),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
+				locals: {
+					user: { id: 'existing-user-123', login: 'existinguser' }
+				},
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
@@ -514,7 +569,7 @@ describe('Discord Callback Server - Extended Coverage', () => {
 
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
-			const response = await GET(mockEvent as any);
+			const response = await GET(withDatabase(mockEvent) as any);
 			expect(response.status).toBe(302);
 			expect(response.headers.get('Location')).toContain('/profile?linked=discord');
 		});
@@ -539,22 +594,19 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			});
 
 			const mockEvent = {
-				url: new URL(
-					'https://example.com/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('https://example.com/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
-						DISCORD_CLIENT_SECRET: 'client-secret',
-						DB: makeSessionDb()
+						DISCORD_CLIENT_SECRET: 'client-secret'
 					}
 				}
 			};
 
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
-			const response = await GET(mockEvent as any);
+			const response = await GET(withDatabase(mockEvent) as any);
 			const cookie = response.headers.get('Set-Cookie');
 			expect(cookie).toContain('Secure');
 		});
@@ -613,10 +665,8 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			};
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
@@ -628,7 +678,7 @@ describe('Discord Callback Server - Extended Coverage', () => {
 
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
-			const response = await GET(mockEvent as any);
+			const response = await GET(withDatabase(mockEvent) as any);
 			expect(response.status).toBe(302);
 		});
 	});
@@ -660,7 +710,7 @@ describe('Discord Callback Server - Extended Coverage', () => {
 							})
 						};
 					}
-					if (sql.includes('SELECT * FROM users WHERE id')) {
+					if (sql.includes('SELECT id FROM users WHERE id')) {
 						return {
 							bind: vi.fn().mockReturnValue({
 								first: vi.fn().mockResolvedValue({
@@ -686,10 +736,8 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			};
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
@@ -701,7 +749,7 @@ describe('Discord Callback Server - Extended Coverage', () => {
 
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
-			const response = await GET(mockEvent as any);
+			const response = await GET(withDatabase(mockEvent) as any);
 			expect(response.status).toBe(302);
 			expect(response.headers.get('Location')).toContain('/');
 		});
@@ -763,14 +811,13 @@ describe('Discord Callback Server - Extended Coverage', () => {
 						return 'github-owner-123';
 					}
 					return null;
-				})
+				}),
+				put: vi.fn().mockResolvedValue(undefined)
 			};
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
@@ -783,7 +830,7 @@ describe('Discord Callback Server - Extended Coverage', () => {
 
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
-			const response = await GET(mockEvent as any);
+			const response = await GET(withDatabase(mockEvent) as any);
 			expect(response.status).toBe(302);
 		});
 	});
@@ -841,10 +888,8 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			};
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
@@ -856,13 +901,13 @@ describe('Discord Callback Server - Extended Coverage', () => {
 
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
-			const response = await GET(mockEvent as any);
+			const response = await GET(withDatabase(mockEvent) as any);
 			expect(response.status).toBe(302);
 		});
 	});
 
 	describe('Database error handling', () => {
-		it('fails closed when the session store is unavailable', async () => {
+		it('should fail closed if DB access fails', async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
 				json: () => Promise.resolve({ access_token: 'test-token' })
@@ -886,10 +931,8 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			};
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
@@ -901,10 +944,10 @@ describe('Discord Callback Server - Extended Coverage', () => {
 
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
-			// The session payload lives server-side now, so a DB that cannot store it
-			// must NOT yield an authenticated session — the old code trusted a
-			// client-authored cookie here, which was the auth bypass this replaces.
-			await expect(GET(mockEvent as any)).rejects.toBeTruthy();
+			await expect(GET(withDatabase(mockEvent) as any)).rejects.toMatchObject({
+				status: 302,
+				location: '/auth/login?error=oauth_failed'
+			});
 		});
 	});
 
@@ -933,10 +976,7 @@ describe('Discord Callback Server - Extended Coverage', () => {
 					})
 			});
 
-			// Mock mergeAccounts
-			vi.mock('$lib/services/account-merge', () => ({
-				mergeAccounts: vi.fn().mockResolvedValue(undefined)
-			}));
+			vi.mocked(mergeAccounts).mockResolvedValueOnce(undefined);
 
 			const mockDB = {
 				prepare: vi.fn().mockImplementation((sql: string) => {
@@ -952,10 +992,8 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			};
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(existingSession),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(existingSession), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
@@ -967,7 +1005,7 @@ describe('Discord Callback Server - Extended Coverage', () => {
 
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
-			const response = await GET(mockEvent as any);
+			const response = await GET(withDatabase(mockEvent) as any);
 			expect(response.status).toBe(302);
 		});
 
@@ -986,6 +1024,7 @@ describe('Discord Callback Server - Extended Coverage', () => {
 						username: 'discorduser',
 						global_name: 'Discord User',
 						email: 'existing@example.com',
+						verified: true,
 						avatar: 'abcdef'
 					})
 			});
@@ -1059,10 +1098,8 @@ describe('Discord Callback Server - Extended Coverage', () => {
 			};
 
 			const mockEvent = {
-				url: new URL(
-					'http://localhost/api/auth/discord/callback?code=test-code&state=test-oauth-state'
-				),
-				cookies: makeOAuthCookies(null),
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
 				platform: {
 					env: {
 						DISCORD_CLIENT_ID: 'client-id',
@@ -1074,10 +1111,108 @@ describe('Discord Callback Server - Extended Coverage', () => {
 
 			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
 
-			const response = await GET(mockEvent as any);
+			const response = await GET(withDatabase(mockEvent) as any);
 			expect(response.status).toBe(302);
 			expect(insertOAuthRun).toHaveBeenCalledTimes(1);
 			expect(response.headers.get('Set-Cookie')).toContain('session=');
 		});
+
+		it('never matches an existing account by an unverified Discord email', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				json: () => Promise.resolve({ access_token: 'test-token' })
+			});
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				json: () =>
+					Promise.resolve({
+						id: '987654321',
+						username: 'impostor',
+						email: 'existing@example.com',
+						verified: false
+					})
+			});
+
+			const emailLookups: string[] = [];
+			const mockDB = {
+				prepare: vi.fn().mockImplementation((sql: string) => {
+					if (sql.includes('user_login_aliases')) emailLookups.push(sql);
+					return {
+						bind: vi.fn().mockReturnValue({
+							first: vi.fn().mockResolvedValue(null),
+							all: vi.fn().mockResolvedValue({ results: [] }),
+							run: vi.fn().mockResolvedValue({ success: true })
+						})
+					};
+				})
+			};
+			const mockEvent = {
+				url: new URL('http://localhost/api/auth/discord/callback?code=test-code'),
+				cookies: { get: vi.fn().mockReturnValue(null), set: vi.fn() },
+				platform: {
+					env: {
+						DISCORD_CLIENT_ID: 'client-id',
+						DISCORD_CLIENT_SECRET: 'client-secret',
+						DB: mockDB
+					}
+				}
+			};
+
+			const { GET } = await import('../../src/routes/api/auth/discord/callback/+server');
+			await GET(withDatabase(mockEvent) as any);
+			expect(emailLookups).toEqual([]);
+		});
 	});
 });
+
+function withDatabase<T extends { platform?: { env?: Record<string, unknown> } }>(event: T): T {
+	return {
+		...event,
+		platform: {
+			...event.platform,
+			env: {
+				...event.platform?.env,
+				DB: callbackDatabase((event.platform?.env?.DB as ReturnType<typeof database>) ?? database())
+			}
+		}
+	} as T;
+}
+
+function callbackDatabase(db: ReturnType<typeof database>) {
+	return {
+		...db,
+		prepare: vi.fn((sql: string) => {
+			if (
+				sql.trim() !==
+				'SELECT id, email, name, github_login, github_avatar_url, is_admin FROM users WHERE id = ?'
+			) {
+				return (db.prepare as (sql: string) => ReturnType<typeof db.prepare>)(sql);
+			}
+			return {
+				bind: vi.fn((userId: string) => ({
+					first: vi.fn().mockResolvedValue({
+						id: userId,
+						email: `${userId}@example.com`,
+						name: 'OAuth User',
+						github_login: userId === 'linked-user-456' ? 'linkeduser' : null,
+						github_avatar_url: null,
+						is_admin: userId === 'linked-user-456' ? 1 : 0
+					})
+				}))
+			};
+		})
+	};
+}
+
+function database() {
+	return {
+		prepare: vi.fn(() => ({
+			bind: vi.fn(() => ({
+				first: vi.fn().mockResolvedValue(null),
+				all: vi.fn().mockResolvedValue({ results: [] }),
+				run: vi.fn().mockResolvedValue({ success: true })
+			}))
+		}))
+	};
+}
+import '../helpers/server-response';

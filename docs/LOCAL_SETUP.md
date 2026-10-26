@@ -90,6 +90,9 @@ Create `.dev.vars` in the project root:
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
 GITHUB_OWNER_ID=your_github_user_id
+SESSION_SECRET=generate_a_high_entropy_session_secret
+SETUP_SECRET=generate_a_different_bootstrap_secret
+ENCRYPTION_KEY=run_bun_run_generate_encryption_key
 ```
 
 The app will check environment variables first, then fall back to KV storage.
@@ -103,7 +106,14 @@ For production on Cloudflare Pages/Workers:
 wrangler secret put GITHUB_CLIENT_ID
 wrangler secret put GITHUB_CLIENT_SECRET
 wrangler secret put GITHUB_OWNER_ID
+wrangler secret put SESSION_SECRET
+wrangler secret put SETUP_SECRET
+wrangler secret put ENCRYPTION_KEY   # value from: bun run generate:encryption-key
 ```
 
-Or use the `/setup` page in production - credentials will be saved to your production KV namespace.
+`ENCRYPTION_KEY` encrypts AI provider keys and OAuth client secrets stored in KV. It is optional:
+without it the app generates a key and keeps it in KV, which still encrypts the values but does not
+protect against someone who can read the whole namespace. See [SECURITY.md](./SECURITY.md#secrets-at-rest).
+
+Or use the `/setup` page in production (it needs `SETUP_SECRET`) - credentials will be saved to your production KV namespace.
 

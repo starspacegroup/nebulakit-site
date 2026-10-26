@@ -13,8 +13,10 @@ async function endSession(
 	if (sessionId && platform?.env?.DB) {
 		try {
 			await deleteSession(platform.env.DB, sessionId);
-		} catch {
-			// ignore — clearing the cookie below still logs the user out
+		} catch (error) {
+			// Clearing the cookie below still logs the user out, but a failed
+			// server-side revocation leaves a replayable row — worth a log line.
+			console.error('Failed to revoke session during logout:', error);
 		}
 	}
 	cookies.delete('session', { path: '/' });

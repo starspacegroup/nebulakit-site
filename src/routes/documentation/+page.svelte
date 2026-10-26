@@ -104,6 +104,8 @@ npm run deploy`
 			<a href="#cloudflare-bindings">Cloudflare Bindings</a>
 			<a href="#database-migrations">Database Migrations</a>
 			<a href="#auth-and-setup">Auth and Setup</a>
+			<a href="#secrets-at-rest">Secrets at Rest</a>
+			<a href="#security-hardening">Security Hardening</a>
 			<a href="#admin-analytics">Admin Analytics</a>
 			<a href="#agent-readiness">Agent Readiness</a>
 			<a href="#testing">Testing</a>
@@ -618,14 +620,20 @@ npm run db:migrate:list</code
 				When schema changes are needed, create a new file with the next sequence number (for
 				example,
 				<code>0006_add_feature_flag.sql</code>) and use ALTER TABLE or new CREATE statements.
+				<code>npm run check:migrations</code> (also a CI step) fails on a bad file name, a duplicate or
+				skipped number, or an edit to a migration already on the base branch.
 			</p>
 		</section>
 
 		<section id="auth-and-setup" class="docs-section">
 			<h2>Authentication and Setup Flow</h2>
 			<p>
-				Auth uses @auth/sveltekit with a setup-first workflow. The main routes are
-				<code>/setup</code>, <code>/auth/login</code>, and <code>/reset</code>.
+				Sign-in is GitHub or Discord OAuth, or email and password, with a setup-first workflow. The
+				cookie holds an opaque session token; only its SHA-256 digest is stored in D1, so a leaked
+				table gives no usable cookie. Set <code>SESSION_SECRET</code> (it signs the OAuth state
+				cookie) and <code>SETUP_SECRET</code> (the bootstrap password for <code>/setup</code>) as
+				Worker secrets. The main routes are <code>/setup</code>, <code>/auth/login</code>, and
+				<code>/reset</code>.
 			</p>
 			<div class="callout-grid">
 				<div class="callout-card">
@@ -649,6 +657,33 @@ npm run db:migrate:list</code
 					</p>
 				</div>
 			</div>
+		</section>
+
+		<section id="secrets-at-rest" class="docs-section">
+			<h2>Secrets at Rest</h2>
+			<p>
+				AI provider keys and OAuth client secrets saved from the admin screens are encrypted
+				(AES-256-GCM, bound to their record) before they are written to KV, and the admin UI only
+				shows that a key is configured plus its last four characters. Set the
+				<code>ENCRYPTION_KEY</code> secret (<code>bun run generate:encryption-key</code>) so the key
+				lives outside KV; without it the app generates one and keeps it in KV, which encrypts the
+				values but does not defend against someone who can read the whole namespace. To rotate, move
+				the old value to <code>ENCRYPTION_KEY_PREVIOUS</code>; values are re-encrypted when read.
+				Plaintext keys saved by earlier versions are migrated on first read.
+			</p>
+		</section>
+
+		<section id="security-hardening" class="docs-section">
+			<h2>Security Hardening</h2>
+			<p>
+				Every response carries HSTS, <code>X-Content-Type-Options: nosniff</code>, a frame policy
+				and a referrer policy, and the Content-Security-Policy forbids <code>object</code> embeds, a
+				foreign <code>base</code> and framing by other sites. Static files get the same headers from
+				<code>_headers</code>. Password sign-in is throttled per address and per email. After
+				signing in, <code>?next=</code> returns you to a same-site path and never to another host.
+				The Markdown variant of a page is never cached, and <code>/media</code> answers byte
+				ranges so video plays in Safari. See <code>docs/SECURITY.md</code>.
+			</p>
 		</section>
 
 		<section id="admin-analytics" class="docs-section">

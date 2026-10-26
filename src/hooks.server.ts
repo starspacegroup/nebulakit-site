@@ -4,6 +4,7 @@ import {
 	prefersMarkdown,
 	toMarkdownResponse
 } from '$lib/server/markdown-negotiation';
+import { withSecurityHeaders } from '$lib/server/security-headers';
 import { getAuthSession } from '$lib/utils/db';
 import {
 	browserBucket,
@@ -20,7 +21,7 @@ import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 
 // Auth handling hook
-const authHandler: Handle = async ({ event, resolve }) => {
+export const authHandler: Handle = async ({ event, resolve }) => {
 	// The cookie is an OPAQUE session id, not the user object. The trusted payload
 	// lives server-side in sessions.data (see createAuthSession) and is read back
 	// here on every request, so isOwner/isAdmin cannot be forged by editing the
@@ -185,5 +186,19 @@ export const agentDiscoveryHandler: Handle = async ({ event, resolve }) => {
 	}
 };
 
+/**
+ * HSTS, nosniff, frame and referrer headers (security-headers.ts). Outermost,
+ * so redirects and error responses get them too. It only decorates the
+ * response, so it does not change when the other handlers run.
+ */
+export const securityHeadersHandler: Handle = async ({ resolve, event }) =>
+	withSecurityHeaders(await resolve(event));
+
 // Combine all hooks
-export const handle = sequence(usageHandler, agentDiscoveryHandler, authHandler, pageViewsHandler);
+export const handle = sequence(
+	securityHeadersHandler,
+	usageHandler,
+	agentDiscoveryHandler,
+	authHandler,
+	pageViewsHandler
+);

@@ -3,6 +3,8 @@
  * Handles streaming text chat and realtime voice chat with OpenAI API
  */
 
+import { aiKeySpec, readRecordWithSecret } from '$lib/server/secret-store';
+
 export interface ChatMessage {
 	role: 'user' | 'assistant' | 'system';
 	content: string;
@@ -53,13 +55,17 @@ export async function getEnabledOpenAIKey(platform: App.Platform): Promise<AIKey
 		const keyIds = JSON.parse(keysList);
 
 		for (const keyId of keyIds) {
-			const keyData = await platform.env.KV.get(`ai_key:${keyId}`);
-			if (keyData) {
-				const key = JSON.parse(keyData) as AIKey;
-				// Only return OpenAI keys that are enabled
-				if (key.provider === 'openai' && key.enabled !== false) {
-					return key;
-				}
+			// Decrypts the stored key (and migrates legacy plaintext). A key that
+			// cannot be decrypted has no apiKey and is skipped rather than sent blank.
+			const found = await readRecordWithSecret<AIKey & Record<string, unknown>>(
+				platform,
+				`ai_key:${keyId}`,
+				aiKeySpec(keyId)
+			);
+			const key = found?.record;
+			// Only return OpenAI keys that are enabled
+			if (key && key.apiKey && key.provider === 'openai' && key.enabled !== false) {
+				return key;
 			}
 		}
 

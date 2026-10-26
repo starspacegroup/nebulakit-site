@@ -181,6 +181,14 @@ const passwordField = fieldName('password');
   extensionless twin of each report is listed in `svelte.config.js`; Pages redirects `/foo.html` to
   `/foo`, and without that entry the redirect target reaches the worker and 404s.
 
+### 11. Secrets, Sessions And Response Headers
+
+**Failure mode:** A secret saved to KV as plain JSON (the docs said it was encrypted); a session cookie that carries the user; a callback that trusts it; a `?next=` that redirects off-site; a migration number reused.
+
+**Rule:** Stored secrets (`ai_key:*.apiKey`, `auth_config:*.clientSecret`) are read and written only through [src/lib/server/secret-store.ts](src/lib/server/secret-store.ts), and a response never contains a decrypted one. The session cookie is an opaque token; identity comes from the `sessions` table ([src/lib/utils/db.ts](src/lib/utils/db.ts)). Redirect targets from a query string go through `safeNext`. Compare secrets with `timingSafeEqualStrings`. Response headers live in [src/lib/server/security-headers.ts](src/lib/server/security-headers.ts) and the root `_headers` (a test keeps them equal). `bun run check:migrations` must pass.
+
+**Reference:** [docs/SECURITY.md](docs/SECURITY.md).
+
 ---
 
 _Every rule exists because something broke. If you find an undocumented failure, document it here._

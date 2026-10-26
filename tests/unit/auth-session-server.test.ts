@@ -1,6 +1,6 @@
 import { webcrypto } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createAuthSession, getAuthSession } from '../../src/lib/utils/db';
+import { createAuthSession, getAuthSession, hashSessionToken } from '../../src/lib/utils/db';
 import type { SessionUser } from '../../src/lib/utils/session';
 
 /**
@@ -74,7 +74,7 @@ describe('server-side session (auth bypass fix)', () => {
 	it('honours an explicit expiry window', async () => {
 		const { db, rows } = makeSessionDb();
 		const id = await createAuthSession(db, OWNER, 1);
-		const expires = new Date(rows.get(id)!.expires_at).getTime();
+		const expires = new Date(rows.get(await hashSessionToken(id))!.expires_at).getTime();
 		// ~1 day out, not the 7-day default.
 		const daysOut = (expires - Date.now()) / 86_400_000;
 		expect(daysOut).toBeGreaterThan(0.5);
@@ -95,7 +95,7 @@ describe('server-side session (auth bypass fix)', () => {
 		const { db, rows } = makeSessionDb();
 		const id = await createAuthSession(db, OWNER);
 		// force it into the past
-		rows.get(id)!.expires_at = new Date(Date.now() - 1000).toISOString();
+		rows.get(await hashSessionToken(id))!.expires_at = new Date(Date.now() - 1000).toISOString();
 
 		expect(await getAuthSession(db, id)).toBeNull();
 	});
