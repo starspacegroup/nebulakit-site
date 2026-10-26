@@ -37,6 +37,8 @@ import { GET as authMdGet } from '../../src/routes/auth.md/+server';
 import { GET as healthGet } from '../../src/routes/api/health/+server';
 import { GET as catalogGet } from '../../src/routes/[x+2e]well-known/api-catalog/+server';
 import { GET as skillsIndexGet } from '../../src/routes/[x+2e]well-known/agent-skills/index.json/+server';
+import { createProduct } from '@nebulakit/commerce';
+import { createSqliteD1 } from '../helpers/sqlite-d1';
 import { GET as skillDocGet } from '../../src/routes/[x+2e]well-known/agent-skills/[skill]/SKILL.md/+server';
 
 const ORIGIN = 'https://example.test';
@@ -128,6 +130,16 @@ describe('sitemap.xml', () => {
 		for (const route of SITEMAP_ROUTES) {
 			expect(body).toContain(`<loc>${absoluteUrl(ORIGIN, route.path)}</loc>`);
 		}
+	});
+
+	it('includes active products', async () => {
+		const db = createSqliteD1();
+		await createProduct(db, { slug: 'tee', name: 'Tee', priceCents: 2500 });
+		const body = await (
+			await sitemapGet(event('/sitemap.xml', { platform: { env: { DB: db } } }))
+		).text();
+		expect(body).toContain(`<loc>${ORIGIN}/shop/tee</loc>`);
+		expect(body).not.toContain('/cart');
 	});
 
 	it('includes published CMS items and their type list pages', async () => {

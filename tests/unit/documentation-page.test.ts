@@ -324,4 +324,47 @@ describe('Documentation Page', () => {
 			expect(board.textContent).toMatch(/clock.*checklist.*meter/is);
 		});
 	});
+
+	// AGENTS.md §7 — /shop, /cart, /admin/settings/pricing, the Stripe webhook,
+	// order status and the email settings are user-visible routes and bindings.
+	it('documents the shop, payments, order status and email', () => {
+		render(Page);
+		const scoped = within(
+			screen
+				.getByRole('heading', { name: /Shop, Payments and Email/i })
+				.closest('section') as HTMLElement
+		);
+		for (const text of [
+			'/shop',
+			'/cart',
+			'COMMERCE_TAX_RATE_PERCENT',
+			'STRIPE_WEBHOOK_SECRET',
+			'GET /api/v1/orders/[id]/status',
+			'RESEND_API_KEY',
+			'checkout.session.async_payment_failed'
+		]) {
+			expect(scoped.getAllByText(text).length).toBeGreaterThan(0);
+		}
+	});
+
+	it('documents regional pricing', () => {
+		render(Page);
+		const scoped = within(
+			screen
+				.getByRole('heading', { name: /Shop, Payments and Email/i })
+				.closest('section') as HTMLElement
+		);
+		for (const text of [
+			'/admin/settings/pricing',
+			'POST /api/v1/checkout/quote',
+			'GET/PUT /api/v1/pricing',
+			'pricing:read',
+			'pricing:write',
+			'bun run update:price-index'
+		]) {
+			expect(scoped.getAllByText(text).length).toBeGreaterThan(0);
+		}
+		expect(scoped.getByText(/it only ever lowers a price/i)).toBeInTheDocument();
+		expect(scoped.getByText(/least generous country/i)).toBeInTheDocument();
+	});
 });

@@ -97,6 +97,7 @@ npm run deploy`
 			<a href="#how-to-use">How To Use</a>
 			<a href="#ui-kit">UI Kit</a>
 			<a href="#modules">Modules</a>
+			<a href="#shop-payments-email">Shop, Payments and Email</a>
 			<a href="#drag-and-drop">Drag and Drop</a>
 			<a href="#badge">The Badge</a>
 			<a href="#ai-workflow">AI Workflow</a>
@@ -416,6 +417,76 @@ npm run deploy`
 			<p>
 				Each module takes its data and copy as props, emits events, and never fetches. All are
 				mobile first from 320px, use CSS variables only, and work by keyboard and screen reader.
+			</p>
+		</section>
+
+		<section id="shop-payments-email" class="docs-section">
+			<h2>Shop, Payments and Email</h2>
+			<p>
+				The shop is the <code>@nebulakit/commerce</code> package in <code>packages/commerce</code>
+				(products, cart pricing, checkout, orders, Stripe, Printful), versioned on its own. It stays
+				inert until configured: with no products <code>/shop</code> shows an empty catalog, with no
+				Stripe key orders wait for a manual payment, and with no email key nothing is sent. Apply
+				migrations <code>0023</code>, <code>0024</code> and <code>0025</code> with
+				<code>bun run db:migrate:local</code>.
+			</p>
+			<div class="callout-grid">
+				<div class="callout-card">
+					<h3>Storefront</h3>
+					<p>
+						Shoppers browse <code>/shop</code> and <code>/shop/[slug]</code>, add products to a cart
+						kept in their browser, and check out at <code>/cart</code>. Prices, tax and shipping are
+						always worked out on the server from the catalog; the cart only remembers what to ask
+						for. Physical products ask for a shipping address. With Stripe configured the shopper
+						goes on to pay; without it the order waits for a manual payment.
+					</p>
+				</div>
+				<div class="callout-card">
+					<h3>Regional pricing</h3>
+					<p>
+						<code>/admin/settings/pricing</code> (owner only) lowers prices for shoppers in countries
+						where money buys more, using a World Bank price level table shipped with the kit. It is off
+						until you turn it on, and it only ever lowers a price. Set how much of the gap to pass on,
+						the largest discount, which products it covers (digital only by default) and per-country overrides,
+						and preview any country before saving. An order takes the least generous country among the
+						one Cloudflare sees and the shipping address, so a VPN alone earns nothing. The cart shows
+						the server's quoted total (<code>POST /api/v1/checkout/quote</code>) and each order
+						records the multiplier and countries used. Settings are also at
+						<code>GET/PUT /api/v1/pricing</code>, with scopes <code>pricing:read</code> and
+						<code>pricing:write</code>. Refresh the table with
+						<code>bun run update:price-index</code>.
+					</p>
+				</div>
+			</div>
+			<p>
+				Shop settings are environment variables, never request fields:
+				<code>COMMERCE_TAX_RATE_PERCENT</code>, <code>COMMERCE_PRICES_INCLUDE_TAX</code>,
+				<code>COMMERCE_FLAT_SHIPPING_CENTS</code>, <code>STRIPE_SECRET_KEY</code> and
+				<code>STRIPE_WEBHOOK_SECRET</code> (webhook URL <code>/api/v1/webhooks/stripe</code>).
+			</p>
+			<h3 id="orders-payments-email">Payments, status and email</h3>
+			<p>
+				The Stripe webhook answers <code>503</code> until <code>STRIPE_WEBHOOK_SECRET</code> is set,
+				so Stripe keeps retrying. It handles <code>checkout.session.completed</code> and
+				<code>checkout.session.async_payment_succeeded</code> (the order becomes paid),
+				<code>checkout.session.async_payment_failed</code> and
+				<code>checkout.session.expired</code> (a pending order is cancelled). A payment that is smaller
+				than the order total, or in another currency, leaves the order pending for a person to check.
+				Replays change nothing a second time.
+			</p>
+			<p>
+				After paying, the shopper returns to <code>/cart?order=…</code>, which asks
+				<code>GET /api/v1/orders/[id]/status</code> every 1.5 seconds for 20 seconds. That public endpoint
+				returns the status word only, never an email, address or total, and the page says plainly when
+				payment is still being confirmed.
+			</p>
+			<p>
+				Email is optional. Set <code>RESEND_API_KEY</code> and <code>EMAIL_FROM</code> (and
+				<code>EMAIL_REPLY_TO</code> if you want one). A receipt is sent when an order becomes paid
+				and a shipping notice when it is marked shipped, each at most once per order: the
+				<code>email_log</code> table refuses a second send. Without a key nothing is sent and the
+				log records what was skipped. Email colours come from <code>emailTheme</code> in
+				<code>src/lib/site.config.ts</code>.
 			</p>
 		</section>
 
