@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // The registry ships empty, so a registered embed can only be exercised by
 // standing in for it. Each test sets what getEmbedComponent should resolve.
-const resolve = vi.fn<[string], unknown>(() => null);
+const resolve = vi.fn<(name: string) => unknown>(() => null);
 vi.mock('$lib/cms/embeds', () => ({
 	getEmbedComponent: (name: string) => resolve(name)
 }));

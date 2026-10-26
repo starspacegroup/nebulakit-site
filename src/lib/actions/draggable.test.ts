@@ -915,8 +915,48 @@ describe('not turning a drag into a text selection', () => {
 	});
 
 	it('suppresses the iOS long-press callout while dragging, and restores it', () => {
-		const callout = () => document.body.style.getPropertyValue('-webkit-touch-callout');
-		document.body.style.setProperty('-webkit-touch-callout', 'default');
+		// happy-dom's CSSStyleDeclaration silently drops properties it does not
+		// know, and `-webkit-touch-callout` (iOS only) is one of them. Back the
+		// three property methods with a map so the action's calls can be observed.
+		const props = new Map<string, string>();
+		const real = document.body.style;
+		const style = new Proxy(real, {
+			get(target, key) {
+				if (key === 'setProperty') {
+					return (name: string, value: string | null) =>
+						name === '-webkit-touch-callout'
+							? void props.set(name, value ?? '')
+							: target.setProperty(name, value);
+				}
+				if (key === 'getPropertyValue') {
+					return (name: string) =>
+						name === '-webkit-touch-callout'
+							? (props.get(name) ?? '')
+							: target.getPropertyValue(name);
+				}
+				if (key === 'removeProperty') {
+					return (name: string) => {
+						if (name !== '-webkit-touch-callout') return target.removeProperty(name);
+						const old = props.get(name) ?? '';
+						props.delete(name);
+						return old;
+					};
+				}
+				if (key === 'webkitUserSelect') return props.get('webkitUserSelect');
+				const value = Reflect.get(target, key, target);
+				return typeof value === 'function' ? value.bind(target) : value;
+			},
+			set(target, key, value) {
+				if (key === 'webkitUserSelect') {
+					props.set('webkitUserSelect', value);
+					return true;
+				}
+				return Reflect.set(target, key, value, target);
+			}
+		});
+		Object.defineProperty(document.body, 'style', { configurable: true, value: style });
+		const callout = () => style.getPropertyValue('-webkit-touch-callout');
+		style.setProperty('-webkit-touch-callout', 'default');
 
 		startMouseDrag(board, 'A', 50, 10);
 
@@ -926,8 +966,9 @@ describe('not turning a drag into a text selection', () => {
 		window.dispatchEvent(pointer('pointerup', 50, 110));
 
 		expect(callout()).toBe('default');
-		document.body.style.removeProperty('-webkit-touch-callout');
+		style.removeProperty('-webkit-touch-callout');
 		document.body.style.webkitUserSelect = '';
+		delete (document.body as { style?: unknown }).style;
 	});
 
 	it('leaves the callout unset when the page never set one', () => {

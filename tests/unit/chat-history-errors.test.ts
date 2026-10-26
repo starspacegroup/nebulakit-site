@@ -83,10 +83,16 @@ describe('Chat History Store - Error Paths', () => {
 	});
 
 	it('should handle localStorage.setItem throwing (quota exceeded)', async () => {
-		const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-			throw new DOMException('Quota exceeded', 'QuotaExceededError');
+		// happy-dom's Storage is a Proxy whose methods are not read from
+		// Storage.prototype, so spying on the prototype never intercepts a call.
+		// Replace the global with a store that fails the way a full quota does.
+		vi.stubGlobal('localStorage', {
+			getItem: () => null,
+			setItem: () => {
+				throw new DOMException('Quota exceeded', 'QuotaExceededError');
+			},
+			removeItem: () => {}
 		});
-		const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(null);
 		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
 		const module = await import('../../src/lib/stores/chatHistory.js');
@@ -103,8 +109,6 @@ describe('Chat History Store - Error Paths', () => {
 			expect.anything()
 		);
 
-		setItemSpy.mockRestore();
-		getItemSpy.mockRestore();
 		consoleSpy.mockRestore();
 	});
 });
