@@ -84,3 +84,5 @@ Migrations that have already run are **skipped automatically** - they will never
 | `0007_page_view_stats.sql`     | Page-view aggregate counters: daily, hourly, referrer, country, audience dimensions |
 | `0008_platform_usage.sql`      | Daily billable-request counters for the Cloudflare plan-limit meter                 |
 | `0009_user_can_view_stats.sql` | `users.can_view_stats` — per-admin grant for the Stats section                      |
+| `0017_redirects.sql`           | `redirects` — admin-managed URL redirects with hit counts (`/admin/redirects`)       |
+| `0018_lighthouse_audits.sql`   | `lighthouse_audits`, `lighthouse_findings` — latest PageSpeed result per page (`/admin/lighthouse`) |

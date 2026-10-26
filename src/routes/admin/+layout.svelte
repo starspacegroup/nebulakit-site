@@ -21,7 +21,9 @@
 		{ path: '/admin/auth-keys', label: 'Auth Keys', icon: 'key' },
 		{ path: '/admin/ai-keys', label: 'AI Keys', icon: 'sparkles' },
 		{ path: '/admin/cms', label: 'Content', icon: 'document' },
-		{ path: '/admin/contact-form-submissions', label: 'Contact Forms', icon: 'mail' }
+		{ path: '/admin/contact-form-submissions', label: 'Contact Forms', icon: 'mail' },
+		{ path: '/admin/redirects', label: 'Redirects', icon: 'link' },
+		{ path: '/admin/lighthouse', label: 'Lighthouse', icon: 'chart' }
 	];
 
 	// PII reveal state shared with admin views via context. The store tracks the
@@ -154,6 +156,19 @@
 							<rect x="5" y="12" width="3.5" height="6" />
 							<rect x="10.25" y="7" width="3.5" height="11" />
 							<rect x="15.5" y="14" width="3.5" height="4" />
+						</svg>
+					{:else if item.icon === 'link'}
+						<svg
+							class="nav-icon"
+							width="20"
+							height="20"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />
+							<path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
 						</svg>
 					{:else if item.icon === 'activity'}
 						<svg
