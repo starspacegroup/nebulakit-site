@@ -21,6 +21,9 @@ const lighthouseReports = readdirSync('static/lighthouse')
 const config = {
 	preprocess: vitePreprocess(),
 	kit: {
+		// Inline each page's CSS (the home page totals ~55 KiB). Linked
+		// stylesheets block first paint; one inline <style> does not.
+		inlineStyleThreshold: 80000,
 		// The builder, the shop and the security surface are packages inside this
 		// repo (packages/*), versioned on their own so a site can take one update
 		// without the others. See planning/BUILDER_AND_COMMERCE.md in the umbrella.

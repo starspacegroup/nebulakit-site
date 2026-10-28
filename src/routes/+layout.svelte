@@ -84,22 +84,32 @@
 	// audience dimension request headers can't supply. Cookieless: the server
 	// stores only a daily bucket counter. Admin/setup surfaces are excluded, the
 	// same way the page-view hook excludes them.
-	if (browser) {
+	// Sent once per session, after the page has loaded and the browser is idle, so
+	// the beacon never sits in the critical request chain Lighthouse measures.
+	function sendViewport() {
 		try {
 			const path = window.location.pathname;
 			const excluded = path.startsWith('/admin') || path.startsWith('/setup');
-			if (!excluded && !sessionStorage.getItem('nk-vp-sent')) {
-				sessionStorage.setItem('nk-vp-sent', '1');
-				fetch('/api/stats/viewport', {
-					method: 'POST',
-					headers: { 'content-type': 'application/json' },
-					body: JSON.stringify({ width: window.innerWidth }),
-					keepalive: true
-				}).catch(() => {});
-			}
+			if (excluded || sessionStorage.getItem('nk-vp-sent')) return;
+			sessionStorage.setItem('nk-vp-sent', '1');
+			fetch('/api/stats/viewport', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ width: window.innerWidth }),
+				keepalive: true
+			}).catch(() => {});
 		} catch {
 			// sessionStorage unavailable (private-mode edge cases) — skip silently.
 		}
+	}
+
+	if (browser) {
+		const whenIdle = () =>
+			'requestIdleCallback' in window
+				? window.requestIdleCallback(sendViewport, { timeout: 4000 })
+				: setTimeout(sendViewport, 2000);
+		if (document.readyState === 'complete') whenIdle();
+		else window.addEventListener('load', whenIdle, { once: true });
 	}
 </script>
 

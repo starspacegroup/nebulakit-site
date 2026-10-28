@@ -64,3 +64,14 @@ describe('POST /api/stats/viewport', () => {
 		expect(recordViewportSample).not.toHaveBeenCalled();
 	});
 });
+
+describe('the layout sends the beacon', () => {
+	it('after load and idle, never during hydration', async () => {
+		const { readFileSync } = await import('node:fs');
+		const layout = readFileSync('src/routes/+layout.svelte', 'utf8');
+		expect(layout).toContain("addEventListener('load'");
+		expect(layout).toContain('requestIdleCallback');
+		// The fetch lives inside sendViewport, not at the top level of the script.
+		expect(layout).toMatch(/function sendViewport\(\)[\s\S]*fetch\('\/api\/stats\/viewport'/);
+	});
+});
