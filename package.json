@@ -9,6 +9,8 @@
 		"setup:cf": "node scripts/setup-cf.mjs",
 		"palette:scan": "bun scripts/palette-scan.mjs",
 		"generate:encryption-key": "node scripts/generate-encryption-key.mjs",
+		"landing": "bun scripts/landing.ts",
+		"seo:external": "bun scripts/external-checks.ts",
 		"lighthouse": "node scripts/lighthouse.mjs",
 		"capture:built-with": "bun scripts/capture-built-with.mjs",
 		"dev": "vite dev",

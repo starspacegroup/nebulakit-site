@@ -158,6 +158,8 @@ npm run test:all
 - [Admin Stats](./docs/ADMIN_STATS.md) - First-party cookie-free analytics and the Cloudflare plan-limit meter
 - [Agent Readiness](./docs/AGENT_READINESS.md) - Discovery surfaces for AI agents and crawlers, the content-usage policy to review before launch, and the DNS records to add by hand
 - [In-App Documentation Rule](./docs/DOCUMENTATION_PAGE.md) - Keeping the `/documentation` route in sync with shipped features
+- [SEO landing pages](./docs/SEO_LANDING_PAGES.md) - The who/where/what/when/why system and its anti-doorway audit; this site ships none yet
+- [Copy guide](./docs/COPY_GUIDE.md), [SEO guide](./docs/SEO_GUIDE.md), [trust badges](./docs/TRUST_BADGES.md), [cold outreach email](./docs/OUTREACH_EMAIL.md)
 - [GitHub Copilot Instructions](.github/copilot-instructions.md) - AI-assisted development guidelines
 
 ## 🏗️ Project Structure

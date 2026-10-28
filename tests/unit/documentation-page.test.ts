@@ -510,4 +510,11 @@ describe('Documentation Page', () => {
 		expect(scoped.getByText(/it only ever lowers a price/i)).toBeInTheDocument();
 		expect(scoped.getByText(/least generous country/i)).toBeInTheDocument();
 	});
+
+	it('says honestly that the landing page routes are empty', () => {
+		render(Page);
+		expect(screen.getByText(/bun run landing report/)).toBeInTheDocument();
+		expect(screen.getByText(/has not published any yet/)).toBeInTheDocument();
+		expect(screen.queryByRole('link', { name: '/who' })).not.toBeInTheDocument();
+	});
 });

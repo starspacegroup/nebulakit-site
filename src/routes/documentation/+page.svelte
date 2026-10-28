@@ -1232,6 +1232,14 @@ bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}</c
 					regenerated on request so newly published items appear immediately.
 				</li>
 				<li>
+					Landing pages under <code>/who</code>, <code>/where</code>, <code>/what</code>,
+					<code>/when</code> and <code>/why</code> — hand-written SEO pages from
+					<code>src/lib/landing/content/</code>. This site has not published any yet, so those
+					routes return 404 and the sitemap lists none. Start one with
+					<code>bun run landing new &lt;family&gt; &lt;slug&gt;</code> and check it with
+					<code>bun run landing report</code>; see <code>docs/SEO_LANDING_PAGES.md</code>.
+				</li>
+				<li>
 					<a href="/.well-known/api-catalog">/.well-known/api-catalog</a> — an RFC 9727 catalog of this
 					deployment's APIs.
 				</li>

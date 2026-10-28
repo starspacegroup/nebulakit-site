@@ -22,6 +22,8 @@ Claude has access to the `manage_todo_list` tool for tracking multi-step work. U
 
 **Scheduled jobs** (`docs/SCHEDULED_JOBS.md`): Pages has no Cron Triggers, so `cron-worker/` is a separate Worker (own `wrangler.toml`/`tsconfig.json`, outside the app build and `svelte-check`) that POSTs to `/api/cron/*`. Jobs are registered in `src/lib/server/scheduler/registry.ts`; every cron route is `handleCronRequest(event, id)`, which authorizes with `authorizeCronRequest` (constant-time, 503 when `CRON_SECRET` is unset) and claims `(job, trigger, scheduled minute)` in `scheduled_job_runs` (migration `0019`) before running. `tests/unit/scheduler-registry.test.ts` fails if the registry, `cron-worker/wrangler.toml` `[triggers]` and `CRON_PATHS` in `cron-worker/src/index.ts` drift. Retention deletes go through `deleteInBatches` (`src/lib/server/bounded-delete.ts`): never an unbounded `DELETE`.
 
+**Landing pages** (`docs/SEO_LANDING_PAGES.md`): the who/where/what/when/why machinery is in place but this site ships NO landing content: `PAGES` is empty, `example` is `false`, the routes 404 and the sitemap lists none. The Example Co. pages are test fixtures in `tests/fixtures/landing/`; never move them into `src/`. Landing pages rely on `SharingMeta`'s graph, so they add no second Organization/WebSite/WebPage node.
+
 ---
 
 For all development constraints, coverage rules, migration policies, and theming requirements, see [AGENTS.md](AGENTS.md).
