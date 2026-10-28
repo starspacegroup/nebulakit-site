@@ -41,7 +41,12 @@ describe('Chat History Store - Error Paths', () => {
 	});
 
 	it('should handle localStorage.getItem returning invalid JSON', async () => {
-		const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockReturnValue('not valid json {{{');
+		// happy-dom's Storage is a Proxy, so replace the global rather than spy on the prototype.
+		vi.stubGlobal('localStorage', {
+			getItem: () => 'not valid json {{{',
+			setItem: () => {},
+			removeItem: () => {}
+		});
 		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
 		const module = await import('../../src/lib/stores/chatHistory.js');
@@ -59,13 +64,16 @@ describe('Chat History Store - Error Paths', () => {
 			expect.anything()
 		);
 
-		getItemSpy.mockRestore();
 		consoleSpy.mockRestore();
 	});
 
 	it('should handle localStorage.getItem throwing an error', async () => {
-		const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-			throw new Error('Storage access denied');
+		vi.stubGlobal('localStorage', {
+			getItem: () => {
+				throw new Error('Storage access denied');
+			},
+			setItem: () => {},
+			removeItem: () => {}
 		});
 		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -78,7 +86,6 @@ describe('Chat History Store - Error Paths', () => {
 		const state = get(chatHistoryStore) as any;
 		expect(state.conversations).toEqual([]);
 
-		getItemSpy.mockRestore();
 		consoleSpy.mockRestore();
 	});
 
