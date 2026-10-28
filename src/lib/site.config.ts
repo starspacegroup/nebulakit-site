@@ -31,6 +31,13 @@ export const site = {
 	devPort: 4278,
 	/** Production URL, no trailing slash. Used for canonical + OG URLs. */
 	url: 'https://nebulakit.starspace.group',
+	/** Default share image for OG/Twitter cards: root-relative path, alt text, pixel size. */
+	ogImage: {
+		src: '/og-image.png',
+		alt: 'NebulaKit — The home of NebulaKit, an independent Cloudflare-native platform.',
+		width: 1200,
+		height: 630
+	},
 	/** GitHub repository in `owner/name` form. */
 	repo: 'starspacegroup/nebulakit-site',
 	/** Attribution shown in the footer. */

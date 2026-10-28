@@ -24,6 +24,8 @@
  * This module must stay dependency-free (no `$app`, no Node APIs) so routes,
  * hooks, and tests can all import it.
  */
+import { LANDING } from './landing/content/site';
+import { landingSitemapRoutes } from './landing/routing';
 
 /** A page that should appear in sitemap.xml. */
 export interface SitemapRoute {
@@ -53,7 +55,9 @@ export const SITEMAP_ROUTES: readonly SitemapRoute[] = [
 	{ path: '/chat', changefreq: 'monthly', priority: 0.6 },
 	{ path: '/contact', changefreq: 'monthly', priority: 0.5 },
 	{ path: '/privacy', changefreq: 'yearly', priority: 0.3 },
-	{ path: '/terms', changefreq: 'yearly', priority: 0.3 }
+	{ path: '/terms', changefreq: 'yearly', priority: 0.3 },
+	// Landing pages (docs/SEO_LANDING_PAGES.md). Empty: this site publishes none yet.
+	...landingSitemapRoutes(LANDING)
 ];
 
 /**
@@ -73,7 +77,9 @@ export const SITEMAP_EXCLUDED_ROUTES: Readonly<Record<string, string>> = {
 	media: 'R2 binary passthrough, not an HTML page.',
 	'[contentType]': 'Enumerated dynamically from the CMS at request time.',
 	p: 'Builder pages — published ones are enumerated dynamically at request time.',
-	cart: "The shopper's own cart and checkout — per-visitor, nothing to index."
+	cart: "The shopper's own cart and checkout — per-visitor, nothing to index.",
+	'[family=landingFamily]':
+		'Landing pages (/who, /where, /what, /when, /why); their paths come from landingSitemapRoutes(LANDING). The site ships no landing content, so these routes 404 and the list is empty.'
 };
 
 /**
