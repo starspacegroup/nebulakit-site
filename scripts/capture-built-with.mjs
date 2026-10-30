@@ -8,7 +8,8 @@
  * `theme-preference` from localStorage, and fall back to the OS scheme, so
  * the script sets both.
  *
- *   bun run capture:built-with
+ *   bun run capture:built-with              # every site
+ *   bun run capture:built-with agapeverse-app   # only the slugs named
  */
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, rmSync } from 'node:fs';
@@ -20,9 +21,11 @@ const OUT = 'static/built-with';
 const VIEWPORT = { width: 1280, height: 800 };
 
 mkdirSync(OUT, { recursive: true });
-const browser = await chromium.launch();
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 
-for (const entry of builtWith) {
+const only = process.argv.slice(2);
+
+for (const entry of builtWith.filter((e) => only.length === 0 || only.includes(e.slug))) {
 	for (const mode of ['light', 'dark']) {
 		const context = await browser.newContext({ viewport: VIEWPORT, colorScheme: mode });
 		await context.addInitScript((theme) => {

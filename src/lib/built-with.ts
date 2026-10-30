@@ -30,5 +30,11 @@ export const builtWith: BuiltWithSite[] = [
 		name: 'davis9001.dev',
 		url: 'https://davis9001.dev',
 		blurb: 'The portfolio of a software and community architect.'
+	},
+	{
+		slug: 'agapeverse-app',
+		name: 'AgapeVerse',
+		url: 'https://agapeverse.app',
+		blurb: 'Personal poems written with AI, then edited, printed or shared by link.'
 	}
 ];
