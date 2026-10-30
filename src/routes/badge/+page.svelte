@@ -16,7 +16,9 @@
 		LIGHTHOUSE_BADGE_VARIANT_KEYS,
 		type BadgeTheme,
 		type BadgeVariant,
-		type LighthouseBadgeVariant
+		type LighthouseBadgeVariant,
+		badgeWidth,
+		lighthouseBadgeWidth
 	} from '$lib/badge';
 	import { highlightSnippet } from '$lib/highlight';
 
@@ -162,7 +164,7 @@
 		     badge's own ground rather than this site's surface. The value comes from
 		     BADGE_THEMES so the preview cannot drift from the image inside it. -->
 		<div class="preview" style="background: {BADGE_THEMES[theme].background}">
-			<img src={svgUrl} alt={badgeText(variant)} />
+			<img src={svgUrl} alt={badgeText(variant)} width={badgeWidth(variant)} height="28" />
 		</div>
 
 		<p class="preview-note">
@@ -226,7 +228,12 @@
 		</fieldset>
 
 		<div class="preview" style="background: {BADGE_THEMES[theme].background}">
-			<img src={scoreUrl} alt={lighthouseBadgeText(scoreVariant)} />
+			<img
+				src={scoreUrl}
+				alt={lighthouseBadgeText(scoreVariant)}
+				width={lighthouseBadgeWidth(scoreVariant)}
+				height="28"
+			/>
 		</div>
 
 		<p class="preview-note">
@@ -567,7 +574,11 @@
 		background: var(--color-surface);
 	}
 
+	/* Underlined: a link inside running text must not rely on color alone (WCAG
+	   1.4.1; the link-in-text-block audit). */
 	a {
 		color: var(--color-primary);
+		text-decoration: underline;
+		text-underline-offset: 0.15em;
 	}
 </style>
