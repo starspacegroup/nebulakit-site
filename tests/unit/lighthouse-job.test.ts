@@ -19,7 +19,7 @@ async function run(env: Record<string, unknown>, query = '') {
 	await db
 		.prepare(
 			`INSERT INTO lighthouse_findings (path, strategy, category, audit_id, title, description, score, display_value)
-			 VALUES ('/', 'mobile', 'performance', 'unused-javascript', 'Unused JS', 'd', 0.1, '28 KiB')`
+			 VALUES ('/', 'mobile', 'performance', 'unused-javascript', 'Unused JS', 'd', 10, '28 KiB')`
 		)
 		.run();
 	return LIGHTHOUSE_JOB.run({ db, env, params: new URLSearchParams(query) } as never);

@@ -14,7 +14,7 @@ async function seeded(env: Record<string, unknown> = {}) {
 	const DB = createSqliteD1();
 	await DB.prepare(
 		`INSERT INTO lighthouse_findings (path, strategy, category, audit_id, title, description, score, display_value)
-		 VALUES ('/', 'desktop', 'performance', 'render-blocking-insight', 'Render-blocking requests', 'd', 0.5, '40 ms')`
+		 VALUES ('/', 'desktop', 'performance', 'render-blocking-insight', 'Render-blocking requests', 'd', 50, '40 ms')`
 	).run();
 	return { DB, ...env };
 }

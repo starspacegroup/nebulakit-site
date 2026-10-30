@@ -117,7 +117,8 @@ export function parsePsiResponse(
 	const findings: LighthouseFinding[] = [];
 
 	for (const category of LIGHTHOUSE_CATEGORIES) {
-		const refs = (categories[category]?.auditRefs ?? []) as { id: string }[];
+		const refs = (categories[category]?.auditRefs ?? []) as { id: string; weight?: number }[];
+		const categoryScore = categories[category]?.score;
 		for (const ref of refs) {
 			const audit = audits[ref.id];
 			if (!audit) continue;
@@ -126,6 +127,11 @@ export function parsePsiResponse(
 			// not-applicable audits. They are not passes and they are not
 			// failures, and listing them would bury the real findings.
 			if (typeof score !== 'number' || score >= FAILING_BELOW) continue;
+			// A weight of 0 is a diagnostic: it moves no score. Listing one on a
+			// page that already scores 100 is noise, so keep it only while the
+			// category still has room to improve.
+			const moves = (ref.weight ?? 1) > 0;
+			if (!moves && !(typeof categoryScore === 'number' && categoryScore < 1)) continue;
 			findings.push({
 				category,
 				auditId: ref.id,

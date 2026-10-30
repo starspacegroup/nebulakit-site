@@ -340,3 +340,33 @@ describe('listAudits / listFindings', () => {
 		expect(await listFindings(dbReturning(undefined))).toEqual([]);
 	});
 });
+
+describe('parsePsiResponse — weights', () => {
+	function withRefs(categoryScore: number) {
+		return {
+			lighthouseResult: {
+				categories: {
+					performance: {
+						score: categoryScore,
+						auditRefs: [
+							{ id: 'scored', weight: 10 },
+							{ id: 'hint', weight: 0 }
+						]
+					}
+				},
+				audits: { scored: { title: 'Scored', score: 0.5 }, hint: { title: 'Hint', score: 0 } }
+			}
+		};
+	}
+
+	it('drops diagnostics that move no score once the category is perfect', () => {
+		expect(parsePsiResponse(withRefs(1)).findings.map((f) => f.auditId)).toEqual(['scored']);
+	});
+
+	it('keeps diagnostics while the category still has room to improve', () => {
+		expect(parsePsiResponse(withRefs(0.92)).findings.map((f) => f.auditId)).toEqual([
+			'scored',
+			'hint'
+		]);
+	});
+});

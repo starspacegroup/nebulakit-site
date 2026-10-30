@@ -97,7 +97,8 @@ export interface FixBrief {
  * Grouped by audit so a problem on six pages is one item, not six.
  */
 export function buildFixBrief(findings: StoredFinding[], siteUrl: string): FixBrief | null {
-	const failing = findings.filter((f) => f.score !== null && f.score < 0.9);
+	// Stored scores are 0-100, the same bands as the report (under 90 is flagged).
+	const failing = findings.filter((f) => f.score !== null && f.score < 90);
 	if (failing.length === 0) return null;
 
 	const byAudit = new Map<string, StoredFinding[]>();

@@ -19,7 +19,7 @@ function finding(over: Partial<StoredFinding> = {}): StoredFinding {
 		audit_id: 'render-blocking-insight',
 		title: 'Render-blocking requests',
 		description: 'desc',
-		score: 0.5,
+		score: 50,
 		display_value: 'Est savings of 40 ms',
 		...over
 	};
@@ -28,12 +28,12 @@ function finding(over: Partial<StoredFinding> = {}): StoredFinding {
 describe('buildFixBrief', () => {
 	it('is null when nothing is failing', () => {
 		expect(buildFixBrief([], 'https://x.test')).toBeNull();
-		expect(buildFixBrief([finding({ score: 0.95 }), finding({ score: null })], 'https://x.test')).toBeNull();
+		expect(buildFixBrief([finding({ score: 95 }), finding({ score: null })], 'https://x.test')).toBeNull();
 	});
 
 	it('groups one audit across pages and gives the stock fix', () => {
 		const brief = buildFixBrief(
-			[finding(), finding({ path: '/shop' }), finding({ audit_id: 'made-up', title: 'New one', score: 0.2 })],
+			[finding(), finding({ path: '/shop' }), finding({ audit_id: 'made-up', title: 'New one', score: 20 })],
 			'https://x.test'
 		)!;
 		expect(brief.count).toBe(2);
@@ -118,5 +118,12 @@ describe('publishFixIssue', () => {
 				vi.fn().mockResolvedValueOnce(res(200, [])).mockResolvedValueOnce(res(422)) as never
 			)
 		).rejects.toThrow('issue (422)');
+	});
+});
+
+describe('buildFixBrief — units', () => {
+	it('reads stored scores as 0-100, so a 75 is flagged and a 90 is not', () => {
+		expect(buildFixBrief([finding({ score: 75 })], 'https://x.test')).not.toBeNull();
+		expect(buildFixBrief([finding({ score: 90 })], 'https://x.test')).toBeNull();
 	});
 });
