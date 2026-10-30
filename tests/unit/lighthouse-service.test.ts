@@ -240,14 +240,19 @@ describe('runLighthouseSweep', () => {
 		const [first, second, third] = auditablePaths();
 		const seen: string[] = [];
 		const fetcher = vi.fn().mockImplementation(async (url: string) => {
-			seen.push(new URL(decodeURIComponent(new URL(url).searchParams.get('url') as string)).pathname);
+			seen.push(
+				new URL(decodeURIComponent(new URL(url).searchParams.get('url') as string)).pathname
+			);
 			return { ok: true, json: async () => payload() };
 		});
 		// Everything audited except `third`, and `first` audited before `second`.
 		const stored = auditablePaths()
 			.filter((p) => p !== third)
 			.map((path) => ({ path, fetched_at: path === first ? '2026-01-01' : '2026-06-01' }));
-		await runLighthouseSweep(fakeDb(stored), { fetcher: fetcher as never, origin: 'https://x.test' });
+		await runLighthouseSweep(fakeDb(stored), {
+			fetcher: fetcher as never,
+			origin: 'https://x.test'
+		});
 		expect(seen[0]).toBe(third);
 		expect(seen.indexOf(first)).toBeLessThan(seen.indexOf(second));
 	});
@@ -368,5 +373,36 @@ describe('parsePsiResponse — weights', () => {
 			'scored',
 			'hint'
 		]);
+	});
+});
+
+describe('runLighthouseSweep — pruning', () => {
+	it('drops rows for pages that are no longer audited', async () => {
+		const batch = vi.fn().mockResolvedValue([]);
+		const prepared: { sql: string; args: unknown[] }[] = [];
+		const db = {
+			batch,
+			prepare: (sql: string) => ({
+				bind: (...args: unknown[]) => {
+					prepared.push({ sql, args });
+					return { all: async () => ({ results: [] }) };
+				}
+			})
+		} as never;
+		const fetcher = vi.fn().mockResolvedValue({ ok: true, json: async () => payload() });
+
+		await runLighthouseSweep(db, {
+			fetcher: fetcher as never,
+			origin: 'https://x.test',
+			maxMs: -1
+		});
+
+		const deletes = prepared.filter((p) => p.sql.startsWith('DELETE'));
+		expect(deletes.map((d) => d.sql.split(' ')[2])).toEqual([
+			'lighthouse_audits',
+			'lighthouse_findings'
+		]);
+		expect(deletes[0].args).toEqual(auditablePaths());
+		expect(batch).toHaveBeenCalled();
 	});
 });

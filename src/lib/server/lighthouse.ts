@@ -301,6 +301,15 @@ export async function runLighthouseSweep(
 	const deadline = Date.now() + (options.maxMs ?? 70_000);
 	const concurrency = Math.max(1, options.concurrency ?? (options.apiKey ? 3 : 1));
 
+	// A page that left the sitemap (or was renamed) must not keep a row, or the
+	// admin page and the fix brief would keep citing a page nobody can reach.
+	const keep = auditablePaths();
+	const marks = keep.map(() => '?').join(', ');
+	await db.batch([
+		db.prepare(`DELETE FROM lighthouse_audits WHERE path NOT IN (${marks})`).bind(...keep),
+		db.prepare(`DELETE FROM lighthouse_findings WHERE path NOT IN (${marks})`).bind(...keep)
+	]);
+
 	const { results } = await db
 		.prepare('SELECT path, fetched_at FROM lighthouse_audits WHERE strategy = ?')
 		.bind(strategy)
