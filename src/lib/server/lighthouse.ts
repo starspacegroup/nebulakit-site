@@ -269,27 +269,54 @@ export async function saveAudit(db: D1Database, audit: LighthouseAudit): Promise
 }
 
 /**
- * Audit every public path and store the results.
+ * Audit the public paths and store the results, within a time budget.
  *
- * Sequential on purpose. PSI is rate limited hard without a key — a burst of
- * eleven parallel requests is the reliable way to get 429s on all of them, and
- * this runs on a schedule where finishing slowly beats failing quickly.
+ * Cloudflare cuts a request off at 100 s, and one PSI run takes ~12 s, so a
+ * long sequential sweep dies partway and leaves the job "running". Instead:
+ * the stalest paths go first (never-audited, then oldest), a few run at once
+ * when there is an API key, and the sweep stops starting new pages when the
+ * budget is spent. `remaining` is what it left; the next run picks those up
+ * first. Without a key PSI rate-limits hard, so that stays one at a time.
  */
 export async function runLighthouseSweep(
 	db: D1Database,
-	options: { apiKey?: string; origin?: string; strategy?: Strategy; fetcher?: typeof fetch } = {}
-): Promise<{ audited: number; failed: number }> {
+	options: {
+		apiKey?: string;
+		origin?: string;
+		strategy?: Strategy;
+		fetcher?: typeof fetch;
+		/** Stop starting new pages after this many ms. Default 70 s. */
+		maxMs?: number;
+		/** Pages in flight at once. Default 3 with a key, 1 without. */
+		concurrency?: number;
+	} = {}
+): Promise<{ audited: number; failed: number; remaining: number }> {
 	const strategy = options.strategy ?? 'mobile';
+	const deadline = Date.now() + (options.maxMs ?? 70_000);
+	const concurrency = Math.max(1, options.concurrency ?? (options.apiKey ? 3 : 1));
+
+	const { results } = await db
+		.prepare('SELECT path, fetched_at FROM lighthouse_audits WHERE strategy = ?')
+		.bind(strategy)
+		.all<{ path: string; fetched_at: string }>();
+	const last = new Map((results ?? []).map((row) => [row.path, row.fetched_at]));
+	const queue = [...auditablePaths()].sort((a, b) =>
+		(last.get(a) ?? '').localeCompare(last.get(b) ?? '')
+	);
+
+	let audited = 0;
 	let failed = 0;
+	const lane = async () => {
+		while (queue.length > 0 && Date.now() < deadline) {
+			const audit = await auditPath(queue.shift() as string, strategy, options);
+			if (audit.error) failed += 1;
+			await saveAudit(db, audit);
+			audited += 1;
+		}
+	};
+	await Promise.all(Array.from({ length: concurrency }, lane));
 
-	const paths = auditablePaths();
-	for (const path of paths) {
-		const audit = await auditPath(path, strategy, options);
-		if (audit.error) failed += 1;
-		await saveAudit(db, audit);
-	}
-
-	return { audited: paths.length, failed };
+	return { audited, failed, remaining: queue.length };
 }
 
 export interface StoredAudit {

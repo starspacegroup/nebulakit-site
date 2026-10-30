@@ -45,8 +45,13 @@
 				body: JSON.stringify({ strategy })
 			});
 			if (!response.ok) throw new Error(`Run failed (${response.status})`);
-			const result = (await response.json()) as { audited: number; failed: number };
-			message = `Audited ${result.audited} pages, ${result.failed} could not be reached. Reload to see the results.`;
+			const result = (await response.json()) as {
+				audited: number;
+				failed: number;
+				remaining?: number;
+			};
+			const left = result.remaining ? ` ${result.remaining} more wait for the next run.` : '';
+			message = `Audited ${result.audited} pages, ${result.failed} could not be reached.${left} Reload to see the results.`;
 		} catch (cause) {
 			// Surfaced rather than swallowed: a sweep can take a minute and the
 			// reader needs to know whether it finished or died.

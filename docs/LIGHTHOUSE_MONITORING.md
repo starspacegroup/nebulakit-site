@@ -60,6 +60,14 @@ stored separately because PSI scores them very differently.
 
 `PAGESPEED_API_KEY` is optional and only raises the rate limit.
 
+## Time budget
+
+Cloudflare cuts a request off at 100 s and one PageSpeed run takes about 12 s,
+so a sweep cannot be one long sequential loop. It audits the stalest pages
+first, runs three at once when `PAGESPEED_API_KEY` is set (one at a time
+without it), and stops starting new pages after 70 s. The result reports
+`remaining`; the next run starts with those.
+
 ## Fix plan (no auto-deploy)
 
 `/admin/lighthouse` has a **Fix plan** button, and the daily job can do the same

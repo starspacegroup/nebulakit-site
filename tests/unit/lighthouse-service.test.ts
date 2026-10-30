@@ -161,11 +161,11 @@ describe('auditPath', () => {
 });
 
 describe('runLighthouseSweep', () => {
-	function fakeDb() {
+	function fakeDb(stored: { path: string; fetched_at: string }[] = []) {
 		const batch = vi.fn().mockResolvedValue([]);
 		return {
 			batch,
-			prepare: () => ({ bind: () => ({}) })
+			prepare: () => ({ bind: () => ({ all: async () => ({ results: stored }) }) })
 		} as never;
 	}
 
@@ -203,6 +203,53 @@ describe('runLighthouseSweep', () => {
 
 		await runLighthouseSweep(fakeDb(), { fetcher: fetcher as never, origin: 'https://x.test' });
 		expect(peak).toBe(1);
+	});
+
+	it('runs a few at once when it has an API key', async () => {
+		let inFlight = 0;
+		let peak = 0;
+		const fetcher = vi.fn().mockImplementation(async () => {
+			inFlight += 1;
+			peak = Math.max(peak, inFlight);
+			await new Promise((r) => setTimeout(r, 2));
+			inFlight -= 1;
+			return { ok: true, json: async () => payload() };
+		});
+
+		const result = await runLighthouseSweep(fakeDb(), {
+			fetcher: fetcher as never,
+			origin: 'https://x.test',
+			apiKey: 'k'
+		});
+		expect(peak).toBe(3);
+		expect(result).toMatchObject({ audited: auditablePaths().length, remaining: 0 });
+	});
+
+	it('stops starting pages when the budget is spent and says what is left', async () => {
+		const fetcher = vi.fn().mockResolvedValue({ ok: true, json: async () => payload() });
+		const result = await runLighthouseSweep(fakeDb(), {
+			fetcher: fetcher as never,
+			origin: 'https://x.test',
+			maxMs: -1
+		});
+		expect(result).toEqual({ audited: 0, failed: 0, remaining: auditablePaths().length });
+		expect(fetcher).not.toHaveBeenCalled();
+	});
+
+	it('audits the stalest pages first', async () => {
+		const [first, second, third] = auditablePaths();
+		const seen: string[] = [];
+		const fetcher = vi.fn().mockImplementation(async (url: string) => {
+			seen.push(new URL(decodeURIComponent(new URL(url).searchParams.get('url') as string)).pathname);
+			return { ok: true, json: async () => payload() };
+		});
+		// Everything audited except `third`, and `first` audited before `second`.
+		const stored = auditablePaths()
+			.filter((p) => p !== third)
+			.map((path) => ({ path, fetched_at: path === first ? '2026-01-01' : '2026-06-01' }));
+		await runLighthouseSweep(fakeDb(stored), { fetcher: fetcher as never, origin: 'https://x.test' });
+		expect(seen[0]).toBe(third);
+		expect(seen.indexOf(first)).toBeLessThan(seen.indexOf(second));
 	});
 });
 
