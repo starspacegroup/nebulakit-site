@@ -36,5 +36,11 @@ export const builtWith: BuiltWithSite[] = [
 		name: 'AgapeVerse',
 		url: 'https://agapeverse.app',
 		blurb: 'Personal poems written with AI, then edited, printed or shared by link.'
+	},
+	{
+		slug: '0b6os-com',
+		name: '0B6OS',
+		url: 'https://0b6os.com',
+		blurb: 'An operating system with an agent in it, always on like a kernel.'
 	}
 ];
