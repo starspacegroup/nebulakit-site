@@ -60,6 +60,23 @@ stored separately because PSI scores them very differently.
 
 `PAGESPEED_API_KEY` is optional and only raises the rate limit.
 
+## Fix plan (no auto-deploy)
+
+`/admin/lighthouse` has a **Fix plan** button, and the daily job can do the same
+when `LIGHTHOUSE_AUTOFIX=issue`. Both turn the stored findings below 90 into one
+brief: each failing audit once, the pages it hit, the usual cure, and where in
+this repo to look (`src/lib/server/lighthouse-fixes.ts`, `FIX_RECIPES`).
+
+With `GITHUB_TOKEN` set (`issues: write`; `GITHUB_REPO` defaults to
+`starspacegroup/nebulakit-site`) the brief is filed as one issue labelled
+`lighthouse-autofix` and edited in place on later runs. Without a token the
+admin page shows the brief to copy.
+
+The site never edits its own code or deploys. A fix changes what serves
+production, so it goes through a PR a person or an agent opens. Third-party
+findings, such as Cloudflare's injected analytics beacon, are not fixable from
+this repo, and the brief says so.
+
 ## What is stored
 
 Two tables (`migrations/0018_lighthouse_audits.sql`):

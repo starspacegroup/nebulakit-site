@@ -67,6 +67,13 @@ declare global {
 				/** Optional PageSpeed Insights API key. Without one PSI still answers,
 				 *  at a much lower rate limit. See src/lib/server/lighthouse.ts. */
 				PAGESPEED_API_KEY?: string;
+				/** Optional. With a token, the Lighthouse fix brief is filed as a GitHub issue
+				 *  (needs `issues: write`). See src/lib/server/lighthouse-fixes.ts. */
+				GITHUB_TOKEN?: string;
+				/** `owner/name` the fix issue goes to. Defaults to starspacegroup/nebulakit-site. */
+				GITHUB_REPO?: string;
+				/** Set to `issue` and the daily Lighthouse job files the fix brief itself. */
+				LIGHTHOUSE_AUTOFIX?: string;
 				/** Comma-separated extra hostnames an admin redirect may point at (https
 				 *  only). The site's own host is always allowed. See src/lib/server/redirects.ts. */
 				REDIRECT_ALLOWED_HOSTS?: string;

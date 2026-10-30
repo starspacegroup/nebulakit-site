@@ -1,4 +1,6 @@
-import { isStrategy, runLighthouseSweep } from '$lib/server/lighthouse';
+import { isStrategy, listFindings, runLighthouseSweep } from '$lib/server/lighthouse';
+import { buildFixBrief, githubTarget, publishFixIssue } from '$lib/server/lighthouse-fixes';
+import { site } from '$lib/site.config';
 import type { ScheduledJob } from '../types';
 
 /**
@@ -23,6 +25,14 @@ export const LIGHTHOUSE_JOB: ScheduledJob = {
 			// Optional. Without it PSI still answers, at a much lower rate limit.
 			apiKey: env.PAGESPEED_API_KEY
 		});
-		return { strategy, ...result };
+		// Opt-in (LIGHTHOUSE_AUTOFIX=issue): file the fix brief. An issue, never a
+		// code change. A GitHub failure must not fail the audit that just succeeded.
+		let issue: string | null = null;
+		const target = env.LIGHTHOUSE_AUTOFIX === 'issue' ? githubTarget(env) : null;
+		if (target) {
+			const brief = buildFixBrief(await listFindings(db), site.url);
+			if (brief) issue = await publishFixIssue(brief, target).then((r) => r.url, () => null);
+		}
+		return { strategy, ...result, issue };
 	}
 };

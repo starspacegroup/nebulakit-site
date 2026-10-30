@@ -30,6 +30,10 @@
 
 	let running = false;
 	let message: string | null = null;
+	let strategy: 'mobile' | 'desktop' = 'mobile';
+	let planning = false;
+	let brief: string | null = null;
+	let copied = false;
 
 	async function runNow() {
 		running = true;
@@ -38,7 +42,7 @@
 			const response = await fetch('/api/admin/lighthouse', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ strategy: 'mobile' })
+				body: JSON.stringify({ strategy })
 			});
 			if (!response.ok) throw new Error(`Run failed (${response.status})`);
 			const result = (await response.json()) as { audited: number; failed: number };
@@ -49,6 +53,44 @@
 			message = cause instanceof Error ? cause.message : 'Run failed';
 		} finally {
 			running = false;
+		}
+	}
+
+	/** Build the fix brief; the server files it as an issue when a token is set. */
+	async function planFixes() {
+		planning = true;
+		message = null;
+		brief = null;
+		copied = false;
+		try {
+			const response = await fetch('/api/admin/lighthouse/fix', { method: 'POST' });
+			if (!response.ok) throw new Error(`Fix plan failed (${response.status})`);
+			const result = (await response.json()) as {
+				brief: { body: string } | null;
+				issue: { url: string; created: boolean } | null;
+				warning?: string;
+			};
+			if (!result.brief) message = 'Nothing is below 90. No fixes to plan.';
+			else {
+				brief = result.brief.body;
+				message = result.issue
+					? `${result.issue.created ? 'Opened' : 'Updated'} ${result.issue.url}`
+					: (result.warning ?? 'No GitHub token is set, so here is the brief to copy.');
+			}
+		} catch (cause) {
+			message = cause instanceof Error ? cause.message : 'Fix plan failed';
+		} finally {
+			planning = false;
+		}
+	}
+
+	async function copyBrief() {
+		if (!brief) return;
+		try {
+			await navigator.clipboard.writeText(brief);
+			copied = true;
+		} catch {
+			copied = false;
 		}
 	}
 </script>
@@ -72,13 +114,34 @@
 				{/if}
 			</p>
 		</div>
-		<button type="button" class="run" on:click={runNow} disabled={running}>
-			{running ? 'Running…' : 'Run now'}
-		</button>
+		<div class="actions">
+			<label class="strategy">
+				<span class="sr-only">Form factor</span>
+				<select bind:value={strategy} disabled={running}>
+					<option value="mobile">Mobile</option>
+					<option value="desktop">Desktop</option>
+				</select>
+			</label>
+			<button type="button" class="run" on:click={runNow} disabled={running}>
+				{running ? 'Running…' : 'Run now'}
+			</button>
+			<button type="button" class="run secondary" on:click={planFixes} disabled={planning}>
+				{planning ? 'Planning…' : 'Fix plan'}
+			</button>
+		</div>
 	</header>
 
 	{#if message}
 		<p class="notice" role="status">{message}</p>
+	{/if}
+
+	{#if brief}
+		<section class="brief" aria-label="Fix brief">
+			<textarea readonly rows="10" value={brief}></textarea>
+			<button type="button" class="run secondary" on:click={copyBrief}>
+				{copied ? 'Copied' : 'Copy brief'}
+			</button>
+		</section>
 	{/if}
 
 	{#if data.urlLooksPlaceholder}
@@ -190,6 +253,37 @@
 		color: var(--color-primary);
 	}
 
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		align-items: center;
+	}
+	.strategy select {
+		padding: 0.5rem 0.6rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		background: var(--color-surface);
+		color: var(--color-text);
+	}
+	.brief {
+		display: grid;
+		gap: 0.5rem;
+		margin-block: 1rem;
+	}
+	.brief textarea {
+		width: 100%;
+		padding: 0.6rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		background: var(--color-surface);
+		color: var(--color-text);
+		font-family: var(--font-mono, monospace);
+		font-size: 0.85rem;
+	}
+	.brief .run {
+		justify-self: start;
+	}
 	.run {
 		padding: 0.55rem 1.1rem;
 		border: 1px solid var(--color-border);
