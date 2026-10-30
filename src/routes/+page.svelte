@@ -76,6 +76,10 @@
 	$: psiHome = psiUrl(`${$page.url.origin}/`);
 
 	let mounted = false;
+	/* The nebula behind the hero is decoration. It paints after the page has loaded
+	   and the browser is idle, so the blurred layers are not raster work on the way
+	   to the first paint. No-script visitors get it at once (see the <noscript>). */
+	let decoReady = false;
 	/* The planets and the bubble land somewhere new on every load. Empty on the
 	   server, so the CSS defaults are the no-script layout. */
 	let heroScatter = '';
@@ -93,6 +97,13 @@
 
 	onMount(() => {
 		mounted = true;
+		const reveal = () => (decoReady = true);
+		const whenIdle = () =>
+			'requestIdleCallback' in window
+				? window.requestIdleCallback(reveal, { timeout: 1500 })
+				: setTimeout(reveal, 600);
+		if (document.readyState === 'complete') whenIdle();
+		else window.addEventListener('load', whenIdle, { once: true });
 		heroScatter = Object.entries(scatterHero())
 			.map(([name, value]) => `${name}: ${value}`)
 			.join('; ');
@@ -149,7 +160,16 @@
 	imageHeight={630}
 />
 
-<div class="hero" class:scattered={heroScatter} style={heroScatter || undefined}>
+<svelte:head>
+	<noscript><style>.cosmic-bg { visibility: visible !important; opacity: 1 !important; }</style></noscript>
+</svelte:head>
+
+<div
+	class="hero"
+	class:scattered={heroScatter}
+	class:deco-ready={decoReady}
+	style={heroScatter || undefined}
+>
 	<!-- Cosmic Background -->
 	<div class="cosmic-bg">
 		<!-- New Nebula Flow - Left Side -->
@@ -1575,6 +1595,14 @@
 		pointer-events: none;
 		/* PERF: Isolate paint/layout from rest of page */
 		contain: layout style paint;
+		transition: opacity 0.8s ease;
+	}
+
+	/* Hidden until the page is idle: nothing under it is painted or animated on
+	   the way to the first paint. */
+	.hero:not(.deco-ready) .cosmic-bg {
+		visibility: hidden;
+		opacity: 0;
 	}
 
 	/* Wavy colored background blobs.
