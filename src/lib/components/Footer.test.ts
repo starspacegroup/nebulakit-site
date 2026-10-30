@@ -23,7 +23,7 @@ describe('Footer', () => {
 
 	it('should display the app brand', () => {
 		render(Footer);
-		expect(screen.getByText(site.name)).toBeInTheDocument();
+		expect(document.querySelector('.logo-text')).toHaveTextContent(site.name);
 	});
 
 	it('should display the tagline', () => {
@@ -166,5 +166,13 @@ describe('Footer', () => {
 		expect(mark).toHaveAttribute('src', '/starspace-mark.png');
 		// Decorative: the accessible name comes from the badge text beside it.
 		expect(mark).toHaveAttribute('alt', '');
+	});
+
+	it('should render the NebulaKit badge beside the *Space badge', () => {
+		render(Footer);
+		const badge = screen.getByRole('link', { name: /built with nebulakit/i });
+		expect(badge).toHaveAttribute('href', 'https://nebulakit.starspace.group');
+		expect(badge).toHaveAttribute('rel', 'noopener noreferrer');
+		expect(badge.querySelector('img')).toHaveAttribute('src', '/badge-mark.svg');
 	});
 });
