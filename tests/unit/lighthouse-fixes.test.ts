@@ -7,6 +7,7 @@ import {
 	buildFixBrief,
 	githubTarget,
 	publishFixIssue,
+	closeFixIssue,
 	FIX_RECIPES
 } from '../../src/lib/server/lighthouse-fixes';
 import type { StoredFinding } from '../../src/lib/server/lighthouse';
@@ -28,12 +29,18 @@ function finding(over: Partial<StoredFinding> = {}): StoredFinding {
 describe('buildFixBrief', () => {
 	it('is null when nothing is failing', () => {
 		expect(buildFixBrief([], 'https://x.test')).toBeNull();
-		expect(buildFixBrief([finding({ score: 95 }), finding({ score: null })], 'https://x.test')).toBeNull();
+		expect(
+			buildFixBrief([finding({ score: 95 }), finding({ score: null })], 'https://x.test')
+		).toBeNull();
 	});
 
 	it('groups one audit across pages and gives the stock fix', () => {
 		const brief = buildFixBrief(
-			[finding(), finding({ path: '/shop' }), finding({ audit_id: 'made-up', title: 'New one', score: 20 })],
+			[
+				finding(),
+				finding({ path: '/shop' }),
+				finding({ audit_id: 'made-up', title: 'New one', score: 20 })
+			],
 			'https://x.test'
 		)!;
 		expect(brief.count).toBe(2);
@@ -43,7 +50,9 @@ describe('buildFixBrief', () => {
 		expect(brief.body).toContain(FIX_RECIPES['render-blocking-insight'].fix);
 		expect(brief.body).toContain('No stock recipe. Lighthouse says: desc');
 		// worst first
-		expect(brief.body.indexOf('made-up')).toBeLessThan(brief.body.indexOf('render-blocking-insight'));
+		expect(brief.body.indexOf('made-up')).toBeLessThan(
+			brief.body.indexOf('render-blocking-insight')
+		);
 	});
 
 	it('uses the singular for one audit and tolerates missing detail', () => {
@@ -108,7 +117,10 @@ describe('publishFixIssue', () => {
 			publishFixIssue(
 				brief,
 				target,
-				vi.fn().mockResolvedValueOnce(res(200, [{ number: 1, html_url: 'u' }])).mockResolvedValueOnce(res(403)) as never
+				vi
+					.fn()
+					.mockResolvedValueOnce(res(200, [{ number: 1, html_url: 'u' }]))
+					.mockResolvedValueOnce(res(403)) as never
 			)
 		).rejects.toThrow('update (403)');
 		await expect(
@@ -125,5 +137,51 @@ describe('buildFixBrief — units', () => {
 	it('reads stored scores as 0-100, so a 75 is flagged and a 90 is not', () => {
 		expect(buildFixBrief([finding({ score: 75 })], 'https://x.test')).not.toBeNull();
 		expect(buildFixBrief([finding({ score: 90 })], 'https://x.test')).toBeNull();
+	});
+});
+
+describe('closeFixIssue', () => {
+	const target = { token: 't', repo: 'a/b' };
+	const res = (status: number, body: unknown = {}) =>
+		({ ok: status < 400, status, json: async () => body }) as Response;
+
+	it('does nothing when no fix issue is open', async () => {
+		const fetcher = vi.fn().mockResolvedValueOnce(res(200, []));
+		expect(await closeFixIssue(target, fetcher as never)).toBeNull();
+		expect(fetcher).toHaveBeenCalledTimes(1);
+	});
+
+	it('comments, then closes the open issue', async () => {
+		const fetcher = vi
+			.fn()
+			.mockResolvedValueOnce(res(200, [{ number: 5, html_url: 'https://gh/5' }]))
+			.mockResolvedValueOnce(res(201))
+			.mockResolvedValueOnce(res(200));
+		expect(await closeFixIssue(target, fetcher as never)).toBe('https://gh/5');
+		expect(fetcher.mock.calls[1][0]).toContain('/issues/5/comments');
+		expect(JSON.parse(fetcher.mock.calls[2][1].body)).toMatchObject({ state: 'closed' });
+	});
+
+	it('throws with the status on each refusal', async () => {
+		await expect(
+			closeFixIssue(target, vi.fn().mockResolvedValue(res(401)) as never)
+		).rejects.toThrow('(401)');
+		const open = res(200, [{ number: 1, html_url: 'u' }]);
+		await expect(
+			closeFixIssue(
+				target,
+				vi.fn().mockResolvedValueOnce(open).mockResolvedValueOnce(res(403)) as never
+			)
+		).rejects.toThrow('comment (403)');
+		await expect(
+			closeFixIssue(
+				target,
+				vi
+					.fn()
+					.mockResolvedValueOnce(open)
+					.mockResolvedValueOnce(res(201))
+					.mockResolvedValueOnce(res(422)) as never
+			)
+		).rejects.toThrow('close the issue (422)');
 	});
 });

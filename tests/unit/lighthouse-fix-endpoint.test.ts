@@ -3,9 +3,10 @@ import { createSqliteD1 } from '../helpers/sqlite-d1';
 import { POST } from '../../src/routes/api/admin/lighthouse/fix/+server';
 
 const publish = vi.hoisted(() => vi.fn());
+const close = vi.hoisted(() => vi.fn());
 vi.mock('$lib/server/lighthouse-fixes', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('../../src/lib/server/lighthouse-fixes')>();
-	return { ...actual, publishFixIssue: publish };
+	return { ...actual, publishFixIssue: publish, closeFixIssue: close };
 });
 
 const admin = { id: '1', isAdmin: true, permissions: ['lighthouse'] };
@@ -34,7 +35,20 @@ describe('POST /api/admin/lighthouse/fix', () => {
 
 	it('says nothing to fix when nothing fails', async () => {
 		const response = await POST(event(admin, { DB: createSqliteD1() }));
-		expect(await response.json()).toEqual({ brief: null, issue: null });
+		expect(await response.json()).toEqual({ brief: null, issue: null, closed: null });
+	});
+
+	it('closes the open fix issue when nothing fails and a token is set', async () => {
+		close.mockResolvedValueOnce('https://gh/5');
+		const body = await (
+			await POST(event(admin, { DB: createSqliteD1(), GITHUB_TOKEN: 't' }))
+		).json();
+		expect(body.closed).toBe('https://gh/5');
+		close.mockRejectedValueOnce(new Error('no'));
+		const again = await (
+			await POST(event(admin, { DB: createSqliteD1(), GITHUB_TOKEN: 't' }))
+		).json();
+		expect(again.closed).toBeNull();
 	});
 
 	it('returns the brief to copy when no token is set', async () => {

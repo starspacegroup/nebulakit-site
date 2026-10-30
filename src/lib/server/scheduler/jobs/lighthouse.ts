@@ -1,5 +1,10 @@
 import { isStrategy, listFindings, runLighthouseSweep } from '$lib/server/lighthouse';
-import { buildFixBrief, githubTarget, publishFixIssue } from '$lib/server/lighthouse-fixes';
+import {
+	buildFixBrief,
+	closeFixIssue,
+	githubTarget,
+	publishFixIssue
+} from '$lib/server/lighthouse-fixes';
 import { site } from '$lib/site.config';
 import type { ScheduledJob } from '../types';
 
@@ -31,7 +36,12 @@ export const LIGHTHOUSE_JOB: ScheduledJob = {
 		const target = env.LIGHTHOUSE_AUTOFIX === 'issue' ? githubTarget(env) : null;
 		if (target) {
 			const brief = buildFixBrief(await listFindings(db), site.url);
-			if (brief) issue = await publishFixIssue(brief, target).then((r) => r.url, () => null);
+			issue = brief
+				? await publishFixIssue(brief, target).then(
+						(r) => r.url,
+						() => null
+					)
+				: await closeFixIssue(target).catch(() => null);
 		}
 		return { strategy, ...result, issue };
 	}

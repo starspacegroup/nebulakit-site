@@ -211,6 +211,37 @@ export async function publishFixIssue(
 	return { url: made.html_url, created: true };
 }
 
+/**
+ * Close the open fix issue, with a comment, once nothing is flagged. Returns the
+ * issue URL when it closed one, null when there was none. Throws like
+ * {@link publishFixIssue}.
+ */
+export async function closeFixIssue(
+	target: GithubTarget,
+	fetcher: typeof fetch = fetch
+): Promise<string | null> {
+	const open = await github(
+		fetcher,
+		target,
+		`/issues?state=open&labels=${FIX_ISSUE_LABEL}&per_page=1`
+	);
+	if (!open.ok) throw new Error(`GitHub refused the issue lookup (${open.status})`);
+	const [existing] = (await open.json()) as { number: number; html_url: string }[];
+	if (!existing) return null;
+
+	const note = await github(fetcher, target, `/issues/${existing.number}/comments`, {
+		method: 'POST',
+		body: { body: 'The latest Lighthouse run flagged nothing. Closing.' }
+	});
+	if (!note.ok) throw new Error(`GitHub refused the comment (${note.status})`);
+	const close = await github(fetcher, target, `/issues/${existing.number}`, {
+		method: 'PATCH',
+		body: { state: 'closed', state_reason: 'completed' }
+	});
+	if (!close.ok) throw new Error(`GitHub refused to close the issue (${close.status})`);
+	return existing.html_url;
+}
+
 /** The GitHub target from the environment, or null when no token is set. */
 export function githubTarget(env: {
 	GITHUB_TOKEN?: string;

@@ -77,7 +77,8 @@ this repo to look (`src/lib/server/lighthouse-fixes.ts`, `FIX_RECIPES`).
 
 With `GITHUB_TOKEN` set (`issues: write`; `GITHUB_REPO` defaults to
 `starspacegroup/nebulakit-site`) the brief is filed as one issue labelled
-`lighthouse-autofix` and edited in place on later runs. Without a token the
+`lighthouse-autofix`, edited in place on later runs, and closed with a comment
+once a run flags nothing. Without a token the
 admin page shows the brief to copy.
 
 The site never edits its own code or deploys. A fix changes what serves

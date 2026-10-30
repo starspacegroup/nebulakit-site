@@ -1,7 +1,12 @@
 import { error, json } from '@sveltejs/kit';
 import { requirePermission } from '$lib/server/auth-guards';
 import { listFindings } from '$lib/server/lighthouse';
-import { buildFixBrief, githubTarget, publishFixIssue } from '$lib/server/lighthouse-fixes';
+import {
+	buildFixBrief,
+	closeFixIssue,
+	githubTarget,
+	publishFixIssue
+} from '$lib/server/lighthouse-fixes';
 import { site } from '$lib/site.config';
 import type { RequestHandler } from './$types';
 
@@ -21,9 +26,12 @@ export const POST: RequestHandler = async ({ locals, platform }) => {
 	}
 
 	const brief = buildFixBrief(await listFindings(db), site.url);
-	if (!brief) return json({ brief: null, issue: null });
-
 	const target = githubTarget(platform?.env ?? {});
+	if (!brief) {
+		// Nothing flagged: close the open fix issue, if there is one.
+		const closed = target ? await closeFixIssue(target).catch(() => null) : null;
+		return json({ brief: null, issue: null, closed });
+	}
 	if (!target) return json({ brief, issue: null });
 
 	try {

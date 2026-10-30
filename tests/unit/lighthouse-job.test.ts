@@ -5,29 +5,32 @@ import { LIGHTHOUSE_JOB } from '../../src/lib/server/scheduler/jobs/lighthouse';
 
 const sweep = vi.hoisted(() => vi.fn());
 const publish = vi.hoisted(() => vi.fn());
+const close = vi.hoisted(() => vi.fn());
 vi.mock('$lib/server/lighthouse', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('../../src/lib/server/lighthouse')>();
 	return { ...actual, runLighthouseSweep: sweep };
 });
 vi.mock('$lib/server/lighthouse-fixes', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('../../src/lib/server/lighthouse-fixes')>();
-	return { ...actual, publishFixIssue: publish };
+	return { ...actual, publishFixIssue: publish, closeFixIssue: close };
 });
 
-async function run(env: Record<string, unknown>, query = '') {
+async function run(env: Record<string, unknown>, query = '', findings = true) {
 	const db = createSqliteD1();
-	await db
-		.prepare(
-			`INSERT INTO lighthouse_findings (path, strategy, category, audit_id, title, description, score, display_value)
+	if (findings)
+		await db
+			.prepare(
+				`INSERT INTO lighthouse_findings (path, strategy, category, audit_id, title, description, score, display_value)
 			 VALUES ('/', 'mobile', 'performance', 'unused-javascript', 'Unused JS', 'd', 10, '28 KiB')`
-		)
-		.run();
+			)
+			.run();
 	return LIGHTHOUSE_JOB.run({ db, env, params: new URLSearchParams(query) } as never);
 }
 
 beforeEach(() => {
 	sweep.mockReset().mockResolvedValue({ audited: 1, failed: 0 });
 	publish.mockReset();
+	close.mockReset();
 });
 
 describe('LIGHTHOUSE_JOB', () => {
@@ -47,5 +50,14 @@ describe('LIGHTHOUSE_JOB', () => {
 		publish.mockRejectedValue(new Error('no'));
 		const result = await run({ GITHUB_TOKEN: 't', LIGHTHOUSE_AUTOFIX: 'issue' });
 		expect(result).toMatchObject({ audited: 1, issue: null });
+	});
+
+	it('closes the fix issue when the run flags nothing', async () => {
+		close.mockResolvedValue('https://gh/5');
+		const result = await run({ GITHUB_TOKEN: 't', LIGHTHOUSE_AUTOFIX: 'issue' }, '', false);
+		expect(result).toMatchObject({ issue: 'https://gh/5' });
+		close.mockRejectedValue(new Error('no'));
+		const again = await run({ GITHUB_TOKEN: 't', LIGHTHOUSE_AUTOFIX: 'issue' }, '', false);
+		expect(again).toMatchObject({ issue: null });
 	});
 });
