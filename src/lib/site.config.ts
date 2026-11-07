@@ -74,3 +74,6 @@ export const emailTheme = {
 
 /** Full GitHub URL, derived from {@link site.repo}. */
 export const repoUrl = `https://github.com/${site.repo}`;
+
+/** The NebulaKit project itself (the template), not this marketing site's repo. Footer and hero link here. */
+export const projectRepoUrl = `https://github.com/${site.repo.split('/')[0]}/NebulaKit`;
