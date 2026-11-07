@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/svelte';
 import { describe, expect, it } from 'vitest';
 import Footer from './Footer.svelte';
-import { site, repoUrl } from '$lib/site.config';
+import { site, projectRepoUrl } from '$lib/site.config';
 
 describe('Footer', () => {
 	it('should render the footer element', () => {
@@ -101,7 +101,7 @@ describe('Footer', () => {
 		const resourcesLink = githubLinks.find((link) =>
 			link.textContent?.toLowerCase().includes('github')
 		);
-		expect(resourcesLink).toHaveAttribute('href', repoUrl);
+		expect(resourcesLink).toHaveAttribute('href', projectRepoUrl);
 	});
 
 	it('should contain privacy policy link', () => {

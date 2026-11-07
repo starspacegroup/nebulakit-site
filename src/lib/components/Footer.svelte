@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { site, repoUrl } from '$lib/site.config';
+	import { site, projectRepoUrl } from '$lib/site.config';
 	import Logo from './Logo.svelte';
 	import { BADGE_BRAND, BADGE_HREF, BADGE_VARIANTS } from '$lib/badge';
 
@@ -86,7 +86,7 @@
 							<a href="/badge">Badge</a>
 						</li>
 						<li>
-							<a href={repoUrl} target="_blank" rel="noopener noreferrer"> GitHub </a>
+							<a href={projectRepoUrl} target="_blank" rel="noopener noreferrer"> GitHub </a>
 						</li>
 					</ul>
 				</div>
@@ -112,7 +112,7 @@
 			</p>
 			<div class="footer-social">
 				<a
-					href={repoUrl}
+					href={projectRepoUrl}
 					target="_blank"
 					rel="noopener noreferrer"
 					aria-label="GitHub Repository"
