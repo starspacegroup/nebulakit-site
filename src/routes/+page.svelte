@@ -448,7 +448,7 @@
 					Use this template
 					<span aria-hidden="true">→</span>
 				</a>
-				<a class="cta cta-secondary" href="/modules"> See Working Modules </a>
+				<a class="cta cta-secondary" href="#built-with"> See Sites Built With It </a>
 			</div>
 			<p class="hero-note">
 				Free and MIT-licensed. Deploy to Cloudflare in minutes — this site is built on it.
@@ -1376,7 +1376,7 @@
      (scripts/capture-built-with.mjs); CSS shows the one that matches
      data-theme, not prefers-color-scheme, because the toggle overrides the OS
      (AGENTS.md §10). -->
-<section class="built-with" aria-labelledby="built-with-title">
+<section class="built-with" id="built-with" aria-labelledby="built-with-title">
 	<div class="features-shell">
 		<div class="features-header">
 			<h2 class="features-title" id="built-with-title">Built with NebulaKit</h2>
