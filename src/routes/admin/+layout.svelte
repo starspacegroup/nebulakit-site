@@ -39,6 +39,7 @@
 		{ path: '/admin/cms', label: 'Content', icon: 'document', permission: 'cms' },
 		{ path: '/admin/pages', label: 'Pages', icon: 'layout', permission: 'pages' },
 		{ path: '/admin/redirects', label: 'Redirects', icon: 'link', permission: 'pages' },
+		{ path: '/admin/products', label: 'Products', icon: 'bag', permission: 'shop' },
 		{ path: '/admin/api-keys', label: 'API Keys', icon: 'key', permission: 'api-keys' },
 		{
 			path: '/admin/contact-form-submissions',
@@ -179,6 +180,20 @@
 							<rect x="5" y="12" width="3.5" height="6" />
 							<rect x="10.25" y="7" width="3.5" height="11" />
 							<rect x="15.5" y="14" width="3.5" height="4" />
+						</svg>
+					{:else if item.icon === 'bag'}
+						<svg
+							class="nav-icon"
+							width="20"
+							height="20"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+							<path d="M3 6h18" />
+							<path d="M16 10a4 4 0 0 1-8 0" />
 						</svg>
 					{:else if item.icon === 'link'}
 						<svg
