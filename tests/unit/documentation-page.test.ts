@@ -1,5 +1,5 @@
 import { render, screen, within } from '@testing-library/svelte';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import Page from '../../src/routes/documentation/+page.svelte';
 
 describe('Documentation Page', () => {
@@ -9,6 +9,89 @@ describe('Documentation Page', () => {
 		expect(
 			screen.getByText(/single source of truth for setup, development, and deployment/i)
 		).toBeInTheDocument();
+	});
+
+	describe('Use NebulaKit with an AI', () => {
+		beforeEach(() => {
+			render(Page);
+		});
+		const section = () =>
+			screen
+				.getByRole('heading', { name: /^Use NebulaKit with an AI$/i })
+				.closest('section') as HTMLElement;
+
+		it('is the first section on the page, before the navigation', () => {
+			const sections = Array.from(document.querySelectorAll('section.docs-section'));
+			expect(sections[0].id).toBe('use-with-ai');
+			const nav = screen.getByRole('navigation', { name: /documentation navigation/i });
+			expect(
+				sections[0].compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING
+			).toBeTruthy();
+		});
+
+		it('covers building with a coding agent, running a live site and reading the site', () => {
+			const scoped = within(section());
+			expect(
+				scoped.getByRole('heading', { name: /build your site with a coding agent/i })
+			).toBeTruthy();
+			expect(
+				scoped.getByRole('heading', { name: /let an agent run your live site/i })
+			).toBeTruthy();
+			expect(scoped.getByRole('heading', { name: /let an agent read this site/i })).toBeTruthy();
+		});
+
+		it('tells the agent to read AGENTS.md and to prove its work with the checks', () => {
+			const text = section().textContent ?? '';
+			expect(text).toContain('AGENTS.md');
+			for (const command of ['bun run check', 'bun run test', 'bun run test:coverage']) {
+				expect(text).toContain(command);
+			}
+			expect(text).toMatch(/never paste a secret/i);
+		});
+
+		it('lists every API scope a key can carry', async () => {
+			const { API_SCOPES } = await import('../../packages/security/src/api-keys');
+			const text = section().textContent ?? '';
+			for (const scope of API_SCOPES) expect(text, scope).toContain(scope);
+		});
+
+		it('links the OpenAPI file, the key page and the discovery surfaces', () => {
+			const scoped = within(section());
+			expect(scoped.getByRole('link', { name: '/api/v1/openapi.json' })).toHaveAttribute(
+				'href',
+				'/api/v1/openapi.json'
+			);
+			expect(scoped.getByRole('link', { name: '/.well-known/api-catalog' })).toBeTruthy();
+			expect(scoped.getByRole('link', { name: '/auth.md' })).toBeTruthy();
+			expect(section().textContent).toContain('Accept: text/markdown');
+		});
+
+		it('is reachable from the navigation, which is grouped', () => {
+			const nav = within(screen.getByRole('navigation', { name: /documentation navigation/i }));
+			expect(nav.getByRole('link', { name: /use with an ai/i })).toHaveAttribute(
+				'href',
+				'#use-with-ai'
+			);
+			for (const group of ['Start', 'Build', 'Run', 'Secure and administer', 'More']) {
+				expect(nav.getByText(group)).toBeTruthy();
+			}
+		});
+	});
+
+	it('every navigation link points at a section that exists', () => {
+		render(Page);
+		const nav = screen.getByRole('navigation', { name: /documentation navigation/i });
+		for (const link of Array.from(nav.querySelectorAll('a'))) {
+			const id = link.getAttribute('href')?.slice(1) ?? '';
+			expect(document.getElementById(id), link.textContent ?? '').toBeTruthy();
+		}
+	});
+
+	it('explains the two repositories in Start Here', () => {
+		render(Page);
+		const start = screen.getByRole('heading', { name: /^Start Here$/i }).closest('section');
+		expect(start?.textContent).toMatch(/two repositories/i);
+		expect(start?.textContent).toContain('bun run db:migrate:local');
 	});
 
 	it('includes beginner-friendly start sections', () => {
@@ -217,8 +300,12 @@ describe('Documentation Page', () => {
 				[/api\/health/, '/api/health']
 			];
 
+			// The AI section near the top links some of these too; this checks the reference section.
+			const reference = within(
+				screen.getByRole('heading', { name: /Agent Readiness/i }).closest('section') as HTMLElement
+			);
 			for (const [name, href] of surfaces) {
-				expect(screen.getByRole('link', { name })).toHaveAttribute('href', href);
+				expect(reference.getByRole('link', { name })).toHaveAttribute('href', href);
 			}
 		});
 
