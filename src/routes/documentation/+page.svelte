@@ -432,10 +432,12 @@ npm run deploy`
 			<h2>Shop, Payments and Email</h2>
 			<p>
 				The shop is the <code>@nebulakit/commerce</code> package in <code>packages/commerce</code>
-				(products, cart pricing, checkout, orders, Stripe, Printful), versioned on its own. It stays
-				inert until configured: with no products <code>/shop</code> shows an empty catalog, with no
-				Stripe key orders wait for a manual payment, and with no email key nothing is sent. Apply
-				migrations <code>0023</code>, <code>0024</code> and <code>0025</code> with
+				(products, cart pricing, checkout, orders, Stripe, Printful), versioned on its own. It stays inert
+				until configured: with no products <code>/shop</code> shows an empty catalog (admins with
+				the
+				<code>shop</code> area add them at <code>/admin/products</code>), with no Stripe key orders
+				wait for a manual payment, and with no email key nothing is sent. Apply migrations
+				<code>0023</code>, <code>0024</code> and <code>0025</code> with
 				<code>bun run db:migrate:local</code>.
 			</p>
 			<div class="callout-grid">
@@ -452,14 +454,15 @@ npm run deploy`
 				<div class="callout-card">
 					<h3>Regional pricing</h3>
 					<p>
-						<code>/admin/settings/pricing</code> (owner only) lowers prices for shoppers in countries
-						where money buys more, using a World Bank price level table shipped with the kit. It is off
-						until you turn it on, and it only ever lowers a price. Set how much of the gap to pass on,
-						the largest discount, which products it covers (digital only by default) and per-country overrides,
-						and preview any country before saving. An order takes the least generous country among the
-						one Cloudflare sees and the shipping address, so a VPN alone earns nothing. The cart shows
-						the server's quoted total (<code>POST /api/v1/checkout/quote</code>) and each order
-						records the multiplier and countries used. Settings are also at
+						<code>/admin/settings/pricing</code> (owner only) lowers prices for shoppers in
+						countries where money buys more, using a World Bank price level table shipped with the
+						kit. It is off until you turn it on, and it only ever lowers a price. Set how much of
+						the gap to pass on, the largest discount, which products it covers (digital only by
+						default) and per-country overrides, and preview any country before saving. An order
+						takes the least generous country among the one Cloudflare sees and the shipping address,
+						so a VPN alone earns nothing. The cart shows the server's quoted total (<code
+							>POST /api/v1/checkout/quote</code
+						>) and each order records the multiplier and countries used. Settings are also at
 						<code>GET/PUT /api/v1/pricing</code>, with scopes <code>pricing:read</code> and
 						<code>pricing:write</code>. Refresh the table with
 						<code>bun run update:price-index</code>.
@@ -758,8 +761,8 @@ npm run db:migrate:list</code
 				foreign <code>base</code> and framing by other sites. Static files get the same headers from
 				<code>_headers</code>. Password sign-in is throttled per address and per email. After
 				signing in, <code>?next=</code> returns you to a same-site path and never to another host.
-				The Markdown variant of a page is never cached, and <code>/media</code> answers byte
-				ranges so video plays in Safari. See <code>docs/SECURITY.md</code>.
+				The Markdown variant of a page is never cached, and <code>/media</code> answers byte ranges
+				so video plays in Safari. See <code>docs/SECURITY.md</code>.
 			</p>
 		</section>
 
@@ -908,10 +911,10 @@ npm run db:migrate:list</code
 					<p>
 						<code>cms</code>, <code>pages</code>, <code>users</code> (view the list),
 						<code>users-manage</code> (change roles and delete, below their own role),
-						<code>stats</code>, <code>pii</code>, <code>api-keys</code>, <code>contact</code> and
-						<code>lighthouse</code>. Settings, auth keys, AI keys, the analytics connection, setup
-						and reset stay with the owner and superadmins. Only the owner or a superadmin can change
-						an admin's areas.
+						<code>stats</code>, <code>pii</code>, <code>api-keys</code>, <code>contact</code>,
+						<code>lighthouse</code> and <code>shop</code>. Settings, auth keys, AI keys, the
+						analytics connection, setup and reset stay with the owner and superadmins. Only the
+						owner or a superadmin can change an admin's areas.
 					</p>
 				</div>
 				<div class="callout-card">
@@ -1121,8 +1124,8 @@ npm run test:all</code
 						<code>/.well-known/security.txt</code> (RFC 9116) tells researchers where to send a
 						vulnerability report. Set <code>SECURITY_CONTACT</code> to an email address or an https
 						URL (comma-separated for several) and the file is served, with an
-						<code>Expires</code> date recomputed on every request, 180 days ahead. Until then the
-						path answers 404.
+						<code>Expires</code> date recomputed on every request, 180 days ahead. Until then the path
+						answers 404.
 					</p>
 				</div>
 				<div class="callout-card">
@@ -1131,9 +1134,9 @@ npm run test:all</code
 						The scores on the home page come from <code>bun run lighthouse</code>, which runs
 						Lighthouse locally and commits the reports. <code>/admin/lighthouse</code> is the live
 						counterpart: it audits the public pages in the sitemap through Google's PageSpeed
-						Insights API (migration <code>0018_lighthouse_audits.sql</code>), lists them worst
-						first with the audits that failed, and has a <strong>Run now</strong> button.
-						PageSpeed can only reach a public URL, so <code>site.url</code> has to be real.
+						Insights API (migration <code>0018_lighthouse_audits.sql</code>), lists them worst first
+						with the audits that failed, and has a <strong>Run now</strong> button. PageSpeed can
+						only reach a public URL, so <code>site.url</code> has to be real.
 						<code>PAGESPEED_API_KEY</code> is optional and only raises the rate limit. Notes in
 						<code>docs/LIGHTHOUSE_MONITORING.md</code>.
 					</p>
@@ -1171,8 +1174,8 @@ bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}</c
 			<p>
 				Two packages live in <code>packages/</code>, each versioned on its own:
 				<code>@nebulakit/builder</code> (drag-and-drop pages stored as data) and
-				<code>@nebulakit/security</code> (API keys). Security updates are forced to every site; the
-				builder is opt-in.
+				<code>@nebulakit/security</code> (API keys). Security updates are forced to every site; the builder
+				is opt-in.
 			</p>
 			<div class="callout-grid">
 				<div class="callout-card">
