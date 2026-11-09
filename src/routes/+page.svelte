@@ -2910,6 +2910,10 @@
 	   stretched to the full page width and flung its cells to opposite edges. */
 	.lh-verdict {
 		display: grid;
+		/* minmax(0, 1fr), not the implicit auto track: an auto track grows to its
+		   widest unbreakable child, so on a phone the content ran past the card's
+		   right edge and sat off centre. */
+		grid-template-columns: minmax(0, 1fr);
 		gap: var(--spacing-xl) var(--spacing-2xl);
 		align-items: center;
 		max-width: 70rem;
@@ -3034,7 +3038,6 @@
 		margin-left: var(--spacing-xs);
 		color: var(--color-primary);
 		font-weight: 600;
-		white-space: nowrap;
 	}
 
 	.lh-coverage strong {
@@ -3099,7 +3102,7 @@
 	/* Side by side once the dials have room; stacked below that. */
 	@media (min-width: 60rem) {
 		.lh-verdict {
-			grid-template-columns: auto 1fr;
+			grid-template-columns: auto minmax(0, 1fr);
 			/* stretch, not center: the divider is this column's right border, and
 			   on a centred grid it shrank to the height of the number and read as
 			   a floating stub rather than a rule between the two halves. */
