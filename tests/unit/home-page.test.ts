@@ -77,13 +77,14 @@ describe('Home Page Hero', () => {
 		);
 	});
 
-	it('points at the modules gallery from the hero', () => {
+	it('points at the sites built with NebulaKit from the hero', () => {
 		render(Page);
 
-		expect(screen.getByRole('link', { name: /see working modules/i })).toHaveAttribute(
+		expect(screen.getByRole('link', { name: /see sites built with it/i })).toHaveAttribute(
 			'href',
-			'/modules'
+			'#built-with'
 		);
+		expect(document.getElementById('built-with')).toBeTruthy();
 	});
 
 	it('gives drag-and-drop a feature card that is itself the link', () => {
