@@ -10,7 +10,6 @@ import cmsItemPage from '../../src/routes/[contentType]/[slug]/+page.svelte?raw'
 import cmsListPage from '../../src/routes/[contentType]/+page.svelte?raw';
 import docsPage from '../../src/routes/documentation/+page.svelte?raw';
 import privacyPage from '../../src/routes/privacy/+page.svelte?raw';
-import showcasePage from '../../src/routes/showcase/+page.svelte?raw';
 import termsPage from '../../src/routes/terms/+page.svelte?raw';
 
 // app.css is read from disk: Vitest resolves `?raw` on a stylesheet to an empty
@@ -53,8 +52,7 @@ describe('layout widths', () => {
 		['cms dashboard', cmsDashboard, '.cms-dashboard'],
 		['cms manage', cmsManage, '.cms-manage'],
 		['ai keys', aiKeysPage, '.ai-keys-page'],
-		['auth keys', authKeysPage, '.auth-keys-page'],
-		['showcase', showcasePage, '.showcase__shell']
+		['auth keys', authKeysPage, '.auth-keys-page']
 	])('the %s shell fills the page width', (_name, source, selector) => {
 		const declarations = block(source, selector);
 		expect(declarations, `${selector} block not found`).not.toBe('');

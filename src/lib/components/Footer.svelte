@@ -74,9 +74,6 @@
 							<a href="/documentation">Documentation</a>
 						</li>
 						<li>
-							<a href="/showcase">Showcase</a>
-						</li>
-						<li>
 							<a href="/components">Components</a>
 						</li>
 						<li>

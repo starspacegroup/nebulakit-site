@@ -71,7 +71,6 @@ const TARGETS = [
 		defaultOrigin: 'http://127.0.0.1:8810',
 		pages: [
 			{ path: '/', title: 'Home' },
-			{ path: '/showcase', title: 'Showcase' },
 			{ path: '/components', title: 'Components' },
 			{ path: '/documentation', title: 'Documentation' },
 			{ path: '/contact', title: 'Contact' },

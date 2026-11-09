@@ -47,7 +47,6 @@ export interface SitemapRoute {
 export const SITEMAP_ROUTES: readonly SitemapRoute[] = [
 	{ path: '/', changefreq: 'weekly', priority: 1.0 },
 	{ path: '/documentation', changefreq: 'weekly', priority: 0.8 },
-	{ path: '/showcase', changefreq: 'monthly', priority: 0.7 },
 	{ path: '/components', changefreq: 'weekly', priority: 0.7 },
 	{ path: '/modules', changefreq: 'weekly', priority: 0.7 },
 	{ path: '/badge', changefreq: 'monthly', priority: 0.5 },
@@ -71,6 +70,7 @@ export const SITEMAP_EXCLUDED_ROUTES: Readonly<Record<string, string>> = {
 	api: 'JSON endpoints, not pages. Described by /.well-known/api-catalog instead.',
 	auth: 'Sign-in and sign-up forms — no standalone content worth indexing.',
 	profile: 'Requires an authenticated session; renders per-user data.',
+	showcase: 'Permanent redirect to /components, which replaced it.',
 	chat: 'Requires sign-in; a crawler only ever sees the redirect to /auth/login.',
 	reset: 'Destructive maintenance route — must never be crawled or surfaced.',
 	setup: 'One-time install wizard; meaningless (and risky) once the site is live.',

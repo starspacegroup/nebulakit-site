@@ -504,9 +504,8 @@ npm run deploy`
 		<section id="drag-and-drop" class="docs-section">
 			<h2>Drag and Drop</h2>
 			<p>
-				The widget board is a working feature of this site, not a demo you read about. Open
-				<a href="/showcase">the showcase</a> to rearrange a live board; the layout you make is saved in
-				your own browser.
+				The widget board is a working feature of this site, not a demo you read about. See
+				<a href="/components">the components page</a> for the widgets running on a live board.
 			</p>
 			<h3>Using it in your app</h3>
 			<p>

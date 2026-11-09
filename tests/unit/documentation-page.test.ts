@@ -31,9 +31,9 @@ describe('Documentation Page', () => {
 		render(Page);
 
 		expect(screen.getByRole('heading', { name: /^Drag and Drop$/i })).toBeInTheDocument();
-		expect(screen.getByRole('link', { name: /the showcase/i })).toHaveAttribute(
+		expect(screen.getByRole('link', { name: /the components page/i })).toHaveAttribute(
 			'href',
-			'/showcase'
+			'/components'
 		);
 		expect(screen.getByRole('heading', { name: /keyboard control/i })).toBeInTheDocument();
 		expect(screen.getByText(/pick the widget up, and put it down again/i)).toBeInTheDocument();

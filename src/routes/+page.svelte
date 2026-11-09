@@ -1267,9 +1267,9 @@
 				</p>
 			</div>
 
-			<!-- Feature 24: Drag & Drop — the one feature you can try without
-			     leaving the site, so the card is the link to it. -->
-			<a class="feature-card feature-card--link" href="/showcase">
+			<!-- Feature 24: Drag & Drop — the components page runs it, so the card
+			     is the link to it. -->
+			<a class="feature-card feature-card--link" href="/components">
 				<div class="feature-header">
 					<div class="feature-icon">
 						<svg
@@ -1326,7 +1326,7 @@
 					A widget board with pointer, touch and keyboard dragging, a widget registry, and a reorder
 					engine that cannot corrupt its own ordering. Nothing here is a screenshot.
 				</p>
-				<span class="feature-link">Try it live <span aria-hidden="true">→</span></span>
+				<span class="feature-link">See the components <span aria-hidden="true">→</span></span>
 			</a>
 		</div>
 	</div>

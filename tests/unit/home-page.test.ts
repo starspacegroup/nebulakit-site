@@ -92,8 +92,8 @@ describe('Home Page Hero', () => {
 
 		const card = screen.getByRole('link', { name: /drag & drop/i });
 
-		expect(card).toHaveAttribute('href', '/showcase');
-		expect(card).toHaveTextContent(/try it live/i);
+		expect(card).toHaveAttribute('href', '/components');
+		expect(card).toHaveTextContent(/see the components/i);
 	});
 
 	it('lists every capability ported from the template as a feature card', () => {
@@ -368,9 +368,9 @@ describe('Home Page Lighthouse scores', () => {
 		// anyone remembering to edit the copy.
 		const { container } = render(Page);
 		const coverage = container.querySelector('.lh-coverage')?.textContent ?? '';
-		// 13 pages (6 template, 7 site) x 4 categories, every one at 100.
-		expect(coverage).toMatch(/\b52\b[\s\S]*\b52\b/);
-		expect(coverage).toContain('13 public pages');
+		// 12 pages (6 template, 6 site) x 4 categories, every one at 100.
+		expect(coverage).toMatch(/\b48\b[\s\S]*\b48\b/);
+		expect(coverage).toContain('12 public pages');
 	});
 });
 
