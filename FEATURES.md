@@ -395,6 +395,7 @@ Multiple variants included:
 ### Shop, Payments and Email
 
 - Products, cart and Stripe checkout; the server works out every price
+- Auctions: proxy bidding, hidden reserve, buy it now, late-bid extension; a won auction becomes an order (`docs/AUCTIONS.md`)
 - Handles late, failed and expired payments; a replayed event changes nothing twice
 - Receipts and shipping notices through Resend, sent at most once per order
 - Inert until configured: no Stripe key means manual payment, no email key means nothing is sent
