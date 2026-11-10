@@ -55,6 +55,13 @@ export interface Auction {
 	finalCents: number | null;
 	orderId: string | null;
 	settledAt: string | null;
+	/** Hours a winner has to pay once their order exists. 0 = no deadline. */
+	payWithinHours: number;
+	/** When the winner's payment is due; null when there is no deadline or no order yet. */
+	payDueAt: string | null;
+	remindedAt: string | null;
+	/** The auction this one replaced. */
+	relistedFrom: string | null;
 	createdAt: string;
 }
 
@@ -98,6 +105,10 @@ function toAuction(row: Row): Auction {
 		finalCents: nullable(row.final_cents),
 		orderId: (row.order_id as string | null) ?? null,
 		settledAt: (row.settled_at as string | null) ?? null,
+		payWithinHours: Number(row.pay_within_hours ?? 0),
+		payDueAt: (row.pay_due_at as string | null) ?? null,
+		remindedAt: (row.reminded_at as string | null) ?? null,
+		relistedFrom: (row.relisted_from as string | null) ?? null,
 		createdAt: row.created_at as string
 	};
 }
@@ -157,7 +168,13 @@ export interface AuctionInput {
 	startsAt: string;
 	endsAt: string;
 	extendSeconds?: number;
+	/** Hours the winner has to pay; 0 or absent = no deadline. */
+	payWithinHours?: number;
+	/** The auction this one replaces (set by relisting). */
+	relistedFrom?: string | null;
 }
+
+export const MAX_PAY_WITHIN_HOURS = 720;
 
 const SLUG = /^[a-z0-9](?:[a-z0-9-]{0,78}[a-z0-9])?$/;
 
@@ -180,6 +197,10 @@ export async function createAuction(db: D1Database, input: AuctionInput): Promis
 		extendSeconds: input.extendSeconds ?? 0
 	};
 	errors.push(...validateAuctionTerms(terms));
+	const payWithin = input.payWithinHours ?? 0;
+	if (!Number.isInteger(payWithin) || payWithin < 0 || payWithin > MAX_PAY_WITHIN_HOURS) {
+		errors.push(`Payment window must be 0 to ${MAX_PAY_WITHIN_HOURS} hours.`);
+	}
 	if (errors.length || !product) throw new AuctionInputError(errors);
 
 	const id = crypto.randomUUID();
@@ -188,8 +209,8 @@ export async function createAuction(db: D1Database, input: AuctionInput): Promis
 			.prepare(
 				`INSERT INTO commerce_auctions
 				 (id, slug, product_id, title, currency, starting_cents, reserve_cents, buy_now_cents,
-				  increment_cents, starts_at, ends_at, extend_seconds)
-				 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+				  increment_cents, starts_at, ends_at, extend_seconds, pay_within_hours, relisted_from)
+				 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 			)
 			.bind(
 				id,
@@ -203,7 +224,9 @@ export async function createAuction(db: D1Database, input: AuctionInput): Promis
 				terms.incrementCents,
 				new Date(terms.startsAt).toISOString(),
 				new Date(terms.endsAt).toISOString(),
-				terms.extendSeconds
+				terms.extendSeconds,
+				payWithin,
+				input.relistedFrom ?? null
 			)
 			.run();
 	} catch (err) {
@@ -263,6 +286,8 @@ export type PlaceBidResult =
 			leading: boolean;
 			priceAfterCents: number;
 			outbidId: string | null;
+			/** The address of the bidder who just lost the lead, for the "outbid" email. */
+			outbidEmail: string | null;
 			extended: boolean;
 	  }
 	| BidRefused
@@ -342,6 +367,7 @@ export async function placeAuctionBid(
 			leading: outcome.leading,
 			priceAfterCents: outcome.priceAfterCents,
 			outbidId: outcome.outbidId,
+			outbidEmail: outcome.outbidId ? auction.leaderEmail : null,
 			extended: outcome.extended
 		};
 	}
@@ -440,6 +466,8 @@ export interface OrderPricing {
 	/** Flat shipping, charged when the product is physical. */
 	shippingCents?: number;
 	paymentProvider?: string;
+	/** The clock, in ms. Only the payment deadline reads it. */
+	now?: number;
 }
 
 /** The winning price as a one-line cart: nothing regional, no quantity to choose. */
@@ -497,10 +525,16 @@ export async function ensureAuctionOrder(
 	});
 	const result = await db
 		.prepare(
-			`UPDATE commerce_auctions SET order_id = ?, updated_at = datetime('now')
+			`UPDATE commerce_auctions SET order_id = ?, pay_due_at = ?, updated_at = datetime('now')
 			 WHERE id = ? AND order_id IS NULL`
 		)
-		.bind(order.id, auction.id)
+		.bind(
+			order.id,
+			auction.payWithinHours > 0
+				? new Date((pricing.now ?? Date.now()) + auction.payWithinHours * 3600_000).toISOString()
+				: null,
+			auction.id
+		)
 		.run();
 	if ((result.meta?.changes ?? 0) === 0) {
 		// Someone else attached an order first; ours is a duplicate, so void it.
@@ -519,13 +553,129 @@ export interface SettleReport {
 	closed: number;
 	sold: number;
 	unsold: number;
+	/** Orders created this sweep. */
 	orders: number;
+	/** Sold auctions whose winner did not pay in time. */
+	lapsed: number;
+	/** "Pay soon" reminders claimed this sweep. */
+	reminders: number;
+	/** Which auctions each of the above happened to, so the caller can email the people involved. */
+	ordered: string[];
+	lapsedIds: string[];
+	reminderIds: string[];
+}
+
+/** A reminder goes out this long before the deadline, or halfway through a shorter window. */
+export const REMINDER_HOURS = 24;
+
+/**
+ * An unpaid winner loses the sale: the order is cancelled, then the auction
+ * becomes `lapsed`. The order goes first and only from `pending`, so an order
+ * that was paid a moment ago is never cancelled and its auction never lapses.
+ * A crash between the two steps is finished by the next sweep (a cancelled
+ * order past its deadline lapses its auction).
+ */
+export async function lapseAuction(db: D1Database, auctionId: string): Promise<Auction | null> {
+	for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+		const auction = await getAuction(db, auctionId);
+		if (!auction) return null;
+		if (auction.status !== 'sold' || !auction.orderId) {
+			throw new CommerceConflictError('Only a sold auction with an order can lapse');
+		}
+		const order = await getOrder(db, auction.orderId);
+		if (order && order.status !== 'cancelled') {
+			if (order.status !== 'pending') {
+				throw new CommerceConflictError('The order is already paid, so the sale stands');
+			}
+			const cancelled = await db
+				.prepare(
+					`UPDATE commerce_orders SET status = 'cancelled', updated_at = datetime('now')
+					 WHERE id = ? AND status = 'pending'`
+				)
+				.bind(order.id)
+				.run();
+			if ((cancelled.meta?.changes ?? 0) === 0) continue; // paid or changed just now: look again
+		}
+		const result = await db
+			.prepare(
+				`UPDATE commerce_auctions SET status = 'lapsed', version = version + 1, updated_at = datetime('now')
+				 WHERE id = ? AND version = ? AND status = 'sold'`
+			)
+			.bind(auction.id, auction.version)
+			.run();
+		if ((result.meta?.changes ?? 0) > 0) return getAuction(db, auction.id);
+	}
+	throw new CommerceConflictError('The auction changed while it was being lapsed');
 }
 
 /**
- * The sweep the scheduler runs: close every auction whose time is up, then
- * give every sold auction without one its order (which also repairs a crash
- * between the two steps). Idempotent.
+ * Put a finished, unsold, lapsed or cancelled auction back up: same terms, same
+ * product, starting now for as long as it ran the first time. An auction can be
+ * relisted once at a time (the double click is refused).
+ */
+export async function relistAuction(
+	db: D1Database,
+	auctionId: string,
+	options: { now?: number } = {}
+): Promise<Auction> {
+	const from = await getAuction(db, auctionId);
+	if (!from) throw new CommerceConflictError('Unknown auction');
+	if (from.status === 'open' || from.status === 'sold') {
+		throw new CommerceConflictError(`An auction that is ${from.status} cannot be relisted`);
+	}
+	const live = await db
+		.prepare(
+			"SELECT slug FROM commerce_auctions WHERE relisted_from = ? AND status = 'open' LIMIT 1"
+		)
+		.bind(from.id)
+		.first<Row>();
+	if (live) throw new CommerceConflictError(`Already relisted as ${live.slug as string}`);
+
+	const now = options.now ?? Date.now();
+	const ran = Date.parse(from.endsAt) - Date.parse(from.startsAt);
+	const duration = Math.min(Math.max(ran, 3600_000), 60 * 24 * 3600_000);
+	const root = from.slug.replace(/-r\d+$/, '');
+	for (let n = 2; n < 1000; n++) {
+		const slug = `${root}-r${n}`;
+		if (await db.prepare('SELECT 1 AS x FROM commerce_auctions WHERE slug = ?').bind(slug).first())
+			continue;
+		try {
+			return await createAuction(db, {
+				slug,
+				productId: from.productId,
+				title: from.title,
+				startingCents: from.startingCents,
+				reserveCents: from.reserveCents,
+				buyNowCents: from.buyNowCents,
+				incrementCents: from.incrementCents,
+				startsAt: new Date(now).toISOString(),
+				endsAt: new Date(now + duration).toISOString(),
+				extendSeconds: from.extendSeconds,
+				payWithinHours: from.payWithinHours,
+				relistedFrom: from.id
+			});
+		} catch (err) {
+			if (!(err instanceof CommerceConflictError)) throw err;
+			// Either another relist took this slug, or another relist of this very auction won.
+			const winner = await db
+				.prepare(
+					"SELECT slug FROM commerce_auctions WHERE relisted_from = ? AND status = 'open' LIMIT 1"
+				)
+				.bind(from.id)
+				.first<Row>();
+			if (winner) throw new CommerceConflictError(`Already relisted as ${winner.slug as string}`);
+		}
+	}
+	throw new CommerceConflictError('No free slug to relist under');
+}
+
+/**
+ * The sweep the scheduler runs, in four steps, each safe to repeat:
+ *  1. close every auction whose time is up;
+ *  2. give every sold auction without one its order (this also repairs a crash
+ *     between the two);
+ *  3. lapse sold auctions whose winner is past the payment deadline;
+ *  4. claim the "pay soon" reminder, once, for winners nearing it.
  */
 export async function settleDueAuctions(
 	db: D1Database,
@@ -533,7 +683,17 @@ export async function settleDueAuctions(
 ): Promise<SettleReport> {
 	const now = options.now ?? Date.now();
 	const limit = Math.min(Math.max(options.limit ?? 100, 1), 500);
-	const report: SettleReport = { closed: 0, sold: 0, unsold: 0, orders: 0 };
+	const report: SettleReport = {
+		closed: 0,
+		sold: 0,
+		unsold: 0,
+		orders: 0,
+		lapsed: 0,
+		reminders: 0,
+		ordered: [],
+		lapsedIds: [],
+		reminderIds: []
+	};
 
 	const due = await db
 		.prepare(
@@ -557,8 +717,61 @@ export async function settleDueAuctions(
 		.bind(limit)
 		.all<Row>();
 	for (const row of owed.results) {
-		const { order } = await ensureAuctionOrder(db, row.id as string, options.pricing);
-		if (order) report.orders += 1;
+		const before = await getAuction(db, row.id as string);
+		const { order } = await ensureAuctionOrder(db, row.id as string, {
+			...options.pricing,
+			now
+		});
+		if (order && before && !before.orderId) {
+			report.orders += 1;
+			report.ordered.push(before.id);
+		}
+	}
+
+	const late = await db
+		.prepare(
+			`SELECT a.id FROM commerce_auctions a JOIN commerce_orders o ON o.id = a.order_id
+			 WHERE a.status = 'sold' AND a.pay_due_at IS NOT NULL AND a.pay_due_at <= ?
+			   AND o.status IN ('pending', 'cancelled') ORDER BY a.pay_due_at LIMIT ?`
+		)
+		.bind(new Date(now).toISOString(), limit)
+		.all<Row>();
+	for (const row of late.results) {
+		try {
+			const lapsed = await lapseAuction(db, row.id as string);
+			if (lapsed?.status === 'lapsed') {
+				report.lapsed += 1;
+				report.lapsedIds.push(lapsed.id);
+			}
+		} catch (err) {
+			if (!(err instanceof CommerceConflictError)) throw err; // paid in the meantime: the sale stands
+		}
+	}
+
+	const soon = await db
+		.prepare(
+			`SELECT a.id, a.pay_due_at, a.pay_within_hours FROM commerce_auctions a
+			 JOIN commerce_orders o ON o.id = a.order_id
+			 WHERE a.status = 'sold' AND a.pay_due_at IS NOT NULL AND a.reminded_at IS NULL
+			   AND a.pay_due_at > ? AND o.status = 'pending' ORDER BY a.pay_due_at LIMIT ?`
+		)
+		.bind(new Date(now).toISOString(), limit)
+		.all<Row>();
+	for (const row of soon.results) {
+		const windowHours = Number(row.pay_within_hours);
+		const leadMs = Math.min(REMINDER_HOURS, windowHours / 2) * 3600_000;
+		if (Date.parse(row.pay_due_at as string) - now > leadMs) continue;
+		const claimed = await db
+			.prepare(
+				`UPDATE commerce_auctions SET reminded_at = ?, updated_at = datetime('now')
+				 WHERE id = ? AND reminded_at IS NULL`
+			)
+			.bind(new Date(now).toISOString(), row.id)
+			.run();
+		if ((claimed.meta?.changes ?? 0) > 0) {
+			report.reminders += 1;
+			report.reminderIds.push(row.id as string);
+		}
 	}
 	return report;
 }

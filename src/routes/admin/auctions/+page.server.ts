@@ -6,7 +6,7 @@ import {
 	cancelAuction,
 	closeAuction,
 	createAuction,
-	ensureAuctionOrder,
+	relistAuction,
 	formatMoney,
 	getAuction,
 	listAuctions,
@@ -14,6 +14,8 @@ import {
 } from '@nebulakit/commerce';
 import { requirePermission } from '$lib/server/auth-guards';
 import { auctionPricing } from '$lib/server/auction-pricing';
+import { requestMailer } from '$lib/server/auction-emails';
+import { settleSale } from '$lib/server/auction-sale';
 import { parseAuctionValues, readAuctionForm } from '$lib/server/auctions';
 import type { CommerceEnv } from '$lib/server/site-info';
 import type { Actions, PageServerLoad } from './$types';
@@ -56,7 +58,10 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 			bidCount: a.bidCount,
 			leaderEmail: a.leaderEmail,
 			winnerEmail: a.winnerEmail,
-			orderId: a.orderId
+			orderId: a.orderId,
+			payDueAt: a.payDueAt,
+			payWithinHours: a.payWithinHours,
+			relistedFrom: a.relistedFrom
 		}))
 	};
 };
@@ -100,7 +105,12 @@ export const actions: Actions = {
 		const closed = await closeAuction(db, id, { force: true });
 		if (!closed) return fail(404, { action: 'end', problems: ['That auction no longer exists.'] });
 		if (closed.status === 'sold') {
-			await ensureAuctionOrder(db, closed.id, auctionPricing((platform?.env ?? {}) as CommerceEnv));
+			await settleSale(
+				db,
+				requestMailer(platform),
+				closed.id,
+				auctionPricing((platform?.env ?? {}) as CommerceEnv)
+			);
 		}
 		return {
 			action: 'end',
@@ -128,5 +138,22 @@ export const actions: Actions = {
 			throw err;
 		}
 		return { action: 'cancel', message: 'Cancelled. Existing bids are void.' };
+	},
+
+	/** Put an unsold, lapsed or cancelled auction back up, starting now, with the same terms. */
+	relist: async ({ locals, platform, request }) => {
+		requirePermission(locals, 'shop');
+		const db = database(platform);
+		const id = auctionId(await request.formData());
+		if (!id) return fail(400, { action: 'relist', problems: ['Missing auction.'] });
+		try {
+			const again = await relistAuction(db, id);
+			return { action: 'relist', message: `Relisted as ${again.slug}.` };
+		} catch (err) {
+			if (err instanceof CommerceConflictError) {
+				return fail(409, { action: 'relist', problems: [err.message + '.'] });
+			}
+			throw err;
+		}
 	}
 };

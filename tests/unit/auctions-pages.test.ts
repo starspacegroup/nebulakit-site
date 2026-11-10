@@ -27,6 +27,7 @@ const view = (over: Record<string, unknown> = {}) => ({
 	youWon: false,
 	finalPrice: null,
 	orderId: null,
+	payDueAt: null,
 	...over
 });
 const detail = (over: Record<string, unknown> = {}, auction: Record<string, unknown> = {}) =>
@@ -138,6 +139,22 @@ describe('/auctions/[slug]', () => {
 		expect(screen.getByRole('button', { name: 'Pay now' })).toBeTruthy();
 	});
 
+	it('tells the winner when to pay by', () => {
+		render(Detail, {
+			data: detail(
+				{ order: { status: 'pending', total: '$10.00', needsAddress: false } },
+				{ phase: 'sold', youWon: true, finalPrice: '$10.00', payDueAt: '2030-01-05T12:00:00.000Z' }
+			),
+			form: null
+		});
+		expect(screen.getByText(/Please pay by Jan 5, 2030/)).toBeTruthy();
+	});
+
+	it('says a lapsed auction ended without a completed sale', () => {
+		render(Detail, { data: detail({}, { phase: 'lapsed' }), form: null });
+		expect(screen.getByText(/ended without a completed sale/)).toBeTruthy();
+	});
+
 	it('shows a paid order as thanks, not a pay button', () => {
 		render(Detail, {
 			data: detail(
@@ -195,6 +212,9 @@ describe('/admin/auctions', () => {
 		leaderEmail: 'amy@x.test',
 		winnerEmail: null,
 		orderId: null,
+		payDueAt: null,
+		payWithinHours: 72,
+		relistedFrom: null,
 		...over
 	});
 	const products = [{ id: 'p1', name: 'Blue mug', active: false, price: '$50.00' }];
@@ -231,6 +251,42 @@ describe('/admin/auctions', () => {
 		expect(screen.getByText('o-1')).toBeTruthy();
 	});
 
+	it('offers Relist for an auction that did not sell, lapsed or was cancelled, and for no other', () => {
+		for (const status of ['unsold', 'lapsed', 'cancelled'] as const) {
+			const { unmount } = render(Admin, {
+				data: { products, auctions: [row({ status, phase: status })] } as never,
+				form: null
+			});
+			expect(screen.getByRole('button', { name: 'Relist Blue mug' })).toBeTruthy();
+			expect(screen.queryByRole('button', { name: /End Blue mug/ })).toBeNull();
+			unmount();
+		}
+		render(Admin, {
+			data: { products, auctions: [row({ status: 'sold', phase: 'sold' })] } as never,
+			form: null
+		});
+		expect(screen.queryByRole('button', { name: /Relist/ })).toBeNull();
+	});
+
+	it('shows when a sold auction must be paid by, and the payment window field', () => {
+		render(Admin, {
+			data: {
+				products,
+				auctions: [
+					row({
+						status: 'sold',
+						phase: 'sold',
+						payDueAt: '2030-01-05T12:00:00.000Z',
+						winnerEmail: 'amy@x.test'
+					})
+				]
+			} as never,
+			form: null
+		});
+		expect(screen.getByText('Payment due')).toBeTruthy();
+		expect((screen.getByLabelText(/Winner must pay within/) as HTMLInputElement).value).toBe('72');
+	});
+
 	it('shows a rejected form as typed, and a success message', () => {
 		render(Admin, {
 			data: { products, auctions: [] } as never,
@@ -247,7 +303,8 @@ describe('/admin/auctions', () => {
 					increment: '',
 					startsAt: '',
 					endsAt: '',
-					extendSeconds: '300'
+					extendSeconds: '300',
+					payWithinHours: '72'
 				}
 			} as never
 		});

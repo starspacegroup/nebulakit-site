@@ -19,7 +19,8 @@ export const MODULES = [
 	}
 ];
 
-export function compile({ source, module, out }) {
+/** @param {{ source: string, module: string, out: string }} entry */
+export function compile({ source, module }) {
 	const work = mkdtempSync(join(process.env.TMPDIR || join(homedir(), '.tmp'), 'dafny-'));
 	try {
 		execFileSync(

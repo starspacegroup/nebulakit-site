@@ -2,7 +2,6 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error: a plain .mjs build script with no types
 import { MODULES, compile } from '../../scripts/build-dafny.mjs';
 
 function hasDafny(): boolean {
@@ -17,7 +16,7 @@ function hasDafny(): boolean {
 // The committed JS is what runs; the .dfy is what was proved. This keeps them the same file.
 // Skipped where dafny is not installed (CI): `bun run build:dafny` regenerates it locally.
 describe('generated Dafny output', () => {
-	for (const entry of MODULES as Array<{ source: string; module: string; out: string }>) {
+	for (const entry of MODULES) {
 		it.skipIf(!hasDafny())(
 			`${entry.out} matches ${entry.source}`,
 			() => {

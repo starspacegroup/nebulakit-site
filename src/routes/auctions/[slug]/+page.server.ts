@@ -4,7 +4,6 @@ import {
 	BID_REFUSALS,
 	buyNowAuction,
 	closeAuction,
-	ensureAuctionOrder,
 	getAuction,
 	getOrder,
 	getProduct,
@@ -20,6 +19,8 @@ import {
 import { auctionView, bidViews } from '$lib/server/auctions';
 import { dollarsToCents } from '$lib/server/admin-products';
 import { auctionPricing } from '$lib/server/auction-pricing';
+import { mailOutbid, requestMailer } from '$lib/server/auction-emails';
+import { settleSale } from '$lib/server/auction-sale';
 import type { CommerceEnv } from '$lib/server/site-info';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -52,7 +53,12 @@ export const load: PageServerLoad = async ({ params, locals, platform }) => {
 	// The winner gets their order the moment they look, not only when the sweep runs.
 	if (auction.status === 'sold' && !auction.orderId && viewer === auction.winnerId) {
 		auction = (
-			await ensureAuctionOrder(db, auction.id, auctionPricing((platform?.env ?? {}) as CommerceEnv))
+			await settleSale(
+				db,
+				requestMailer(platform),
+				auction.id,
+				auctionPricing((platform?.env ?? {}) as CommerceEnv)
+			)
 		).auction;
 	}
 	const product = await getProduct(db, auction.productId);
@@ -101,6 +107,14 @@ export const actions: Actions = {
 			const refusal = result.reason;
 			return fail(409, { action: 'bid', problem: BID_REFUSALS[refusal], max: raw });
 		}
+		if (result.outbidEmail) {
+			await mailOutbid(
+				requestMailer(platform),
+				result.auction,
+				result.outbidEmail,
+				auctionView(result.auction, null).minimumBid
+			);
+		}
 		return {
 			action: 'bid',
 			message: result.leading
@@ -118,6 +132,12 @@ export const actions: Actions = {
 		if (!result.ok) {
 			return fail(409, { action: 'buynow', problem: 'Buy now is no longer available.' });
 		}
+		await settleSale(
+			db,
+			requestMailer(platform),
+			auction.id,
+			auctionPricing((platform?.env ?? {}) as CommerceEnv)
+		);
 		return { action: 'buynow', message: 'It is yours. Complete your order below.' };
 	},
 
@@ -129,7 +149,12 @@ export const actions: Actions = {
 		if (auction.status !== 'sold' || auction.winnerId !== winner.id) {
 			throw error(403, 'Only the winner can pay for this auction');
 		}
-		const { order } = await ensureAuctionOrder(db, auction.id, auctionPricing(env));
+		const { order } = await settleSale(
+			db,
+			requestMailer(platform),
+			auction.id,
+			auctionPricing(env)
+		);
 		if (!order) throw error(409, 'There is no order to pay yet');
 		if (order.status !== 'pending') {
 			return { action: 'pay', message: 'This order is already paid.' };

@@ -40,6 +40,8 @@ export interface AuctionView {
 	youWon: boolean;
 	finalPrice: string | null;
 	orderId: string | null;
+	/** When the winner must pay by, shown only to the winner. */
+	payDueAt: string | null;
 }
 
 export function auctionView(
@@ -72,7 +74,8 @@ export function auctionView(
 		youLead: viewerId !== null && auction.status === 'open' && auction.leaderId === viewerId,
 		youWon: viewerId !== null && auction.status === 'sold' && auction.winnerId === viewerId,
 		finalPrice: auction.finalCents === null ? null : money(auction.finalCents),
-		orderId: viewerId !== null && auction.winnerId === viewerId ? auction.orderId : null
+		orderId: viewerId !== null && auction.winnerId === viewerId ? auction.orderId : null,
+		payDueAt: viewerId !== null && auction.winnerId === viewerId ? auction.payDueAt : null
 	};
 }
 
@@ -108,6 +111,7 @@ export interface AuctionFormValues {
 	startsAt: string;
 	endsAt: string;
 	extendSeconds: string;
+	payWithinHours: string;
 }
 
 export function readAuctionForm(form: FormData): AuctionFormValues {
@@ -122,7 +126,8 @@ export function readAuctionForm(form: FormData): AuctionFormValues {
 		increment: field('increment'),
 		startsAt: field('starts_at'),
 		endsAt: field('ends_at'),
-		extendSeconds: field('extend_seconds') || '0'
+		extendSeconds: field('extend_seconds') || '0',
+		payWithinHours: field('pay_within_hours') || '0'
 	};
 }
 
@@ -160,6 +165,10 @@ export function parseAuctionValues(values: AuctionFormValues): ParsedAuction {
 	if (!/^\d+$/.test(values.extendSeconds) || !Number.isSafeInteger(extend)) {
 		errors.push('Extension must be a whole number of seconds.');
 	}
+	const payWithin = Number(values.payWithinHours);
+	if (!/^\d+$/.test(values.payWithinHours) || !Number.isSafeInteger(payWithin)) {
+		errors.push('Payment window must be a whole number of hours.');
+	}
 	if (errors.length || starting === null || startsAt === null || endsAt === null) {
 		return { ok: false, errors };
 	}
@@ -175,7 +184,8 @@ export function parseAuctionValues(values: AuctionFormValues): ParsedAuction {
 			incrementCents: increment,
 			startsAt: new Date(startsAt).toISOString(),
 			endsAt: new Date(endsAt).toISOString(),
-			extendSeconds: extend
+			extendSeconds: extend,
+			payWithinHours: payWithin
 		}
 	};
 }
@@ -184,5 +194,6 @@ export const STATUS_LABELS: Record<(typeof AUCTION_STATUSES)[number], string> = 
 	open: 'Open',
 	sold: 'Sold',
 	unsold: 'Ended without a sale',
-	cancelled: 'Cancelled'
+	cancelled: 'Cancelled',
+	lapsed: 'Sold, but the winner did not pay'
 };

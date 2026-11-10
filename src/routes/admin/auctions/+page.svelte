@@ -14,7 +14,8 @@
 		increment: '',
 		startsAt: '',
 		endsAt: '',
-		extendSeconds: '300'
+		extendSeconds: '300',
+		payWithinHours: '72'
 	};
 	const v = $derived(
 		form && 'values' in form && form.values && form.action === 'create' ? form.values : blank
@@ -32,6 +33,7 @@
 		sold: 'Sold',
 		unsold: 'Ended without a sale',
 		cancelled: 'Cancelled',
+		lapsed: 'Lapsed, winner did not pay',
 		open: 'Open'
 	};
 </script>
@@ -111,6 +113,13 @@
 				<input name="extend_seconds" inputmode="numeric" value={v.extendSeconds} />
 			</label>
 			<label>
+				Winner must pay within, hours
+				<span class="hint"
+					>(0 is no deadline; use 0 or a long window if you take manual payment)</span
+				>
+				<input name="pay_within_hours" inputmode="numeric" value={v.payWithinHours} />
+			</label>
+			<label>
 				Starts (UTC)
 				<input name="starts_at" type="datetime-local" required value={v.startsAt} />
 			</label>
@@ -179,8 +188,32 @@
 								<dt>Order</dt>
 								<dd>{auction.orderId}</dd>
 							</div>{/if}
+						{#if auction.payDueAt && auction.status === 'sold'}
+							<div>
+								<dt>Payment due</dt>
+								<dd>{when(auction.payDueAt)}</dd>
+							</div>
+						{/if}
+						{#if auction.relistedFrom}
+							<div>
+								<dt>Relisted</dt>
+								<dd>Yes</dd>
+							</div>
+						{/if}
 					</dl>
-					{#if auction.status === 'open'}
+					{#if auction.status === 'unsold' || auction.status === 'lapsed' || auction.status === 'cancelled'}
+						<form method="POST" use:enhance class="actions">
+							<input type="hidden" name="id" value={auction.id} />
+							<button
+								type="submit"
+								formaction="?/relist"
+								class="secondary"
+								aria-label="Relist {auction.title}"
+							>
+								Relist
+							</button>
+						</form>
+					{:else if auction.status === 'open'}
 						<form method="POST" use:enhance class="actions">
 							<input type="hidden" name="id" value={auction.id} />
 							<button

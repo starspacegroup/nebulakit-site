@@ -24,7 +24,8 @@ const num = (b: BigNumber) => b.toNumber();
 /** Dafny's "none" conventions: no bid yet, no reserve, tiered increment. */
 const orNone = (n: number | null, none: number) => big(n ?? none);
 
-export const AUCTION_STATUSES = ['open', 'sold', 'unsold', 'cancelled'] as const;
+/** `lapsed`: it sold, but the winner did not pay in time and the order was cancelled. */
+export const AUCTION_STATUSES = ['open', 'sold', 'unsold', 'cancelled', 'lapsed'] as const;
 export type AuctionStatus = (typeof AUCTION_STATUSES)[number];
 
 /** Whether the clock says an open auction has started, is running, or is over. */

@@ -356,14 +356,14 @@ describe('settleDueAuctions', () => {
 		});
 
 		const report = await settleDueAuctions(db, { now: START + 25 * HOUR });
-		expect(report).toEqual({ closed: 2, sold: 1, unsold: 1, orders: 1 });
+		expect(report).toMatchObject({ closed: 2, sold: 1, unsold: 1, orders: 1, lapsed: 0, reminders: 0 });
 		expect((await getAuction(db, auction.id))!.status).toBe('sold');
 		expect((await getAuction(db, auction.id))!.orderId).toBeTruthy();
 		expect((await getAuction(db, nobody.id))!.status).toBe('unsold');
 		expect((await getAuction(db, later.id))!.status).toBe('open');
 
 		// A second sweep has nothing left to do.
-		expect(await settleDueAuctions(db, { now: START + 25 * HOUR })).toEqual({
+		expect(await settleDueAuctions(db, { now: START + 25 * HOUR })).toMatchObject({
 			closed: 0,
 			sold: 0,
 			unsold: 0,

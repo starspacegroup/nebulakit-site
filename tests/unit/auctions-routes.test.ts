@@ -307,7 +307,8 @@ describe('/admin/auctions', () => {
 		increment: '',
 		starts_at: '2030-01-01T09:00',
 		ends_at: '2030-01-02T09:00',
-		extend_seconds: '300'
+		extend_seconds: '300',
+		pay_within_hours: '72'
 	});
 
 	it('needs the shop permission for the load and every action', async () => {
@@ -416,7 +417,8 @@ describe('form parsing', () => {
 			increment: '',
 			startsAt: '2030-01-01T09:00',
 			endsAt: '2030-01-02T09:00',
-			extendSeconds: '-5'
+			extendSeconds: '-5',
+			payWithinHours: '0'
 		});
 		expect(parsed.ok).toBe(false);
 	});
@@ -443,7 +445,7 @@ describe('the settle-auctions job', () => {
 			signal: new AbortController().signal,
 			params: new URLSearchParams()
 		} as never);
-		expect(detail).toEqual({ closed: 1, sold: 1, unsold: 0, orders: 1 });
+		expect(detail).toEqual({ closed: 1, sold: 1, unsold: 0, orders: 1, lapsed: 0, reminders: 0 });
 		const order = (await getOrder(db, (await getAuction(db, auction.id))!.orderId!))!;
 		expect(order).toMatchObject({ subtotalCents: 1000, taxCents: 100, totalCents: 1100 });
 	});

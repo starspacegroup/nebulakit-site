@@ -98,6 +98,8 @@
 				<p>Sold for {a.finalPrice}.</p>
 			{:else if a.phase === 'unsold'}
 				<p>This auction ended without a sale.</p>
+			{:else if a.phase === 'lapsed'}
+				<p>This auction ended without a completed sale.</p>
 			{:else if a.phase === 'cancelled'}
 				<p>This auction was cancelled.</p>
 			{:else}
@@ -109,6 +111,7 @@
 					<h2 id="won-heading">You won this auction</h2>
 					{#if data.order.status === 'pending'}
 						<p>Total due: {data.order.total}</p>
+						{#if a.payDueAt}<p>Please pay by {when(a.payDueAt)}.</p>{/if}
 						<form method="POST" action="?/pay" use:enhance class="pay">
 							{#if data.order.needsAddress}
 								<label>Name <input name="name" required autocomplete="name" /></label>

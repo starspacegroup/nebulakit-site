@@ -1,7 +1,7 @@
 # Auctions
 
 Sell one unit of a product to the highest bidder. Auctions are part of
-`@nebulakit/commerce` (0.3.0). A won auction becomes an ordinary order, so
+`@nebulakit/commerce` (0.4.0). A won auction becomes an ordinary order, so
 payment, fulfilment and the orders API work as they do for any other sale.
 
 ## Where things are
@@ -35,6 +35,10 @@ Setup options:
 - **Extend by** seconds (optional). A bid inside the last N seconds moves the end
   to N seconds from the bid, so nobody wins by bidding in the last moment. At most
   50 extensions per auction.
+- **Winner must pay within** (hours). Starts when the winner's order is made. 0 is
+  no deadline, the default for the API; the admin form suggests 72. Use 0 or a
+  long window if you take manual payment, because the sweep cannot tell a slow
+  bank transfer from a no-show.
 - **Start and end**, in UTC. An auction runs for 60 days at most.
 
 ### Proxy bidding
@@ -71,6 +75,36 @@ address first.
 An auction closes once and has one order. The sweep is safe to retry, and it
 also repairs a sold auction whose order was never created.
 
+### Unpaid winners and relisting
+
+With a payment window, the sweep does two more things. About a day before the
+deadline (halfway, for a window under two days) it sends one reminder. Past the
+deadline it **lapses** the sale: the order is cancelled and the auction becomes
+`lapsed`. The order is cancelled first and only while it is `pending`, so an
+order paid a moment earlier is never cancelled and its sale stands. A crash
+between the two steps is finished by the next sweep.
+
+An unsold, lapsed or cancelled auction can be **relisted** from the admin page:
+same product and terms, starting now, running as long as before, under the slug
+`<slug>-r2`, `-r3`, and so on. A database index allows one open relist per
+auction, so a double click cannot list it twice.
+
+## Emails
+
+Sent through the site's email setup (`RESEND_API_KEY`, `EMAIL_FROM`; nothing is
+sent and a "skipped" row is logged without them). Each is once-only per event
+through `email_log`.
+
+| Email         | To                       | When                                                                   |
+| ------------- | ------------------------ | ---------------------------------------------------------------------- |
+| You won       | the winner               | the order is made (buy now, the sweep, or the winner opening the page) |
+| Outbid        | the bidder who lost lead | a bid takes the lead from them (not when they are merely out-defended) |
+| Pay soon      | the winner               | once, inside the reminder window                                       |
+| Win cancelled | the winner               | the sale lapses                                                        |
+
+The outbid email says the new price and the minimum to bid again, never who
+outbid them or any maximum.
+
 ## Who can bid
 
 Bidders must be signed in. The public page shows an alias ("Bidder 7F3A"), the
@@ -83,13 +117,36 @@ Every bid and every closing is a compare-and-set on the auction's `version`. The
 rules run against the auction as read, and the write lands only if it is still
 that auction. A lost race re-reads and re-runs the rules, so two bids at the
 same moment are ordered and never both applied. The bid row is written in the
-same batch, only when the auction update changed a row.
+same batch, only when the auction update changed a row (`changes() > 0`).
+
+## What is proved
+
+The arithmetic that moves money is in `dafny/AuctionCore.dfy`, verified by Dafny
+and compiled to JS; `auction.ts` only checks the clock and status and passes
+values in. Among the lemmas, which hold through any sequence of bids
+(`RunValid`):
+
+- the price never falls, is never below the starting price, and never exceeds
+  the leader's own maximum;
+- the highest maximum placed holds the lead, and a tie goes to the earlier bidder;
+- raising your own maximum never moves the price;
+- a challenger who loses moves the price at most one increment above their own
+  maximum, and one who wins pays at most one increment over the old maximum;
+- once the leader's maximum clears the reserve the price is at least the reserve;
+- a sale is at the board price: never above the winner's maximum, never below
+  the reserve;
+- soft close only ever moves the end later, never more than one window past the
+  bid, and never past the cap of 50 extensions.
+
+Change a rule by editing the `.dfy`, then `bun run build:dafny` (needs `dafny`
+4.11 on the PATH). The generated file is committed, and a test fails if it no
+longer matches the `.dfy`. What is _not_ proved: the storage, the sweep and the
+emails (they are tested, not proved), and `payWithinHours`, which is not money.
 
 ## Not included
 
-- **Notification emails** (outbid, won). The email log exists; wiring a template
-  is the next step.
-- **Payment deadline and relisting.** An unpaid winner's order stays pending
-  until an admin cancels it; relist by creating a new auction.
 - **A public API.** Auctions have pages, not `/api/v1` routes, so no API scope.
 - **Quantity above one.** One auction sells one unit.
+- **Second-chance offers.** A lapsed sale is relisted; it is not offered to the
+  runner-up.
+- **A "you lost" email** to bidders when an auction ends.
