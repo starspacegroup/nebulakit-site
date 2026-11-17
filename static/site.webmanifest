@@ -1,0 +1,18 @@
+{
+	"name": "NebulaKit",
+	"short_name": "NebulaKit",
+	"description": "The site for NebulaKit, an independent Cloudflare-native platform for content management, authentication, AI chat, first-party analytics, and agent-ready publishing.",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"theme_color": "#0f0f23",
+	"background_color": "#0f0f23",
+	"icons": [
+		{
+			"src": "/favicon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml",
+			"purpose": "any"
+		}
+	]
+}
