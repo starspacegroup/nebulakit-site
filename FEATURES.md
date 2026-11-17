@@ -395,6 +395,7 @@ Multiple variants included:
 ### Shop, Payments and Email
 
 - Products, cart and Stripe checkout; the server works out every price
+- Share images: every page is shared with an image (its own photo when it has one, else the site's card, generated from `site.config.ts` by `bun run og:generate`), never an SVG, and tests fail if a page or a renamed site loses that (`docs/SHARE_IMAGES.md`)
 - A public status page at `/status` (and JSON at `/api/status`): measured website and database checks every minute, incidents opened and closed by the checks or posted by the owner, 90-day history, and an honest "checks are delayed" instead of a false all-clear (`docs/STATUS_PAGE.md`)
 - Auctions: proxy bidding, hidden reserve, buy it now, late-bid extension; a won auction becomes an order (`docs/AUCTIONS.md`)
 - Handles late, failed and expired payments; a replayed event changes nothing twice

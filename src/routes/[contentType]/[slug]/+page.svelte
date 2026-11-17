@@ -8,6 +8,7 @@
 	import type { PageData } from './$types';
 	import CmsContent from '$lib/components/CmsContent.svelte';
 	import SharingMeta from '$lib/components/SharingMeta.svelte';
+	import { firstShareImage } from '$lib/seo/share-image';
 
 	export let data: PageData;
 
@@ -32,7 +33,8 @@
 <SharingMeta
 	title={item.seoTitle || item.title}
 	description={item.seoDescription || ''}
-	image={item.seoImage || ''}
+	image={firstShareImage(item.seoImage, item.fields.featured_image)}
+	imageAlt={item.title}
 	type="article"
 	publishedTime={item.publishedAt || ''}
 	modifiedTime={item.updatedAt || ''}

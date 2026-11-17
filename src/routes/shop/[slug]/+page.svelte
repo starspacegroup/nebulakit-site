@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SharingMeta from '$lib/components/SharingMeta.svelte';
 	import { addToCart, loadCart, saveCart } from '$lib/shop/cart';
 	import { MAX_QUANTITY } from '@nebulakit/commerce';
 	import type { PageData } from './$types';
@@ -24,10 +25,13 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{data.product.name}</title>
-	<meta name="description" content={data.product.description.slice(0, 160)} />
-</svelte:head>
+<!-- The product's own photo is the share image; without one the site's default is used. -->
+<SharingMeta
+	title={data.product.name}
+	description={data.product.description.slice(0, 160)}
+	image={data.product.imageUrl ?? ''}
+	imageAlt={data.product.name}
+/>
 
 <article class="product">
 	<p><a href="/shop">← Shop</a></p>

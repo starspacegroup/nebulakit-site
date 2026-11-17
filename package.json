@@ -14,6 +14,7 @@
 		"lighthouse": "node scripts/lighthouse.mjs",
 		"capture:built-with": "bun scripts/capture-built-with.mjs",
 		"build:dafny": "node scripts/build-dafny.mjs",
+		"og:generate": "bun scripts/generate-og-image.mjs",
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
