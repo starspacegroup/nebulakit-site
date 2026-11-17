@@ -32,6 +32,7 @@
 					{ path: '/admin/ai-keys', label: 'AI Keys', icon: 'sparkles' },
 					{ path: '/admin/settings/pricing', label: 'Regional Pricing', icon: 'chart' },
 					{ path: '/admin/scheduled-jobs', label: 'Scheduled Jobs', icon: 'clock' },
+					{ path: '/admin/status', label: 'Status page', icon: 'activity' },
 					{ path: '/admin/audit', label: 'Audit log', icon: 'activity' },
 					{ path: '/admin/sign-ins', label: 'Sign-ins', icon: 'users' }
 				]

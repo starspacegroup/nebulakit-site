@@ -395,6 +395,7 @@ Multiple variants included:
 ### Shop, Payments and Email
 
 - Products, cart and Stripe checkout; the server works out every price
+- A public status page at `/status` (and JSON at `/api/status`): measured website and database checks every minute, incidents opened and closed by the checks or posted by the owner, 90-day history, and an honest "checks are delayed" instead of a false all-clear (`docs/STATUS_PAGE.md`)
 - Auctions: proxy bidding, hidden reserve, buy it now, late-bid extension; a won auction becomes an order (`docs/AUCTIONS.md`)
 - Handles late, failed and expired payments; a replayed event changes nothing twice
 - Receipts and shipping notices through Resend, sent at most once per order

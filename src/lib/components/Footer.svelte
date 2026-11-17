@@ -83,6 +83,9 @@
 							<a href="/badge">Badge</a>
 						</li>
 						<li>
+							<a href="/status">Status</a>
+						</li>
+						<li>
 							<a href={projectRepoUrl} target="_blank" rel="noopener noreferrer"> GitHub </a>
 						</li>
 					</ul>
