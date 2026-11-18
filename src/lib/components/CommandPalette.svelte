@@ -116,13 +116,6 @@
 			icon: '📚'
 		},
 		{
-			id: 'showcase',
-			label: 'Showcase',
-			description: 'Try the drag-and-drop widget board',
-			action: () => goto('/showcase'),
-			icon: '🧩'
-		},
-		{
 			id: 'components',
 			label: 'Components',
 			description: 'Every UI element and widget, running',

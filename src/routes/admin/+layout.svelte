@@ -32,6 +32,7 @@
 					{ path: '/admin/ai-keys', label: 'AI Keys', icon: 'sparkles' },
 					{ path: '/admin/settings/pricing', label: 'Regional Pricing', icon: 'chart' },
 					{ path: '/admin/scheduled-jobs', label: 'Scheduled Jobs', icon: 'clock' },
+					{ path: '/admin/status', label: 'Status page', icon: 'activity' },
 					{ path: '/admin/audit', label: 'Audit log', icon: 'activity' },
 					{ path: '/admin/sign-ins', label: 'Sign-ins', icon: 'users' }
 				]
@@ -40,6 +41,7 @@
 		{ path: '/admin/pages', label: 'Pages', icon: 'layout', permission: 'pages' },
 		{ path: '/admin/redirects', label: 'Redirects', icon: 'link', permission: 'pages' },
 		{ path: '/admin/products', label: 'Products', icon: 'bag', permission: 'shop' },
+		{ path: '/admin/auctions', label: 'Auctions', icon: 'bag', permission: 'shop' },
 		{ path: '/admin/api-keys', label: 'API Keys', icon: 'key', permission: 'api-keys' },
 		{
 			path: '/admin/contact-form-submissions',

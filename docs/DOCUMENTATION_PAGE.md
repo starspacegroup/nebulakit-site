@@ -39,23 +39,24 @@ unchanged" in the commit or PR body so the omission is a decision, not an oversi
 The page is one route with anchored sections and a nav list at the top. Match the change to a
 section rather than appending to the end:
 
-| Section (`id`)        | Put this here                                                       |
-| --------------------- | ------------------------------------------------------------------- |
-| `start-here`          | First-run orientation and ordering of setup steps                   |
-| `quick-start`         | Install/dev/build/deploy commands (both bun and npm variants)       |
-| `feature-overview`    | "What you get" — one bullet per user-visible capability             |
-| `how-to-use`          | Task-oriented walkthroughs for using features                       |
-| `ai-workflow`         | How to work with AI assistants in this repo                         |
-| `commands`            | Full script/command reference                                       |
-| `cloudflare-bindings` | D1, KV, R2, Queues, Workers AI, and any new binding                 |
-| `database-migrations` | Migration workflow and the immutability rule                        |
-| `auth-and-setup`      | Auth providers, owner setup, session behavior                       |
-| `testing`             | How to run tests and the coverage floor                             |
-| `project-structure`   | Directory layout — update when adding a top-level route or lib area |
-| `deployment`          | Cloudflare Pages/Workers deploy steps and required config           |
-| `troubleshooting`     | Failure modes users will actually hit                               |
-| `references`          | Links to repo docs and external resources                           |
-| `contributing`        | Contribution pointers                                               |
+| Section (`id`)        | Put this here                                                                                                                                                          |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `use-with-ai`         | How an AI builds with, runs, or reads NebulaKit: the prompt, the API-key scopes, the discovery surfaces. Keep the scope table equal to `API_SCOPES` (a test checks it) |
+| `start-here`          | First-run orientation and ordering of setup steps                                                                                                                      |
+| `quick-start`         | Install/dev/build/deploy commands (both bun and npm variants)                                                                                                          |
+| `feature-overview`    | "What you get" — one bullet per user-visible capability                                                                                                                |
+| `how-to-use`          | Task-oriented walkthroughs for using features                                                                                                                          |
+| `ai-workflow`         | How to work with AI assistants in this repo                                                                                                                            |
+| `commands`            | Full script/command reference                                                                                                                                          |
+| `cloudflare-bindings` | D1, KV, R2, Queues, Workers AI, and any new binding                                                                                                                    |
+| `database-migrations` | Migration workflow and the immutability rule                                                                                                                           |
+| `auth-and-setup`      | Auth providers, owner setup, session behavior                                                                                                                          |
+| `testing`             | How to run tests and the coverage floor                                                                                                                                |
+| `project-structure`   | Directory layout — update when adding a top-level route or lib area                                                                                                    |
+| `deployment`          | Cloudflare Pages/Workers deploy steps and required config                                                                                                              |
+| `troubleshooting`     | Failure modes users will actually hit                                                                                                                                  |
+| `references`          | Links to repo docs and external resources                                                                                                                              |
+| `contributing`        | Contribution pointers                                                                                                                                                  |
 
 A feature usually lands in **two** places: a one-line capability bullet in `feature-overview`, and
 the actual instructions in `how-to-use` (or `commands` / `auth-and-setup` / `cloudflare-bindings`,
