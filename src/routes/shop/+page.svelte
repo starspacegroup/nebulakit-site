@@ -1,13 +1,11 @@
 <script lang="ts">
+	import SharingMeta from '$lib/components/SharingMeta.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 </script>
 
-<svelte:head>
-	<title>Shop</title>
-	<meta name="description" content="Everything for sale on this site." />
-</svelte:head>
+<SharingMeta title="Shop" description="Everything for sale on this site." />
 
 <section class="shop">
 	<header>

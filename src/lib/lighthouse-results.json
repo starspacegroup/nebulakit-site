@@ -100,17 +100,6 @@
 					}
 				},
 				{
-					"path": "/showcase",
-					"title": "Showcase",
-					"report": "/lighthouse/site-showcase",
-					"scores": {
-						"performance": 100,
-						"accessibility": 100,
-						"best-practices": 100,
-						"seo": 100
-					}
-				},
-				{
 					"path": "/components",
 					"title": "Components",
 					"report": "/lighthouse/site-components",

@@ -74,9 +74,6 @@
 							<a href="/documentation">Documentation</a>
 						</li>
 						<li>
-							<a href="/showcase">Showcase</a>
-						</li>
-						<li>
 							<a href="/components">Components</a>
 						</li>
 						<li>
@@ -84,6 +81,9 @@
 						</li>
 						<li>
 							<a href="/badge">Badge</a>
+						</li>
+						<li>
+							<a href="/status">Status</a>
 						</li>
 						<li>
 							<a href={projectRepoUrl} target="_blank" rel="noopener noreferrer"> GitHub </a>
