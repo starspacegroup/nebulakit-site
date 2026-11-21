@@ -436,6 +436,9 @@ code {
 	padding: 0.125rem 0.375rem;
 	font-size: 0.875em;
 	color: var(--color-text);
+	/* A long path or header in a sentence wraps at the screen edge instead of
+	   pushing the page sideways. */
+	overflow-wrap: anywhere;
 }
 
 pre {
