@@ -139,8 +139,14 @@ for (const size of WIDTHS) {
 
 		for (const path of PAGES) {
 			test(`${path} has no spacing faults`, async ({ page }) => {
-				const res = await page.goto(path);
-				test.skip(!res || res.status() >= 400, `${path} is not served here`);
+				// A cold dev server can answer a route before it has compiled it.
+				let res = await page.goto(path);
+				for (let i = 0; i < 3 && res && res.status() >= 400; i++) {
+					await page.waitForTimeout(1500);
+					res = await page.goto(path);
+				}
+				// A page in the list that does not exist is a fault, not a skip.
+				expect(res?.status(), `${path} should be served`).toBeLessThan(400);
 				await page.waitForLoadState('networkidle');
 				// Lazy sections only lay out once scrolled to.
 				await page.evaluate(async () => {
