@@ -58,8 +58,8 @@
 	 *
 	 * The numbers above are ours; this is Google running Lighthouse on its own
 	 * infrastructure, right now, on a page the reader can watch it fetch.
-	 * Linking to it is the difference between "measured, not claimed" being a
-	 * heading and being checkable.
+	 * Linking to it lets the reader check the scores instead of taking our
+	 * word for them.
 	 *
 	 * `form_factor` carries the preset the stored run used, so what opens is
 	 * comparable to the number that was clicked rather than PSI's mobile
@@ -1431,7 +1431,7 @@
 <section class="lighthouse" aria-labelledby="lighthouse-title">
 	<div class="features-shell">
 		<div class="features-header">
-			<h2 class="features-title" id="lighthouse-title">Measured, not claimed</h2>
+			<h2 class="features-title" id="lighthouse-title">Lighthouse scores</h2>
 			<p class="features-subtitle">
 				Every public page of the template and of this site, audited on a production build.
 			</p>
