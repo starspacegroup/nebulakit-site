@@ -514,7 +514,7 @@
 
 	.btn-icon.btn-danger:hover:not(:disabled) {
 		background: #fef2f2;
-		color: #ef4444;
+		color: var(--color-danger);
 	}
 
 	.btn-icon:disabled {
@@ -762,14 +762,14 @@
 	}
 
 	.form-group input.error {
-		border-color: #ef4444;
+		border-color: var(--color-danger);
 	}
 
 	.error-message {
 		display: block;
 		margin-top: var(--spacing-xs);
 		font-size: 0.875rem;
-		color: #ef4444;
+		color: var(--color-danger);
 	}
 
 	@media (max-width: 768px) {

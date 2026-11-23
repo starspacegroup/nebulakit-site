@@ -4,6 +4,7 @@
 	"private": true,
 	"scripts": {
 		"prepare": "svelte-kit sync",
+		"seed:demo": "node scripts/seed-demo.mjs",
 		"check:bindings": "node scripts/check-bindings.mjs",
 		"check:migrations": "node scripts/check-migrations.mjs",
 		"setup:cf": "node scripts/setup-cf.mjs",
@@ -13,6 +14,7 @@
 		"seo:external": "bun scripts/external-checks.ts",
 		"lighthouse": "node scripts/lighthouse.mjs",
 		"capture:built-with": "bun scripts/capture-built-with.mjs",
+		"capture:admin": "bun scripts/capture-admin.mjs",
 		"build:dafny": "node scripts/build-dafny.mjs",
 		"og:generate": "bun scripts/generate-og-image.mjs",
 		"dev": "vite dev",

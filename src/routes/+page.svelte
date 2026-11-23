@@ -8,6 +8,7 @@
 	import lighthouse from '$lib/lighthouse-results.json';
 	import ScoreRing from '$lib/components/ScoreRing.svelte';
 	import { builtWith } from '$lib/built-with';
+	import { adminShots } from '$lib/admin-shots';
 	import HeroField from '$lib/components/HeroField.svelte';
 	import { scatterHero } from '$lib/hero-field';
 
@@ -75,6 +76,7 @@
 
 	$: psiHome = psiUrl(`${$page.url.origin}/`);
 
+	let activeShot = 0;
 	let mounted = false;
 	/* The nebula behind the hero is decoration. It paints after the page has loaded
 	   and the browser is idle, so the blurred layers are not raster work on the way
@@ -1530,6 +1532,69 @@
 	</div>
 </section>
 
+<!-- The admin interface that ships with the template. Each screen has a light
+     and a dark capture (scripts/capture-admin.mjs, run against the local app
+     with demo data); CSS shows the one that matches data-theme (AGENTS.md §10). -->
+<section class="admin-tour" id="admin" aria-labelledby="admin-tour-title">
+	<div class="features-shell">
+		<div class="features-header">
+			<h2 class="features-title" id="admin-tour-title">The admin is already built</h2>
+			<p class="features-subtitle">
+				Every site starts with these screens. They are the real interface, shown with demo data.
+			</p>
+		</div>
+
+		<div class="at-tabs" role="tablist" aria-label="Admin screens">
+			{#each adminShots as shot, i (shot.slug)}
+				<button
+					type="button"
+					class="at-tab"
+					class:is-active={activeShot === i}
+					role="tab"
+					id="at-tab-{shot.slug}"
+					aria-selected={activeShot === i}
+					aria-controls="at-panel-{shot.slug}"
+					on:click={() => (activeShot = i)}
+				>
+					{shot.label}
+				</button>
+			{/each}
+		</div>
+
+		{#each adminShots as shot, i (shot.slug)}
+			<div
+				class="at-panel"
+				role="tabpanel"
+				id="at-panel-{shot.slug}"
+				aria-labelledby="at-tab-{shot.slug}"
+				hidden={activeShot !== i}
+			>
+				<p class="at-blurb">{shot.blurb}</p>
+				<div class="at-shot">
+					<img
+						class="at-img at-img--light"
+						src="/admin-shots/{shot.slug}-light.webp"
+						alt="The {shot.label} screen of the NebulaKit admin"
+						width="1440"
+						height="900"
+						loading="lazy"
+						decoding="async"
+					/>
+					<img
+						class="at-img at-img--dark"
+						src="/admin-shots/{shot.slug}-dark.webp"
+						alt="The {shot.label} screen of the NebulaKit admin"
+						width="1440"
+						height="900"
+						loading="lazy"
+						decoding="async"
+					/>
+				</div>
+			</div>
+		{/each}
+	</div>
+</section>
+
 <!-- Real sites made from the template. Each has a light and a dark capture
      (scripts/capture-built-with.mjs); CSS shows the one that matches
      data-theme, not prefers-color-scheme, because the toggle overrides the OS
@@ -2921,6 +2986,81 @@
 	.value-props {
 		padding: var(--spacing-2xl) 0;
 		background: var(--color-background);
+	}
+
+	/* Admin tour */
+	.admin-tour {
+		padding: var(--spacing-2xl) 0;
+		background: var(--color-surface);
+	}
+
+	.at-tabs {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: var(--spacing-sm);
+		margin: 0 auto var(--spacing-lg);
+	}
+
+	.at-tab {
+		padding: var(--spacing-sm) var(--spacing-md);
+		border: 1px solid var(--color-border);
+		border-radius: 999px;
+		background: var(--color-background);
+		color: var(--color-text);
+		font: inherit;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.at-tab:hover {
+		border-color: var(--color-primary);
+	}
+
+	.at-tab.is-active {
+		border-color: var(--color-primary);
+		background: var(--color-primary);
+		color: var(--color-on-solid);
+	}
+
+	.at-panel {
+		max-width: 72rem;
+		margin: 0 auto;
+	}
+
+	.at-blurb {
+		max-width: 46rem;
+		margin: 0 auto var(--spacing-md);
+		text-align: center;
+		color: var(--color-text-secondary);
+		line-height: 1.6;
+	}
+
+	.at-shot {
+		aspect-ratio: 1440 / 900;
+		overflow: hidden;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+		box-shadow: 0 20px 50px -20px rgb(0 0 0 / 0.35);
+	}
+
+	.at-img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.at-img--dark {
+		display: none;
+	}
+
+	:global([data-theme='dark']) .at-img--light {
+		display: none;
+	}
+
+	:global([data-theme='dark']) .at-img--dark {
+		display: block;
 	}
 
 	/* Built with NebulaKit */
