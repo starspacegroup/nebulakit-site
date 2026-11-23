@@ -1568,6 +1568,10 @@
 
 <style>
 	.hero {
+		/* Hero copy is display text, not something to drag-select by accident.
+		   Form fields inside it stay editable. */
+		-webkit-user-select: none;
+		user-select: none;
 		position: relative;
 		min-height: 100vh;
 		display: flex;
@@ -1576,6 +1580,11 @@
 		overflow: hidden;
 		background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-background) 100%);
 		padding: var(--spacing-2xl) var(--spacing-md);
+	}
+
+	.hero input {
+		-webkit-user-select: text;
+		user-select: text;
 	}
 
 	/* Fade-out effect at the bottom of hero */
@@ -3058,9 +3067,10 @@
 		flex-wrap: wrap;
 		align-items: center;
 		justify-content: center;
-		gap: var(--spacing-md);
+		gap: var(--spacing-sm) var(--spacing-md);
 		max-width: 70rem;
-		margin: var(--spacing-2xl) auto 0;
+		margin: var(--spacing-xl) auto 0;
+		text-align: center;
 		font-size: 0.9375rem;
 		color: var(--color-text-secondary);
 	}
@@ -3094,13 +3104,16 @@
 
 	.lh-footnote {
 		max-width: 70rem;
-		margin: var(--spacing-xl) auto 0;
-		font-size: 0.875rem;
-		line-height: 1.7;
+		margin: var(--spacing-lg) auto 0;
+		font-size: 0.8125rem;
+		line-height: 1.6;
+		text-align: center;
+		text-wrap: balance;
 		color: var(--color-text-secondary);
 	}
 
 	.lh-footnote code {
+		white-space: nowrap;
 		padding: 0.1em 0.35em;
 		border-radius: var(--radius-sm);
 		background: var(--color-surface-hover);
