@@ -42,5 +42,11 @@ export const builtWith: BuiltWithSite[] = [
 		name: '0B6OS',
 		url: 'https://0b6os.com',
 		blurb: 'An operating system with an agent in it, always on like a kernel.'
+	},
+	{
+		slug: 'stillformglass-com',
+		name: 'Stillform Glass',
+		url: 'https://stillformglass.com',
+		blurb: 'Handcrafted glass orbs by Robbie Schroeder, each one made by hand in the fire.'
 	}
 ];
