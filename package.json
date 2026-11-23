@@ -4,6 +4,7 @@
 	"private": true,
 	"scripts": {
 		"prepare": "svelte-kit sync",
+		"seed:demo": "node scripts/seed-demo.mjs",
 		"check:bindings": "node scripts/check-bindings.mjs",
 		"check:migrations": "node scripts/check-migrations.mjs",
 		"setup:cf": "node scripts/setup-cf.mjs",
