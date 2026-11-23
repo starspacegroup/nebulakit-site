@@ -398,13 +398,13 @@
 
 	.status-success {
 		background-color: rgba(34, 197, 94, 0.1);
-		color: rgb(34, 197, 94);
+		color: var(--color-success);
 		border: 1px solid rgba(34, 197, 94, 0.3);
 	}
 
 	.status-warning {
 		background-color: rgba(234, 179, 8, 0.1);
-		color: rgb(234, 179, 8);
+		color: var(--color-warning-text);
 		border: 1px solid rgba(234, 179, 8, 0.3);
 	}
 

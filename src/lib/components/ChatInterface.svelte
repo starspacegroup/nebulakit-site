@@ -1309,7 +1309,7 @@
 	}
 
 	.char-count.warning {
-		color: var(--color-warning);
+		color: var(--color-warning-text);
 		font-weight: 600;
 	}
 
