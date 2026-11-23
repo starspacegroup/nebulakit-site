@@ -38,7 +38,7 @@ export async function applyDiscordProfile(
 				.bind(userId, policy.replacementEmail)
 				.run();
 		} catch {
-			// The column arrives with migration 0026.
+			// The column arrives with migration 0029.
 		}
 	}
 

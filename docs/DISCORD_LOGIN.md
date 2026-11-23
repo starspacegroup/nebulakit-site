@@ -31,12 +31,12 @@ All of it is decided in `src/lib/utils/discord-identity.ts` (pure, property test
 - **`users.last_login_at`** is written on every sign-in, whatever the provider.
 - Every profile step fails soft: a missing picture or an unmigrated column never blocks a sign-in.
 
-Migration `0026_user_email_verified_last_login.sql` adds the two columns. Until it runs, sign-in
+Migration `0029_user_email_verified_last_login.sql` adds the two columns. Until it runs, sign-in
 still works and these two facts are simply not recorded.
 
 ## Moving a fork onto this
 
-Forks number their own migrations, and some already have these columns, so do not copy `0026`
+Forks number their own migrations, and some already have these columns, so do not copy `0029`
 blindly: add only the column the fork lacks. Then replace the fork's callback with the template's and
 keep fork-only behaviour (credit, orders, roles) outside it, reading `email_verified_at`.
 
