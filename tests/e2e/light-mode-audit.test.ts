@@ -31,6 +31,7 @@ const ADMIN_PAGES = [
 	'/admin',
 	'/admin/stats',
 	'/admin/products',
+	'/admin/products/google',
 	'/admin/auctions',
 	'/admin/orders',
 	'/admin/users',

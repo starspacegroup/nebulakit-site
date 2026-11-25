@@ -41,7 +41,8 @@ export const CRON_PATHS: Readonly<Record<string, string>> = {
 	'43 4 * * *': '/api/cron/lighthouse',
 	'29 5 * * *': '/api/cron/prune-audit',
 	'*/5 * * * *': '/api/cron/settle-auctions',
-	'* * * * *': '/api/cron/status-check'
+	'* * * * *': '/api/cron/status-check',
+	'*/10 * * * *': '/api/cron/google-merchant-sync'
 };
 
 /** The route that takes the outside view of the website along with its tick. */

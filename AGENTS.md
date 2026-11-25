@@ -199,6 +199,11 @@ const passwordField = fieldName('password');
   totals and currency from the catalog and the site settings. A PaymentIntent's amount is the order
   total. Only the signed, deduplicated Stripe webhook marks an order paid. See
   [docs/CHECKOUT.md](docs/CHECKOUT.md). The money core is proved in `dafny/PaymentCore.dfy`.
+- **Product data for Google has one set of rules.** The feed, the JSON-LD and the Merchant API sync
+  are validated and built in `packages/commerce/src/google-listing.ts`. Do not add rules in a route,
+  a component or a renderer. The price on the page, in the JSON-LD, in the feed and in the cart is one
+  number. Take it from `priceNow`. `tests/unit/google-markup.test.ts` fails if they disagree. See
+  [docs/GOOGLE_LISTINGS.md](docs/GOOGLE_LISTINGS.md).
 - **Lighthouse reports are generated, never hand-edited.** `bun run lighthouse` writes both
   `static/lighthouse/*.html` and `src/lib/lighthouse-results.json`, and exits non-zero below 100. The
   extensionless twin of each report is listed in `svelte.config.js`; Pages redirects `/foo.html` to

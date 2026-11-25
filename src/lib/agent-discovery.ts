@@ -80,6 +80,8 @@ export const SITEMAP_EXCLUDED_ROUTES: Readonly<Record<string, string>> = {
 	'[contentType]': 'Enumerated dynamically from the CMS at request time.',
 	p: 'Builder pages — published ones are enumerated dynamically at request time.',
 	cart: "The shopper's own cart and checkout — per-visitor, nothing to index.",
+	feeds:
+		'Machine feeds for Google Merchant Center (/feeds/google-products.xml and .tsv): not pages, noindex, read by a scheduled fetch.',
 	'[family=landingFamily]':
 		'Landing pages (/who, /where, /what, /when, /why); their paths come from landingSitemapRoutes(LANDING). The site ships no landing content, so these routes 404 and the list is empty.'
 };
@@ -99,6 +101,18 @@ export const SECURITY_TXT_PATH = '/.well-known/security.txt';
  * everything" is a policy about *published content*, not an invitation into the
  * admin console. Order matters in RFC 9309 only for specificity, not sequence.
  */
+/**
+ * Google's image and shopping fetchers. A product's `image_link` is often a
+ * `/media/` file (R2), and Merchant Center disapproves an image its crawlers
+ * may not fetch ("image not crawlable"). Their group keeps `/media/` open and
+ * everything else private still Disallowed
+ * (docs/GOOGLE_LISTINGS.md; the exact user-agent names are unverified there).
+ */
+export const MERCHANT_BOTS: readonly string[] = ['Googlebot-Image', 'Storebot-Google'];
+
+/** Paths Google's merchant fetchers may read although other crawlers may not. */
+export const MERCHANT_OPEN_PATHS: readonly string[] = ['/media/'];
+
 export const CRAWLER_DISALLOW: readonly string[] = [
 	'/admin/',
 	'/api/',

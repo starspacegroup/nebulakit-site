@@ -25,6 +25,8 @@ Claude has access to the `manage_todo_list` tool for tracking multi-step work. U
 
 **Admin time zone** (`docs/ADMIN_TIMEZONE.md`): the `tz` cookie, stats bucketing and the `site_settings` table (migration `0030`; `users.time_zone` is `0031`). Precedence is user, site setting, browser cookie, UTC.
 
+**Google listings** (`docs/GOOGLE_LISTINGS.md`): the product feed, listing rules and the optional Merchant API sync (registered on `*/10 * * * *`, does nothing until enabled). Migration `0035`.
+
 **Landing pages** (`docs/SEO_LANDING_PAGES.md`): the who/where/what/when/why machinery is in place but this site ships NO landing content: `PAGES` is empty, `example` is `false`, the routes 404 and the sitemap lists none. The Example Co. pages are test fixtures in `tests/fixtures/landing/`; never move them into `src/`. Landing pages rely on `SharingMeta`'s graph, so they add no second Organization/WebSite/WebPage node.
 
 ---
