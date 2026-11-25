@@ -401,6 +401,7 @@ describe('Documentation Page', () => {
 			}
 			expect(section.textContent).toMatch(/Layout/);
 			expect(section.textContent).toMatch(/MIT-licensed/);
+			expect(section.textContent).toMatch(/CodeBlock\s+\(highlighted code/);
 		});
 
 		it('is in the nav, and the board section names the standard widgets', () => {

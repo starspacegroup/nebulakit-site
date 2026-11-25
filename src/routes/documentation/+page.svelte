@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SharingMeta from '$lib/components/SharingMeta.svelte';
 	import { site } from '$lib/site.config';
+	import CodeBlock from '$lib/ui/CodeBlock.svelte';
 
 	type PackageManager = 'bun' | 'npm';
 	type QuickStartLine =
@@ -157,8 +158,9 @@ npm run deploy`
 					output.
 				</li>
 			</ol>
-			<pre><code
-					>Build: a pricing page with three plans and a contact button.
+			<CodeBlock
+				language="text"
+				code={`Build: a pricing page with three plans and a contact button.
 
 Before you start, read AGENTS.md and docs/UI_KIT.md.
 Use the components in src/lib/ui and the modules in src/lib/modules before writing new ones.
@@ -169,8 +171,8 @@ When you are done, run these and paste their output:
   bun run check
   bun run test
   bun run test:coverage
-Coverage must stay at or above 95%. Then list the files you changed.</code
-				></pre>
+Coverage must stay at or above 95%. Then list the files you changed.`}
+			/>
 			<h4>Tasks that go well</h4>
 			<ul>
 				<li>Add a page, a form, a table or a dashboard from the UI kit and modules.</li>
@@ -253,12 +255,13 @@ Coverage must stay at or above 95%. Then list the files you changed.</code
 					</tbody>
 				</table>
 			</div>
-			<pre><code
-					>export NEBULAKIT_KEY=nk_...    # created at /admin/api-keys
+			<CodeBlock
+				language="sh"
+				code={`export NEBULAKIT_KEY=nk_...    # created at /admin/api-keys
 
-curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
-  "{site.url}/api/v1/products?all=1"</code
-				></pre>
+curl -H "Authorization: Bearer $NEBULAKIT_KEY" \\
+  "${site.url}/api/v1/products?all=1"`}
+			/>
 			<p>
 				A key that is wrong is refused, never treated as an anonymous visitor. Writes must send
 				JSON, and every call is logged next to the key on the same admin page.
@@ -266,7 +269,7 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 
 			<h3 id="ai-read">3. Let an agent read this site</h3>
 			<p>Give the agent this address and ask your question. It does not need to scrape HTML:</p>
-			<pre><code>curl -H 'Accept: text/markdown' {site.url}/documentation</code></pre>
+			<CodeBlock language="sh" code={`curl -H 'Accept: text/markdown' ${site.url}/documentation`} />
 			<ul>
 				<li>
 					<strong>Markdown for every page.</strong> Send <code>Accept: text/markdown</code>. The
@@ -592,9 +595,10 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 				the theme's CSS variables only, works in light and dark, and is usable by keyboard. See them
 				all running, with the code for each, at <a href="/components">/components</a>.
 			</p>
-			<pre><code
-					>{`import { Button, TextInput, Select, Dialog, Tabs, Table, toast } from '$lib/ui';`}</code
-				></pre>
+			<CodeBlock
+				language="ts"
+				code={`import { Button, TextInput, Select, Dialog, Tabs, Table, toast } from '$lib/ui';`}
+			/>
 			<ul>
 				<li>
 					<strong>Actions</strong> — Button (four variants, three sizes, link form, loading state),
@@ -623,9 +627,11 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 					Collapsible.
 				</li>
 				<li>
-					<strong>Data display</strong> — Card, Item, Table, DataTable (search, sort, paging, selection),
-					BarChart, LineChart and DonutChart (plain SVG, each with a hidden data table for screen readers),
-					Stat, Carousel, Timeline, Avatar, AvatarGroup, Kbd, CodeBlock, Prose and EmptyState.
+					<strong>Data display</strong> — Card, Item, Table, DataTable (search, sort, paging,
+					selection), BarChart, LineChart and DonutChart (plain SVG, each with a hidden data table
+					for screen readers), Stat, Carousel, Timeline, Avatar, AvatarGroup, Kbd, CodeBlock
+					(highlighted code with a copy button; code samples use it, never a bare
+					<code>&lt;pre&gt;</code>), Prose and EmptyState.
 				</li>
 			</ul>
 			<p>
@@ -653,9 +659,10 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 				shown running, with the accessibility behaviour each one keeps, at
 				<a href="/modules">/modules</a>.
 			</p>
-			<pre><code
-					>{`import { SignInForm, PricingTable, DataGrid, KanbanBoard } from '$lib/modules';`}</code
-				></pre>
+			<CodeBlock
+				language="ts"
+				code={`import { SignInForm, PricingTable, DataGrid, KanbanBoard } from '$lib/modules';`}
+			/>
 			<ul>
 				<li>
 					<strong>Account</strong> &mdash; sign-in, sign-up, password reset, profile, sessions, two-factor.
@@ -834,9 +841,10 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 				layout through <code>on:change</code>. It stores nothing itself, so where a layout is saved
 				stays your decision.
 			</p>
-			<pre><code
-					>{`<WidgetBoard bind:widgets {columns} on:change={(e) => save(e.detail.widgets)} />`}</code
-				></pre>
+			<CodeBlock
+				language="svelte"
+				code={`<WidgetBoard bind:widgets {columns} on:change={(e) => save(e.detail.widgets)} />`}
+			/>
 			<p>
 				Registering a widget takes three edits and none of them is the board: an entry in
 				<code>src/lib/widgets/manifest.ts</code>, a line in
@@ -1007,16 +1015,17 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 				Migrations are ordered SQL files under <code>migrations/</code> and tracked by D1. Never edit
 				or delete existing migration files once committed to main.
 			</p>
-			<pre><code
-					># Apply pending migrations to local D1
+			<CodeBlock
+				language="sh"
+				code={`# Apply pending migrations to local D1
 npm run db:migrate:local
 
 # Apply pending migrations to remote D1
 npm run db:migrate
 
 # List migration status
-npm run db:migrate:list</code
-				></pre>
+npm run db:migrate:list`}
+			/>
 			<p>
 				When schema changes are needed, create a new file with the next sequence number (for
 				example,
@@ -1133,8 +1142,10 @@ npm run db:migrate:list</code
 						The owner always sees Stats. Any other admin needs the <code>can_view_stats</code> flag, which
 						defaults to off so existing admins do not gain access on upgrade:
 					</p>
-					<pre><code>UPDATE users SET can_view_stats = 1 WHERE email = 'someone@example.com';</code
-						></pre>
+					<CodeBlock
+						language="sql"
+						code={`UPDATE users SET can_view_stats = 1 WHERE email = 'someone@example.com';`}
+					/>
 					<p>
 						The permission is re-read from the database on every request, so revoking it takes
 						effect without waiting for a sign-out.
@@ -1147,10 +1158,11 @@ npm run db:migrate:list</code
 						<code>CRON_SECRET</code> and have any scheduler POST to the retention endpoint; rows older
 						than 400 days are removed.
 					</p>
-					<pre><code
-							>curl -X POST https://your-app/api/cron/prune-view-stats \
-  -H "Authorization: Bearer $CRON_SECRET"</code
-						></pre>
+					<CodeBlock
+						language="sh"
+						code={`curl -X POST https://your-app/api/cron/prune-view-stats \\
+  -H "Authorization: Bearer $CRON_SECRET"`}
+					/>
 				</div>
 				<div class="callout-card">
 					<h3>Platform Usage Meter</h3>
@@ -1173,10 +1185,11 @@ npm run db:migrate:list</code
 						<code>/admin/analytics</code>; it is shown once, and only its hash is stored. The
 						dashboard then sends it as a bearer token:
 					</p>
-					<pre><code
-							>curl https://your-app/api/stats/summary?window=7 \
-  -H "Authorization: Bearer nks_…"</code
-						></pre>
+					<CodeBlock
+						language="sh"
+						code={`curl https://your-app/api/stats/summary?window=7 \\
+  -H "Authorization: Bearer nks_…"`}
+					/>
 					<p>
 						The response is read-only and aggregate-only — exactly what <code>/admin/stats</code> shows.
 						Rotate replaces the token; Revoke cuts the dashboard off on its next read. A site that has
@@ -1330,8 +1343,9 @@ npm run db:migrate:list</code
 				NebulaKit follows Test-Driven Development. Write failing tests first, then implementation,
 				then refactor.
 			</p>
-			<pre><code
-					># Run all tests
+			<CodeBlock
+				language="sh"
+				code={`# Run all tests
 npm run test
 
 # Run tests in watch mode
@@ -1344,8 +1358,8 @@ npm run test:coverage
 npm run test:e2e
 
 # Run all tests (unit + E2E)
-npm run test:all</code
-				></pre>
+npm run test:all`}
+			/>
 			<p>
 				Coverage guidance in repository docs is mixed: several files reference 90 percent, while AI
 				assistant workflow instructions enforce 95 percent as a stricter floor. For new work, target
@@ -1355,8 +1369,9 @@ npm run test:all</code
 
 		<section id="project-structure" class="docs-section">
 			<h2>Project Structure</h2>
-			<pre><code
-					>NebulaKit/
+			<CodeBlock
+				language="text"
+				code={`NebulaKit/
 ├── .github/              # Copilot and workflow instructions
 ├── src/
 │   ├── lib/
@@ -1376,8 +1391,8 @@ npm run test:all</code
 ├── tests/                  # unit/integration/e2e tests
 ├── migrations/             # Immutable D1 migration files
 ├── docs/                   # Extended project docs
-└── wrangler.toml           # Cloudflare bindings/config</code
-				></pre>
+└── wrangler.toml           # Cloudflare bindings/config`}
+			/>
 		</section>
 
 		<section id="deployment" class="docs-section">
@@ -1502,12 +1517,13 @@ npm run test:all</code
 				<code>/admin/scheduled-jobs</code> lists each job with its last run, status and next
 				expected run, and has a <strong>Run now</strong> button for the owner.
 			</p>
-			<pre><code
-					>{`cd cron-worker
+			<CodeBlock
+				language="sh"
+				code={`cd cron-worker
 # set TARGET_URL in wrangler.toml to your site's origin
 bunx wrangler deploy
-bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}</code
-				></pre>
+bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}
+			/>
 			<p>
 				It needs migration <code>0019_scheduled_job_runs.sql</code>. Adding a job and the details
 				are in <code>docs/SCHEDULED_JOBS.md</code>.
@@ -1611,7 +1627,7 @@ bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}</c
 				default. Responses include an <code>x-markdown-tokens</code> estimate so an agent can budget context
 				before reading.
 			</p>
-			<pre><code>curl -H 'Accept: text/markdown' {site.url}/</code></pre>
+			<CodeBlock language="sh" code={`curl -H 'Accept: text/markdown' ${site.url}/`} />
 
 			<h3>In-browser tools (WebMCP)</h3>
 			<p>
@@ -1911,8 +1927,12 @@ bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}</c
 	.docs-section > p,
 	.docs-section > ul,
 	.docs-section > ol,
-	.docs-section > pre {
+	.docs-section > :global(.code) {
 		max-width: var(--layout-prose-max-width);
+	}
+
+	.docs-section :global(.code) {
+		margin-bottom: var(--spacing-md);
 	}
 
 	.docs-section code {
