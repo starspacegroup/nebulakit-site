@@ -2,7 +2,7 @@ import type { D1Database } from '@cloudflare/workers-types';
 import { canonicalTimeZone, TZ_AUTO } from '$lib/utils/timezone';
 
 /**
- * Generic site-level key/value settings (migration 0032, `site_settings`).
+ * Generic site-level key/value settings (migration 0030, `site_settings`).
  * Reads fail soft: a database that has not run the migration reads as "never
  * configured", never as an error that takes an admin page down.
  */
@@ -67,7 +67,7 @@ export async function readUserTimeZone(
 			.first<{ time_zone: string | null }>();
 		return (row?.time_zone && canonicalTimeZone(row.time_zone)) || TZ_AUTO;
 	} catch {
-		// Before migration 0033 the column does not exist: no preference.
+		// Before migration 0031 the column does not exist: no preference.
 		return TZ_AUTO;
 	}
 }

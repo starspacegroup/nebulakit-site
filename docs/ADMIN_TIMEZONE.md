@@ -6,14 +6,14 @@ in one zone. Public and customer-facing pages are not affected.
 ## Which zone
 
 1. The user's own zone, when set (`/profile#time-zone`, any signed-in user, their own only).
-   Stored in `users.time_zone` (migration `0033`; NULL means no personal choice). A column rather
+   Stored in `users.time_zone` (migration `0031`; NULL means no personal choice). A column rather
    than a per-user row in `site_settings`: it is one value owned by one user, it goes away with the
    user, and it needs no key-naming convention. `PUT /api/profile/timezone` takes the user from the
    session, never from the body or URL, validates with `Intl`, and clears on `auto`. It is audited as
    `user.timezone`, but the audit hook only records admins and owners, so a plain user's change is
    not logged.
 2. The site setting, when it is an IANA zone (the admin dashboard at `/admin`, owner only). Stored in
-   `site_settings` under `admin_timezone` (migration `0032`; a generic key/value table, because
+   `site_settings` under `admin_timezone` (migration `0030`; a generic key/value table, because
    `commerce_settings` is shop-specific). Audited as `settings.admin_timezone`.
 3. Otherwise the browser's zone, from the `tz` cookie.
 4. Otherwise UTC.
