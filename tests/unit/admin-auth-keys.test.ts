@@ -22,13 +22,51 @@ describe('Admin Auth Keys Page', () => {
 	});
 
 	it('should render the page title', () => {
-		render(AuthKeysPage, { props: { data: { user: mockUser, canRevealPii: false, canViewStats: false, piiRevealed: false, hasAIProviders: false, cmsPaletteItems: [], gaMeasurementId: null, canManageAnalytics: false, keys: [] } } });
+		render(AuthKeysPage, {
+			props: {
+				data: {
+					user: mockUser,
+					canRevealPii: false,
+					canViewStats: false,
+					timeZone: 'UTC',
+					timeZoneSetting: 'auto',
+					timeZonePersonal: 'auto',
+					timeZoneSource: 'default' as const,
+					timeZoneLabel: 'UTC (UTC+00:00)',
+					piiRevealed: false,
+					hasAIProviders: false,
+					cmsPaletteItems: [],
+					gaMeasurementId: null,
+					canManageAnalytics: false,
+					keys: []
+				}
+			}
+		});
 		const title = screen.getByText('Authentication Keys');
 		expect(title).toBeTruthy();
 	});
 
 	it('should render an empty state when no keys exist', () => {
-		render(AuthKeysPage, { props: { data: { user: mockUser, canRevealPii: false, canViewStats: false, piiRevealed: false, hasAIProviders: false, cmsPaletteItems: [], gaMeasurementId: null, canManageAnalytics: false, keys: [] } } });
+		render(AuthKeysPage, {
+			props: {
+				data: {
+					user: mockUser,
+					canRevealPii: false,
+					canViewStats: false,
+					timeZone: 'UTC',
+					timeZoneSetting: 'auto',
+					timeZonePersonal: 'auto',
+					timeZoneSource: 'default' as const,
+					timeZoneLabel: 'UTC (UTC+00:00)',
+					piiRevealed: false,
+					hasAIProviders: false,
+					cmsPaletteItems: [],
+					gaMeasurementId: null,
+					canManageAnalytics: false,
+					keys: []
+				}
+			}
+		});
 		const emptyMessage = screen.getByText(/No authentication keys configured/i);
 		expect(emptyMessage).toBeTruthy();
 	});
@@ -40,7 +78,24 @@ describe('Admin Auth Keys Page', () => {
 		];
 
 		render(AuthKeysPage, {
-			props: { data: { user: mockUser, canRevealPii: false, canViewStats: false, piiRevealed: false, hasAIProviders: false, cmsPaletteItems: [], gaMeasurementId: null, canManageAnalytics: false, keys: mockKeys } }
+			props: {
+				data: {
+					user: mockUser,
+					canRevealPii: false,
+					canViewStats: false,
+					timeZone: 'UTC',
+					timeZoneSetting: 'auto',
+					timeZonePersonal: 'auto',
+					timeZoneSource: 'default' as const,
+					timeZoneLabel: 'UTC (UTC+00:00)',
+					piiRevealed: false,
+					hasAIProviders: false,
+					cmsPaletteItems: [],
+					gaMeasurementId: null,
+					canManageAnalytics: false,
+					keys: mockKeys
+				}
+			}
 		});
 
 		expect(screen.getByText('GitHub OAuth')).toBeTruthy();
@@ -48,13 +103,51 @@ describe('Admin Auth Keys Page', () => {
 	});
 
 	it('should show add key button', () => {
-		render(AuthKeysPage, { props: { data: { user: mockUser, canRevealPii: false, canViewStats: false, piiRevealed: false, hasAIProviders: false, cmsPaletteItems: [], gaMeasurementId: null, canManageAnalytics: false, keys: [] } } });
+		render(AuthKeysPage, {
+			props: {
+				data: {
+					user: mockUser,
+					canRevealPii: false,
+					canViewStats: false,
+					timeZone: 'UTC',
+					timeZoneSetting: 'auto',
+					timeZonePersonal: 'auto',
+					timeZoneSource: 'default' as const,
+					timeZoneLabel: 'UTC (UTC+00:00)',
+					piiRevealed: false,
+					hasAIProviders: false,
+					cmsPaletteItems: [],
+					gaMeasurementId: null,
+					canManageAnalytics: false,
+					keys: []
+				}
+			}
+		});
 		const addButton = screen.getByText(/Add Key/i);
 		expect(addButton).toBeTruthy();
 	});
 
 	it('should open add key form when add button is clicked', async () => {
-		render(AuthKeysPage, { props: { data: { user: mockUser, canRevealPii: false, canViewStats: false, piiRevealed: false, hasAIProviders: false, cmsPaletteItems: [], gaMeasurementId: null, canManageAnalytics: false, keys: [] } } });
+		render(AuthKeysPage, {
+			props: {
+				data: {
+					user: mockUser,
+					canRevealPii: false,
+					canViewStats: false,
+					timeZone: 'UTC',
+					timeZoneSetting: 'auto',
+					timeZonePersonal: 'auto',
+					timeZoneSource: 'default' as const,
+					timeZoneLabel: 'UTC (UTC+00:00)',
+					piiRevealed: false,
+					hasAIProviders: false,
+					cmsPaletteItems: [],
+					gaMeasurementId: null,
+					canManageAnalytics: false,
+					keys: []
+				}
+			}
+		});
 		const addButton = screen.getByText(/Add Key/i);
 
 		await fireEvent.click(addButton);
@@ -64,7 +157,26 @@ describe('Admin Auth Keys Page', () => {
 	});
 
 	it('should validate required fields when adding a key', async () => {
-		render(AuthKeysPage, { props: { data: { user: mockUser, canRevealPii: false, canViewStats: false, piiRevealed: false, hasAIProviders: false, cmsPaletteItems: [], gaMeasurementId: null, canManageAnalytics: false, keys: [] } } });
+		render(AuthKeysPage, {
+			props: {
+				data: {
+					user: mockUser,
+					canRevealPii: false,
+					canViewStats: false,
+					timeZone: 'UTC',
+					timeZoneSetting: 'auto',
+					timeZonePersonal: 'auto',
+					timeZoneSource: 'default' as const,
+					timeZoneLabel: 'UTC (UTC+00:00)',
+					piiRevealed: false,
+					hasAIProviders: false,
+					cmsPaletteItems: [],
+					gaMeasurementId: null,
+					canManageAnalytics: false,
+					keys: []
+				}
+			}
+		});
 		const addButton = screen.getByText(/Add Key/i);
 		await fireEvent.click(addButton);
 
@@ -90,7 +202,26 @@ describe('Admin Auth Keys Page', () => {
 			})
 		});
 
-		render(AuthKeysPage, { props: { data: { user: mockUser, canRevealPii: false, canViewStats: false, piiRevealed: false, hasAIProviders: false, cmsPaletteItems: [], gaMeasurementId: null, canManageAnalytics: false, keys: [] } } });
+		render(AuthKeysPage, {
+			props: {
+				data: {
+					user: mockUser,
+					canRevealPii: false,
+					canViewStats: false,
+					timeZone: 'UTC',
+					timeZoneSetting: 'auto',
+					timeZonePersonal: 'auto',
+					timeZoneSource: 'default' as const,
+					timeZoneLabel: 'UTC (UTC+00:00)',
+					piiRevealed: false,
+					hasAIProviders: false,
+					cmsPaletteItems: [],
+					gaMeasurementId: null,
+					canManageAnalytics: false,
+					keys: []
+				}
+			}
+		});
 		const addButton = screen.getByText(/Add Key/i);
 		await fireEvent.click(addButton);
 
@@ -121,7 +252,24 @@ describe('Admin Auth Keys Page', () => {
 		];
 
 		render(AuthKeysPage, {
-			props: { data: { user: mockUser, canRevealPii: false, canViewStats: false, piiRevealed: false, hasAIProviders: false, cmsPaletteItems: [], gaMeasurementId: null, canManageAnalytics: false, keys: mockKeys } }
+			props: {
+				data: {
+					user: mockUser,
+					canRevealPii: false,
+					canViewStats: false,
+					timeZone: 'UTC',
+					timeZoneSetting: 'auto',
+					timeZonePersonal: 'auto',
+					timeZoneSource: 'default' as const,
+					timeZoneLabel: 'UTC (UTC+00:00)',
+					piiRevealed: false,
+					hasAIProviders: false,
+					cmsPaletteItems: [],
+					gaMeasurementId: null,
+					canManageAnalytics: false,
+					keys: mockKeys
+				}
+			}
 		});
 
 		const editButton = screen.getByLabelText(/Edit GitHub OAuth/i);
@@ -142,7 +290,24 @@ describe('Admin Auth Keys Page', () => {
 		];
 
 		render(AuthKeysPage, {
-			props: { data: { user: mockUser, canRevealPii: false, canViewStats: false, piiRevealed: false, hasAIProviders: false, cmsPaletteItems: [], gaMeasurementId: null, canManageAnalytics: false, keys: mockKeys } }
+			props: {
+				data: {
+					user: mockUser,
+					canRevealPii: false,
+					canViewStats: false,
+					timeZone: 'UTC',
+					timeZoneSetting: 'auto',
+					timeZonePersonal: 'auto',
+					timeZoneSource: 'default' as const,
+					timeZoneLabel: 'UTC (UTC+00:00)',
+					piiRevealed: false,
+					hasAIProviders: false,
+					cmsPaletteItems: [],
+					gaMeasurementId: null,
+					canManageAnalytics: false,
+					keys: mockKeys
+				}
+			}
 		});
 
 		const deleteButton = screen.getByLabelText(/Delete GitHub OAuth/i);
@@ -175,7 +340,24 @@ describe('Admin Auth Keys Page', () => {
 		];
 
 		render(AuthKeysPage, {
-			props: { data: { user: mockUser, canRevealPii: false, canViewStats: false, piiRevealed: false, hasAIProviders: false, cmsPaletteItems: [], gaMeasurementId: null, canManageAnalytics: false, keys: mockKeys } }
+			props: {
+				data: {
+					user: mockUser,
+					canRevealPii: false,
+					canViewStats: false,
+					timeZone: 'UTC',
+					timeZoneSetting: 'auto',
+					timeZonePersonal: 'auto',
+					timeZoneSource: 'default' as const,
+					timeZoneLabel: 'UTC (UTC+00:00)',
+					piiRevealed: false,
+					hasAIProviders: false,
+					cmsPaletteItems: [],
+					gaMeasurementId: null,
+					canManageAnalytics: false,
+					keys: mockKeys
+				}
+			}
 		});
 
 		const maskedValue = screen.getByText(/••••••/i);
@@ -195,7 +377,24 @@ describe('Admin Auth Keys Page', () => {
 		];
 
 		render(AuthKeysPage, {
-			props: { data: { user: mockUser, canRevealPii: false, canViewStats: false, piiRevealed: false, hasAIProviders: false, cmsPaletteItems: [], gaMeasurementId: null, canManageAnalytics: false, keys: mockKeys } }
+			props: {
+				data: {
+					user: mockUser,
+					canRevealPii: false,
+					canViewStats: false,
+					timeZone: 'UTC',
+					timeZoneSetting: 'auto',
+					timeZonePersonal: 'auto',
+					timeZoneSource: 'default' as const,
+					timeZoneLabel: 'UTC (UTC+00:00)',
+					piiRevealed: false,
+					hasAIProviders: false,
+					cmsPaletteItems: [],
+					gaMeasurementId: null,
+					canManageAnalytics: false,
+					keys: mockKeys
+				}
+			}
 		});
 
 		const toggleButton = screen.getByLabelText(/Show value/i);
@@ -206,7 +405,26 @@ describe('Admin Auth Keys Page', () => {
 	});
 
 	it('should include Discord in provider options', async () => {
-		render(AuthKeysPage, { props: { data: { user: mockUser, canRevealPii: false, canViewStats: false, piiRevealed: false, hasAIProviders: false, cmsPaletteItems: [], gaMeasurementId: null, canManageAnalytics: false, keys: [] } } });
+		render(AuthKeysPage, {
+			props: {
+				data: {
+					user: mockUser,
+					canRevealPii: false,
+					canViewStats: false,
+					timeZone: 'UTC',
+					timeZoneSetting: 'auto',
+					timeZonePersonal: 'auto',
+					timeZoneSource: 'default' as const,
+					timeZoneLabel: 'UTC (UTC+00:00)',
+					piiRevealed: false,
+					hasAIProviders: false,
+					cmsPaletteItems: [],
+					gaMeasurementId: null,
+					canManageAnalytics: false,
+					keys: []
+				}
+			}
+		});
 		const addButton = screen.getByText(/Add Key/i);
 		await fireEvent.click(addButton);
 
@@ -231,11 +449,27 @@ describe('Admin Auth Keys Page', () => {
 		];
 
 		render(AuthKeysPage, {
-			props: { data: { user: mockUser, canRevealPii: false, canViewStats: false, piiRevealed: false, hasAIProviders: false, cmsPaletteItems: [], gaMeasurementId: null, canManageAnalytics: false, keys: mockKeys } }
+			props: {
+				data: {
+					user: mockUser,
+					canRevealPii: false,
+					canViewStats: false,
+					timeZone: 'UTC',
+					timeZoneSetting: 'auto',
+					timeZonePersonal: 'auto',
+					timeZoneSource: 'default' as const,
+					timeZoneLabel: 'UTC (UTC+00:00)',
+					piiRevealed: false,
+					hasAIProviders: false,
+					cmsPaletteItems: [],
+					gaMeasurementId: null,
+					canManageAnalytics: false,
+					keys: mockKeys
+				}
+			}
 		});
 
 		expect(screen.getByText('GitHub OAuth')).toBeTruthy();
 		expect(screen.getByText('Discord OAuth')).toBeTruthy();
 	});
 });
-

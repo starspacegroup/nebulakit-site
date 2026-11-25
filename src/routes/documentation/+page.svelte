@@ -340,6 +340,7 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 					<a href="#security-hardening">Security Hardening</a>
 					<a href="#roles-permissions">Roles and Permissions</a>
 					<a href="#audit-log">Audit Log</a>
+					<a href="#admin-time-zone">Admin Time Zone</a>
 					<a href="#sign-in-tracking">Sign-in Tracking</a>
 					<a href="#admin-analytics">Admin Analytics</a>
 				</div>
@@ -1211,6 +1212,30 @@ npm run db:migrate:list</code
 				migration <code>0016</code> (shared with sign-in tracking) with
 				<code>bun run db:migrate:local</code>. Details:
 				<code>docs/AUDIT_LOG.md</code>.
+			</p>
+		</section>
+
+		<section id="admin-time-zone" class="docs-section">
+			<h2>Admin Time Zone</h2>
+			<p>
+				Every date and time in the admin area, and the days and hours on the Dashboard charts, are
+				shown in one zone. By default (<code>auto</code>) that is the browser's own zone, read with
+				<code>Intl.DateTimeFormat().resolvedOptions().timeZone</code> without asking, and handed to
+				the server in a <code>tz</code> cookie so server rendering matches. Each user can set their
+				own zone on their <a href="/profile#time-zone">profile</a>, which wins over everything else.
+				The owner can pin a fixed IANA zone on the <a href="/admin">admin dashboard</a>; that beats
+				the browser. With neither, the zone is UTC. The zone is named in the sidebar and on the
+				Dashboard header.
+			</p>
+			<p>
+				Counters are stored per UTC hour and per UTC day, so the Dashboard re-buckets what it can
+				and says so: the 24-hour chart keeps UTC hours labelled in your zone, longer windows are
+				rebuilt from the hourly totals into days of your zone, and the breakdown tables and the
+				platform usage meter stay on UTC days. Apply migration <code>0032</code> and
+				<code>0033</code>
+				with
+				<code>bun run db:migrate:local</code>. Public pages are not affected. Details:
+				<code>docs/ADMIN_TIMEZONE.md</code>.
 			</p>
 		</section>
 
