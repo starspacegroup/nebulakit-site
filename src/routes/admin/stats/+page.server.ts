@@ -1,13 +1,17 @@
-import { utcHourKey } from '$lib/utils/page-views';
+import { utcDay, utcHourKey } from '$lib/utils/page-views';
 import { error } from '@sveltejs/kit';
 import { assertCanViewStats } from '$lib/server/stats-guard';
 import { loadStatsSummary, parseTrafficWindow } from '$lib/server/stats-summary';
+import { dayKey } from '$lib/utils/timezone';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ platform, url, locals }) => {
+export const load: PageServerLoad = async ({ platform, url, locals, parent }) => {
 	// Gated on the stats permission: owner always, plain admins only when
 	// granted can_view_stats. The admin layout guard has already run.
 	assertCanViewStats(locals.user);
+
+	// The admin clock resolved by the layout (user, site setting, browser cookie, UTC).
+	const { timeZone } = await parent();
 
 	if (!platform?.env?.DB) {
 		// Local dev without D1 — return a fully-shaped empty payload rather than
@@ -17,7 +21,9 @@ export const load: PageServerLoad = async ({ platform, url, locals }) => {
 			traffic: null,
 			usage: null,
 			trafficWindow: 30,
-			trafficNowHour: utcHourKey(new Date())
+			trafficToday: dayKey(new Date(), timeZone),
+			trafficNowHour: utcHourKey(new Date()),
+			usageToday: utcDay(new Date())
 		};
 	}
 
@@ -27,7 +33,9 @@ export const load: PageServerLoad = async ({ platform, url, locals }) => {
 	try {
 		return await loadStatsSummary(
 			platform.env.DB,
-			parseTrafficWindow(url.searchParams.get('window'))
+			parseTrafficWindow(url.searchParams.get('window')),
+			new Date(),
+			timeZone
 		);
 	} catch {
 		throw error(500, 'Failed to load stats');

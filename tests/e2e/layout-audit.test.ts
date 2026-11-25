@@ -10,7 +10,17 @@ import { expect, test, type Page } from '@playwright/test';
  * so a person only has to judge the rest.
  */
 
-const PAGES = ['/', '/documentation', '/badge', '/showcase', '/contact', '/privacy', '/terms'];
+const PAGES = [
+	'/',
+	'/documentation',
+	'/badge',
+	'/showcase',
+	'/contact',
+	'/privacy',
+	'/terms',
+	'/shop',
+	'/cart'
+];
 const WIDTHS = [
 	{ name: 'phone', width: 360, height: 800 },
 	{ name: 'phone-large', width: 430, height: 900 },

@@ -16,6 +16,11 @@ export const MODULES = [
 		source: 'dafny/AuctionCore.dfy',
 		module: 'AuctionCore',
 		out: 'packages/commerce/src/generated/auction-core.js'
+	},
+	{
+		source: 'dafny/PaymentCore.dfy',
+		module: 'PaymentCore',
+		out: 'packages/commerce/src/generated/payment-core.js'
 	}
 ];
 

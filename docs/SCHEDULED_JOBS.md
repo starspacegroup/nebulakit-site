@@ -33,13 +33,14 @@ and `bun run check` do not look at it.
 
 ## The jobs
 
-| Job id             | Cron (UTC)    | Route                        | What it does                                                                |
-| ------------------ | ------------- | ---------------------------- | --------------------------------------------------------------------------- |
-| `prune-view-stats` | `17 3 * * *`  | `/api/cron/prune-view-stats` | Deletes counters older than 400 days                                        |
-| `lighthouse`       | `43 4 * * *`  | `/api/cron/lighthouse`       | PageSpeed Insights sweep (see below)                                        |
-| `prune-audit`      | `29 5 * * *`  | `/api/cron/prune-audit`      | Deletes audit rows older than 365 days and sign-in events older than 90     |
-| `status-check`     | `* * * * *`   | `/api/cron/status-check`     | Checks the website and database for the public status page                  |
-| `settle-auctions`  | `*/5 * * * *` | `/api/cron/settle-auctions`  | Closes ended auctions, orders and emails winners, reminds and lapses unpaid |
+| Job id                 | Cron (UTC)     | Route                            | What it does                                                                                                               |
+| ---------------------- | -------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `prune-view-stats`     | `17 3 * * *`   | `/api/cron/prune-view-stats`     | Deletes counters older than 400 days                                                                                       |
+| `lighthouse`           | `43 4 * * *`   | `/api/cron/lighthouse`           | PageSpeed Insights sweep (see below)                                                                                       |
+| `prune-audit`          | `29 5 * * *`   | `/api/cron/prune-audit`          | Deletes audit rows older than 365 days and sign-in events older than 90                                                    |
+| `status-check`         | `* * * * *`    | `/api/cron/status-check`         | Checks the website and database for the public status page                                                                 |
+| `settle-auctions`      | `*/5 * * * *`  | `/api/cron/settle-auctions`      | Closes ended auctions, orders and emails winners, reminds and lapses unpaid                                                |
+| `google-merchant-sync` | `*/10 * * * *` | `/api/cron/google-merchant-sync` | Sends changed products to Google Merchant Center; does nothing unless enabled ([GOOGLE_LISTINGS.md](./GOOGLE_LISTINGS.md)) |
 
 See [LIGHTHOUSE_MONITORING.md](./LIGHTHOUSE_MONITORING.md) and
 [ADMIN_STATS.md](./ADMIN_STATS.md).

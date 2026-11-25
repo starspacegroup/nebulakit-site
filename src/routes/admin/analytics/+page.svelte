@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatDateTime, NO_DATE } from '$lib/utils/timezone';
 	import SharingMeta from '$lib/components/SharingMeta.svelte';
 	import { fieldName } from '$lib/utils/form-fields';
 	import { parseMeasurementId, type AnalyticsConfig } from '$lib/utils/analytics';
@@ -34,8 +35,8 @@
 
 	function formatUpdated(iso: string): string {
 		if (!iso) return 'unknown';
-		const date = new Date(iso);
-		return Number.isNaN(date.getTime()) ? 'unknown' : date.toLocaleString();
+		const when = formatDateTime(iso, data.timeZone);
+		return when === NO_DATE ? 'unknown' : when;
 	}
 
 	async function send(body: Record<string, unknown>, method: 'POST' | 'DELETE' = 'POST') {
@@ -209,8 +210,7 @@
 					bind:value={input}
 					spellcheck="false"
 					autocomplete="off"
-					placeholder="G-ABCD123456 — or paste the whole gtag.js snippet"
-				></textarea>
+					placeholder="G-ABCD123456 — or paste the whole gtag.js snippet"></textarea>
 				<p class="field-hint">
 					Google shows this under <strong>Admin → Data streams → your web stream</strong>. Paste
 					either the ID on its own or the entire

@@ -189,6 +189,21 @@ const passwordField = fieldName('password');
   mount, arrives once, and moves by depth with the pointer, the scroll and its own slow wander.
   When the pointer rests for `IDLE_MS`, a meteor crosses and lights the points along its path in turn. Under reduced motion the canvas never starts. Colours are `--hero-field-*` tokens in
   `src/app.css`. Add stars to the field, not as new `div`s in the hero.
+- **Admin dates and times go through `src/lib/utils/timezone.ts`.** Use `formatDate`, `formatTime`,
+  `formatDateTime` and `dayKey` with `data.timeZone` from the admin layout. Use `formatNumber` for
+  numbers. A bare `toLocaleString()` uses the machine's zone. It shows the wrong clock and breaks
+  hydration. `tests/unit/admin-timezone.test.ts` fails on a bare call in `src/routes/admin` or
+  `src/lib/components/admin`. The `tz` cookie is untrusted. Only `resolveTimeZone` reads it. See
+  [docs/ADMIN_TIMEZONE.md](docs/ADMIN_TIMEZONE.md).
+- **Never trust an amount from the client.** The server computes prices, discounts, tax, shipping,
+  totals and currency from the catalog and the site settings. A PaymentIntent's amount is the order
+  total. Only the signed, deduplicated Stripe webhook marks an order paid. See
+  [docs/CHECKOUT.md](docs/CHECKOUT.md). The money core is proved in `dafny/PaymentCore.dfy`.
+- **Product data for Google has one set of rules.** The feed, the JSON-LD and the Merchant API sync
+  are validated and built in `packages/commerce/src/google-listing.ts`. Do not add rules in a route,
+  a component or a renderer. The price on the page, in the JSON-LD, in the feed and in the cart is one
+  number. Take it from `priceNow`. `tests/unit/google-markup.test.ts` fails if they disagree. See
+  [docs/GOOGLE_LISTINGS.md](docs/GOOGLE_LISTINGS.md).
 - **Lighthouse reports are generated, never hand-edited.** `bun run lighthouse` writes both
   `static/lighthouse/*.html` and `src/lib/lighthouse-results.json`, and exits non-zero below 100. The
   extensionless twin of each report is listed in `svelte.config.js`; Pages redirects `/foo.html` to

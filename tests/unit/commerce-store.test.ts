@@ -18,7 +18,12 @@ import { createSqliteD1 } from '../helpers/sqlite-d1';
 let db: D1Database;
 
 beforeEach(() => {
-	db = createSqliteD1(['0023_commerce.sql', '0025_commerce_settings.sql']);
+	// 0032 adds checkout_key / payment_revision, which createOrder writes.
+	db = createSqliteD1([
+		'0023_commerce.sql',
+		'0025_commerce_settings.sql',
+		'0032_commerce_checkout_attempts.sql'
+	]);
 });
 
 describe('commerce store: products', () => {

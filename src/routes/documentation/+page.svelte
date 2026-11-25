@@ -311,6 +311,7 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 					<a href="#ui-kit">UI Kit</a>
 					<a href="#modules">Modules</a>
 					<a href="#shop-payments-email">Shop, Payments and Email</a>
+					<a href="#google-listings">Google Listings</a>
 					<a href="#drag-and-drop">Drag and Drop</a>
 					<a href="#pages-site-api">Pages and the Site API</a>
 					<a href="#badge">The Badge</a>
@@ -340,6 +341,7 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 					<a href="#security-hardening">Security Hardening</a>
 					<a href="#roles-permissions">Roles and Permissions</a>
 					<a href="#audit-log">Audit Log</a>
+					<a href="#admin-time-zone">Admin Time Zone</a>
 					<a href="#sign-in-tracking">Sign-in Tracking</a>
 					<a href="#admin-analytics">Admin Analytics</a>
 				</div>
@@ -703,7 +705,10 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 						kept in their browser, and check out at <code>/cart</code>. Prices, tax and shipping are
 						always worked out on the server from the catalog; the cart only remembers what to ask
 						for. Physical products ask for a shipping address. With Stripe configured the shopper
-						goes on to pay; without it the order waits for a manual payment.
+						pays by card right on <code>/cart</code> (Stripe's Payment Element, loaded from
+						<code>js.stripe.com</code> only on that page), or on Stripe's hosted page when
+						<code>CHECKOUT_MODE</code> is <code>hosted</code>; without it the order waits for a
+						manual payment. Orders are listed at <code>/admin/orders</code>.
 					</p>
 				</div>
 				<div class="callout-card">
@@ -727,8 +732,14 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 			<p>
 				Shop settings are environment variables, never request fields:
 				<code>COMMERCE_TAX_RATE_PERCENT</code>, <code>COMMERCE_PRICES_INCLUDE_TAX</code>,
-				<code>COMMERCE_FLAT_SHIPPING_CENTS</code>, <code>STRIPE_SECRET_KEY</code> and
-				<code>STRIPE_WEBHOOK_SECRET</code> (webhook URL <code>/api/v1/webhooks/stripe</code>).
+				<code>COMMERCE_FLAT_SHIPPING_CENTS</code>, <code>STRIPE_SECRET_KEY</code>,
+				<code>STRIPE_PUBLISHABLE_KEY</code> and <code>STRIPE_WEBHOOK_SECRET</code> (webhook URL
+				<code>/api/v1/webhooks/stripe</code>), plus optional <code>CHECKOUT_MODE</code>
+				(<code>onpage</code>, the default, or <code>hosted</code>) and
+				<code>STRIPE_WEBHOOK_SECRET_PREVIOUS</code> while rolling the signing secret. Without the
+				publishable key, the cart sends shoppers to Stripe's hosted page. See
+				<code>docs/CHECKOUT.md</code> for test cards and <code>stripe listen</code>. On-page
+				checkout needs migrations <code>0032</code>–<code>0034</code>.
 			</p>
 			<h3 id="orders-payments-email">Payments, status and email</h3>
 			<p>
@@ -736,9 +747,15 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 				so Stripe keeps retrying. It handles <code>checkout.session.completed</code> and
 				<code>checkout.session.async_payment_succeeded</code> (the order becomes paid),
 				<code>checkout.session.async_payment_failed</code> and
-				<code>checkout.session.expired</code> (a pending order is cancelled). A payment that is smaller
-				than the order total, or in another currency, leaves the order pending for a person to check.
-				Replays change nothing a second time.
+				<code>checkout.session.expired</code> (a pending order is cancelled), and for the on-page
+				card form <code>payment_intent.succeeded</code>, <code>payment_intent.canceled</code>,
+				<code>payment_intent.payment_failed</code> and <code>charge.refunded</code> (the last two
+				are recorded on the order's payment history at <code>/admin/orders</code> and never change
+				its status). Only this signed webhook marks an order paid, never the shopper's return to the
+				cart. A payment that is smaller than the order total, or in another currency, leaves the
+				order pending for a person to check. Each event is applied once per event id; a paid order
+				never goes back to unpaid. <code>POST /api/v1/checkout/cancel</code> lets a shopper back out of
+				an unpaid order: Stripe closes the payment first, then the order is cancelled.
 			</p>
 			<p>
 				After paying, the shopper returns to <code>/cart?order=…</code>, which asks
@@ -753,6 +770,55 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 				<code>email_log</code> table refuses a second send. Without a key nothing is sent and the
 				log records what was skipped. Email colours come from <code>emailTheme</code> in
 				<code>src/lib/site.config.ts</code>.
+			</p>
+		</section>
+
+		<section id="google-listings" class="docs-section">
+			<h2>Google Listings</h2>
+			<p>
+				A shop is eligible for free listings and Shopping ads in Google Merchant Center without
+				hand-made spreadsheets. Apply migration <code>0035</code> with
+				<code>bun run db:migrate:local</code>. Each product has an optional
+				<strong>Google listing</strong> section in <a href="/admin/products">/admin/products</a>
+				(brand, GTIN, MPN, condition, category, sale price and window, extra images, color, size, material,
+				gender, age group, item group, weight and size, custom labels). The rules live in one pure module,
+				<code>packages/commerce/src/google-listing.ts</code>.
+			</p>
+			<h3 id="google-feed">The feed</h3>
+			<p>
+				<code>/feeds/google-products.xml</code> (RSS 2.0 with the <code>g:</code> namespace) and
+				<code>/feeds/google-products.tsv</code> list active products. Auctions, products marked
+				"keep out of the Google feed", and products with an error are left out, so one bad product
+				cannot cost the account its standing. Prices are the catalog price in the product's own
+				currency, for example <code>12.99 USD</code>; regional pricing is never applied to what
+				Google sees. Paste the XML address into Merchant Center as a scheduled fetch. The feed is
+				read from the Cloudflare cache for 15 minutes and pages through D1, so a 2000 product
+				catalog costs one pass of reads, not one per visit.
+			</p>
+			<h3 id="google-health">Feed health</h3>
+			<p>
+				<a href="/admin/products/google">/admin/products/google</a> shows the feed address, when it was
+				last fetched, how many products are valid, left out or carry warnings, and the first problems
+				with a link to fix each. It also holds the ship-to countries, delivery times, return policy and
+				default brand that the feed and each product page's structured data use. A section left blank
+				is not claimed anywhere.
+			</p>
+			<h3 id="google-markup">Product page markup</h3>
+			<p>
+				Every <code>/shop/[slug]</code> page emits one JSON-LD <code>Product</code> with an
+				<code>Offer</code> (price, currency, availability, condition, seller, shipping details and return
+				policy when set), inside the page's single Organization and WebSite graph. The price in the markup
+				is the price on the page, the price in the cart and the price in the feed. A sale price is charged
+				at checkout while its window is open.
+			</p>
+			<h3 id="google-sync">Merchant API sync (optional, off)</h3>
+			<p>
+				Turn on <strong>Merchant API sync</strong> in <code>/admin/products/google</code> (owner
+				only) to send changes every ten minutes through the
+				<code>google-merchant-sync</code> scheduled job (<code>/api/cron/google-merchant-sync</code
+				>). The service-account key is stored encrypted in KV, never in D1. Setup, disapproval
+				reasons and what could not be verified:
+				<code>docs/GOOGLE_LISTINGS.md</code>.
 			</p>
 		</section>
 
@@ -1211,6 +1277,30 @@ npm run db:migrate:list</code
 				migration <code>0016</code> (shared with sign-in tracking) with
 				<code>bun run db:migrate:local</code>. Details:
 				<code>docs/AUDIT_LOG.md</code>.
+			</p>
+		</section>
+
+		<section id="admin-time-zone" class="docs-section">
+			<h2>Admin Time Zone</h2>
+			<p>
+				Every date and time in the admin area, and the days and hours on the Dashboard charts, are
+				shown in one zone. By default (<code>auto</code>) that is the browser's own zone, read with
+				<code>Intl.DateTimeFormat().resolvedOptions().timeZone</code> without asking, and handed to
+				the server in a <code>tz</code> cookie so server rendering matches. Each user can set their
+				own zone on their <a href="/profile#time-zone">profile</a>, which wins over everything else.
+				The owner can pin a fixed IANA zone on the <a href="/admin">admin dashboard</a>; that beats
+				the browser. With neither, the zone is UTC. The zone is named in the sidebar and on the
+				Dashboard header.
+			</p>
+			<p>
+				Counters are stored per UTC hour and per UTC day, so the Stats page re-buckets what it can
+				and says so: the 24-hour chart keeps UTC hours labelled in your zone, longer windows are
+				rebuilt from the hourly totals into days of your zone, and the breakdown tables and the
+				platform usage meter stay on UTC days. Apply migration <code>0030</code> and
+				<code>0031</code>
+				with
+				<code>bun run db:migrate:local</code>. Public pages are not affected. Details:
+				<code>docs/ADMIN_TIMEZONE.md</code>.
 			</p>
 		</section>
 
