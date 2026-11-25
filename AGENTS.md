@@ -195,6 +195,10 @@ const passwordField = fieldName('password');
   hydration. `tests/unit/admin-timezone.test.ts` fails on a bare call in `src/routes/admin` or
   `src/lib/components/admin`. The `tz` cookie is untrusted. Only `resolveTimeZone` reads it. See
   [docs/ADMIN_TIMEZONE.md](docs/ADMIN_TIMEZONE.md).
+- **Never trust an amount from the client.** The server computes prices, discounts, tax, shipping,
+  totals and currency from the catalog and the site settings. A PaymentIntent's amount is the order
+  total. Only the signed, deduplicated Stripe webhook marks an order paid. See
+  [docs/CHECKOUT.md](docs/CHECKOUT.md). The money core is proved in `dafny/PaymentCore.dfy`.
 - **Lighthouse reports are generated, never hand-edited.** `bun run lighthouse` writes both
   `static/lighthouse/*.html` and `src/lib/lighthouse-results.json`, and exits non-zero below 100. The
   extensionless twin of each report is listed in `svelte.config.js`; Pages redirects `/foo.html` to

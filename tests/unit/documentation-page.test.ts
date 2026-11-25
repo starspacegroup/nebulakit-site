@@ -581,7 +581,13 @@ describe('Documentation Page', () => {
 			'STRIPE_WEBHOOK_SECRET',
 			'GET /api/v1/orders/[id]/status',
 			'RESEND_API_KEY',
-			'checkout.session.async_payment_failed'
+			'checkout.session.async_payment_failed',
+			'STRIPE_PUBLISHABLE_KEY',
+			'CHECKOUT_MODE',
+			'payment_intent.succeeded',
+			'charge.refunded',
+			'POST /api/v1/checkout/cancel',
+			'/admin/orders'
 		]) {
 			expect(scoped.getAllByText(text).length).toBeGreaterThan(0);
 		}
