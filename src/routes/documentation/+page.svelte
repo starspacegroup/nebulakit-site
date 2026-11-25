@@ -1293,11 +1293,11 @@ npm run db:migrate:list</code
 				Dashboard header.
 			</p>
 			<p>
-				Counters are stored per UTC hour and per UTC day, so the Dashboard re-buckets what it can
+				Counters are stored per UTC hour and per UTC day, so the Stats page re-buckets what it can
 				and says so: the 24-hour chart keeps UTC hours labelled in your zone, longer windows are
 				rebuilt from the hourly totals into days of your zone, and the breakdown tables and the
-				platform usage meter stay on UTC days. Apply migration <code>0032</code> and
-				<code>0033</code>
+				platform usage meter stay on UTC days. Apply migration <code>0030</code> and
+				<code>0031</code>
 				with
 				<code>bun run db:migrate:local</code>. Public pages are not affected. Details:
 				<code>docs/ADMIN_TIMEZONE.md</code>.

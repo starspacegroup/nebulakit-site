@@ -1,6 +1,6 @@
 # Admin time zone
 
-Every date and time in `/admin/**`, and the day and hour buckets on the Dashboard charts, are shown
+Every date and time in `/admin/**`, and the day and hour buckets on the Stats page (`/admin/stats`) charts, are shown
 in one zone. Public and customer-facing pages are not affected.
 
 ## Which zone
@@ -44,7 +44,7 @@ machine's locale instead, which is why admin numbers use `formatNumber`.
 The admin layout load returns `timeZone`, `timeZoneSetting`, `timeZoneSource` and `timeZoneLabel`.
 Every admin page reads `data.timeZone` (layout data merges into page data) and formats with
 `formatDate` / `formatTime` / `formatDateTime`. The zone is named in the sidebar and under the
-Dashboard title, and in Settings and the profile. The sidebar says where the zone comes from (your preference, site
+Stats page title, and on the admin dashboard and the profile. The sidebar says where the zone comes from (your preference, site
 setting, browser) and links to the control.
 
 Rule, enforced by `tests/unit/admin-timezone.test.ts`: no bare `toLocale*String()` in
@@ -63,7 +63,7 @@ split into zone days, but UTC hours can be regrouped.
 | Platform usage meter                                                      | Stays on UTC days and the UTC month: Cloudflare's limits reset at 00:00 UTC.                                                                                                                                                                                                                                                                                               |
 | Users and content by month                                                | Rebuilt in the zone from per-minute counts of `created_at` (UTC), so DST is respected.                                                                                                                                                                                                                                                                                     |
 
-The Dashboard load reads the layout's zone on every request, so two admins with different zones
+The Stats page load reads the layout's zone on every request, so two admins with different zones
 get different buckets and "today" from the same counters (`tests/unit/admin-timezone.test.ts`).
 
 `/api/stats/summary` (external dashboards) is unchanged: it buckets in UTC.
