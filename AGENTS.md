@@ -162,6 +162,12 @@ const passwordField = fieldName('password');
 
 `tests/e2e/layout-audit.test.ts` loads the public pages at 360, 430, 768 and 1280px and fails on sideways scrolling, text touching the screen edge, neighbouring paragraphs aligned differently, and oversized gaps between blocks on a phone. A new public page goes in its `PAGES` list. Run it with `bunx playwright test tests/e2e/layout-audit.test.ts`. It catches mechanical faults only; still look at a new section on a phone-width screen before calling it done. Page roots in `<main>` (a column flexbox) get full width from the layout, so do not undo that with a fixed `width` on the root.
 
+### 13. Code Samples Use CodeBlock
+
+**Rule:** Show code with `CodeBlock` from `$lib/ui` (highlighted, copy button, scrolls inside its card), never a bare `<pre><code>`. Its colours are the `--code-*` tokens in [src/app.css](src/app.css), and each needs 4.5:1 on `--color-surface` in both themes (`npm run validate:contrast` checks them). A "Code" toggle is `CodeDisclosure`. See [docs/UI_KIT.md](docs/UI_KIT.md). `/badge` keeps its own highlight.js blocks.
+
+---
+
 ## Architecture Notes
 
 - **Cloudflare-first:** D1 (DB), KV, R2, Queues, Workers AI. See [wrangler.toml](wrangler.toml).
