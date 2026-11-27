@@ -89,6 +89,7 @@ Tiles and installed-app icons are **static** — they cannot switch on `prefers-
 **When this breaks:**
 
 - New feature added → Update the matching section, add the nav anchor if it's a new section, and extend [tests/unit/documentation-page.test.ts](tests/unit/documentation-page.test.ts) to assert the new content (tests first — see §1).
+- `tests/unit/documentation-drift.test.ts` fails when a route, script, or binding has no mention on the page, or a section is missing from the `docsGroups` list in the page script. Document the new thing. Add it to an allow list in the test only when it is internal, and write the reason.
 - Feature removed or renamed → Delete or rewrite its docs in the same change. Stale instructions are a defect, not debt.
 - `/documentation` route missing (deleted during customization) → Recreate it, with links from [src/lib/components/Footer.svelte](src/lib/components/Footer.svelte) and the command palette. "We removed the template docs" is not an exemption; replace, never drop.
 - Docs page still says "NebulaKit" after customization → Rebrand it; see §5.
