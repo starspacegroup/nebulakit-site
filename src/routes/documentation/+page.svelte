@@ -31,6 +31,7 @@
 				{ id: 'modules', name: 'Modules' },
 				{ id: 'shop-payments-email', name: 'Shop, Payments and Email' },
 				{ id: 'google-listings', name: 'Google Listings' },
+				{ id: 'auctions', name: 'Auctions' },
 				{ id: 'drag-and-drop', name: 'Drag and Drop' },
 				{ id: 'pages-site-api', name: 'Pages and the Site API' },
 				{ id: 'badge', name: 'The Badge' },
@@ -996,6 +997,58 @@ npm run deploy`
 							<code>docs/GOOGLE_LISTINGS.md</code>.
 						</p>
 					</section>
+					<section id="auctions" class="docs-section">
+						<h2>Auctions</h2>
+						<p>
+							Sell one unit of a product to the highest bidder. Create an auction from a product in
+							<code>/admin/auctions</code> (the <code>shop</code> permission). Shoppers bid at
+							<code>/auctions</code> and <code>/auctions/[slug]</code>. A won auction becomes an
+							ordinary order, so payment, fulfilment and the orders API work as they do for any
+							other sale.
+						</p>
+						<div class="callout-grid">
+							<div class="callout-card">
+								<h3>Setup options</h3>
+								<ul>
+									<li>Starting price, and an optional hidden reserve.</li>
+									<li>Buy it now, offered until the first bid (or until the reserve is met).</li>
+									<li>Bid increment, or the tiered default.</li>
+									<li>Extend by N seconds, so nobody wins with a last-moment bid.</li>
+									<li>Winner must pay within N hours. Use 0 for manual payment.</li>
+								</ul>
+							</div>
+							<div class="callout-card">
+								<h3>Proxy bidding</h3>
+								<ul>
+									<li>A bidder enters the most they will pay.</li>
+									<li>The board shows only the price needed to stay in front.</li>
+									<li>An equal maximum loses: the earlier bid wins a tie.</li>
+									<li>The winner pays the price on the board, never their maximum.</li>
+								</ul>
+							</div>
+							<div class="callout-card">
+								<h3>Closing and paying</h3>
+								<ul>
+									<li>
+										The <code>settle-auctions</code> job runs every 5 minutes. It closes ended auctions
+										and creates one pending order per winner.
+									</li>
+									<li>
+										The winner pays on the auction page. Without Stripe keys the order waits for
+										manual payment.
+									</li>
+									<li>
+										Unpaid winners get one reminder, then the sale lapses and can be relisted.
+									</li>
+								</ul>
+							</div>
+						</div>
+						<p>
+							Bidders must be signed in and see an alias such as “Bidder 7F3A”, never a name or a
+							maximum. Emails (won, outbid, pay soon, win cancelled) send once per event when
+							<code>RESEND_API_KEY</code> and <code>EMAIL_FROM</code> are set.
+						</p>
+					</section>
 					<section id="drag-and-drop" class="docs-section">
 						<h2>Drag and Drop</h2>
 						<p>
@@ -1216,6 +1269,36 @@ npm run deploy`
 									</li>
 								</ul>
 							</div>
+							<div class="callout-card">
+								<h3>Checks and Tooling</h3>
+								<ul>
+									<li>
+										<code>npm run check:bindings</code> and <code>setup:cf</code> check and create the
+										Cloudflare resources.
+									</li>
+									<li><code>npm run check:watch</code> keeps svelte-check running.</li>
+									<li>
+										<code>npm run build:dafny</code> compiles the Dafny proof cores to JavaScript.
+									</li>
+									<li>
+										<code>npm run dev:tunnel</code> starts the dev server behind a public tunnel.
+									</li>
+									<li><code>npm run og:generate</code> rebuilds the social-share image.</li>
+									<li><code>npm run seo:external</code> runs the external SEO checks.</li>
+									<li>
+										<code>npm run test:ui</code>, <code>test:e2e:ui</code> and
+										<code>test:e2e:headed</code> open the test runners with a window.
+									</li>
+									<li>
+										<code>npm run palette:scan</code> audits colour use against the theme tokens.
+									</li>
+									<li>
+										<code>npm run seed:demo</code> fills a local database with demo content.
+										<code>npm run capture:built-with</code> and <code>npm run capture:admin</code> take
+										the marketing screenshots.
+									</li>
+								</ul>
+							</div>
 						</div>
 					</section>
 					<section id="testing" class="docs-section">
@@ -1273,6 +1356,11 @@ npm run deploy`
 	├── docs/                   # Extended project docs
 	└── wrangler.toml           # Cloudflare bindings/config`}
 						/>
+						<p>
+							<code>/media/&lt;key&gt;</code> streams uploaded files from the R2 bucket, with byte
+							ranges so video plays on iOS. <code>/privacy</code> and <code>/terms</code> ship as template
+							text. Replace both with your own before you launch.
+						</p>
 					</section>
 				</div>
 
