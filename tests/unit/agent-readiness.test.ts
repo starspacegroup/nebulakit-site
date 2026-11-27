@@ -37,7 +37,7 @@ import { GET as authMdGet } from '../../src/routes/auth.md/+server';
 import { GET as healthGet } from '../../src/routes/api/health/+server';
 import { GET as catalogGet } from '../../src/routes/[x+2e]well-known/api-catalog/+server';
 import { GET as skillsIndexGet } from '../../src/routes/[x+2e]well-known/agent-skills/index.json/+server';
-import { createProduct } from '@nebulakit/commerce';
+import { closeAuction, createAuction, createProduct } from '@nebulakit/commerce';
 import { createSqliteD1 } from '../helpers/sqlite-d1';
 import { GET as skillDocGet } from '../../src/routes/[x+2e]well-known/agent-skills/[skill]/SKILL.md/+server';
 import { pageDirectoriesOf, rendersAPage } from '../helpers/route-pages';
@@ -154,6 +154,32 @@ describe('sitemap.xml', () => {
 		).text();
 		expect(body).toContain(`<loc>${ORIGIN}/shop/tee</loc>`);
 		expect(body).not.toContain('/cart');
+	});
+
+	it('includes open auctions but not ended ones', async () => {
+		const db = createSqliteD1();
+		const product = await createProduct(db, { slug: 'mug', name: 'Mug', priceCents: 5000 });
+		const hour = 3600_000;
+		await createAuction(db, {
+			slug: 'live-mug',
+			productId: product.id,
+			startingCents: 1000,
+			startsAt: new Date(Date.now() - hour).toISOString(),
+			endsAt: new Date(Date.now() + hour).toISOString()
+		});
+		const over = await createAuction(db, {
+			slug: 'old-mug',
+			productId: product.id,
+			startingCents: 1000,
+			startsAt: new Date(Date.now() - 2 * hour).toISOString(),
+			endsAt: new Date(Date.now() + hour).toISOString()
+		});
+		await closeAuction(db, over.id, { now: Date.now() + 2 * hour });
+		const body = await (
+			await sitemapGet(event('/sitemap.xml', { platform: { env: { DB: db } } }))
+		).text();
+		expect(body).toContain(`<loc>${ORIGIN}/auctions/live-mug</loc>`);
+		expect(body).not.toContain('/auctions/old-mug');
 	});
 
 	it('includes published CMS items and their type list pages', async () => {
