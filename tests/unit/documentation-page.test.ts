@@ -643,4 +643,13 @@ describe('Documentation Page', () => {
 			);
 		});
 	});
+
+	it('sends the footer star link to the template repo, not the marketing site', () => {
+		render(Page);
+		const footer = document.querySelector('.docs-footer');
+		expect(footer?.querySelector('a')).toHaveAttribute(
+			'href',
+			'https://github.com/starspacegroup/NebulaKit'
+		);
+	});
 });

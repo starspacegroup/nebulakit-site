@@ -1,6 +1,6 @@
 <script lang="ts">
 	import SharingMeta from '$lib/components/SharingMeta.svelte';
-	import { site } from '$lib/site.config';
+	import { projectRepoUrl, site } from '$lib/site.config';
 
 	type PackageManager = 'bun' | 'npm';
 	type QuickStartLine =
@@ -1699,7 +1699,7 @@ bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}</c
 		<footer class="docs-footer">
 			<p>
 				If NebulaKit helps your workflow, consider giving the project a star on <a
-					href="https://github.com/starspacegroup/nebulakit-site"
+					href={projectRepoUrl}
 					target="_blank"
 					rel="noopener noreferrer">GitHub</a
 				>!
