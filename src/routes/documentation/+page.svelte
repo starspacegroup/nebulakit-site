@@ -92,6 +92,7 @@ npm run deploy`
 			</p>
 			<p class="docs-intro docs-intro--paths">
 				<span><a href="#use-with-ai">Using an AI?</a> Start with the first section.</span>
+				<span><a href="#cloudflare-setup">New to Cloudflare?</a> Set up your account.</span>
 				<span><a href="#quick-start">Doing it by hand?</a> Go to Quick Start.</span>
 				<span><a href="#deployment">Already built?</a> Jump to Deployment.</span>
 			</p>
@@ -300,6 +301,7 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 				<div class="docs-nav-links">
 					<a href="#use-with-ai">Use with an AI</a>
 					<a href="#start-here">Start Here</a>
+					<a href="#cloudflare-setup">Set Up Cloudflare</a>
 					<a href="#quick-start">Quick Start</a>
 					<a href="#feature-overview">Feature Overview</a>
 					<a href="#how-to-use">How To Use</a>
@@ -380,6 +382,10 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 					names the owner (see <a href="#auth-and-setup">Authentication and Setup</a>).
 				</li>
 				<li>
+					<strong>Set up Cloudflare.</strong> Create the account, sign Wrangler in and connect an AI
+					through the Cloudflare MCP server. See <a href="#cloudflare-setup">Set Up Cloudflare</a>.
+				</li>
+				<li>
 					<strong>Check before you ship.</strong> <code>bun run check</code>,
 					<code>bun run test</code> and <code>bun run test:coverage</code> must all pass. Coverage may
 					not fall below 95%.
@@ -391,6 +397,95 @@ curl -H "Authorization: Bearer $NEBULAKIT_KEY" \
 			<p>
 				Your site's name, colours and links live in <code>src/lib/site.config.ts</code> and
 				<code>src/app.css</code>. Nothing else needs renaming.
+			</p>
+		</section>
+
+		<section id="cloudflare-setup" class="docs-section">
+			<h2>Set Up Cloudflare</h2>
+			<p>
+				NebulaKit runs on Cloudflare: Pages serves the site, D1 holds the data, KV holds runtime
+				config, and R2 holds uploaded files. You do not need an account to run the site on your own
+				machine. You need one to deploy, and about ten minutes to set it up.
+			</p>
+			<ol class="steps">
+				<li>
+					<strong>Create the account.</strong> Sign up at
+					<a href="https://dash.cloudflare.com/sign-up" target="_blank" rel="noopener noreferrer"
+						>dash.cloudflare.com/sign-up</a
+					>
+					and confirm your email. The free plan covers Pages, D1 and KV. R2 asks for a payment method
+					before you can switch it on, and the free plan allows 10 D1 databases per account.
+				</li>
+				<li>
+					<strong>Sign Wrangler in.</strong> Run <code>bunx wrangler login</code>. It opens a
+					browser window to approve access. Then run <code>bunx wrangler whoami</code> and check
+					that it names the account you mean to use. With more than one account, set
+					<code>CLOUDFLARE_ACCOUNT_ID</code> before you run anything else.
+				</li>
+				<li>
+					<strong>Create this project's resources.</strong> Run <code>bun run setup:cf</code>. It
+					creates the D1 database and the KV namespaces, writes their ids into
+					<code>wrangler.toml</code>, and runs <code>bun run check:bindings</code> to confirm the
+					result. Then run <code>bun run db:migrate</code> to create the tables. Every project needs
+					its own resources: never paste an id from another project (see
+					<a href="#cloudflare-bindings">Cloudflare Bindings</a>).
+				</li>
+				<li>
+					<strong>Set the secrets.</strong> Set <code>SESSION_SECRET</code>,
+					<code>SETUP_SECRET</code> and, optionally, <code>ENCRYPTION_KEY</code> with
+					<code>bunx wrangler pages secret put NAME</code>. The reasons and the rotation steps are
+					in
+					<a href="#secrets-at-rest">Secrets at Rest</a>.
+				</li>
+				<li>
+					<strong>Deploy.</strong> Connect the repository to Pages as described in
+					<a href="#deployment">Deployment to Cloudflare Pages</a>.
+				</li>
+			</ol>
+
+			<h3 id="cloudflare-mcp">Connect an AI through the Cloudflare MCP server</h3>
+			<p>
+				Cloudflare runs hosted MCP servers, so a coding agent can read your account and change it
+				for you: create the database, check a binding, read the logs of a failed deploy. You sign in
+				once in the browser, and no key goes into the repository. In Claude Code:
+			</p>
+			<pre><code
+					>claude mcp add --transport http cloudflare-api https://mcp.cloudflare.com/mcp
+claude mcp add --transport http cloudflare-docs https://docs.mcp.cloudflare.com/mcp</code
+				></pre>
+			<p>
+				Then run <code>/mcp</code> inside Claude Code, pick the server, and approve the Cloudflare sign-in.
+				Choose the account and the permissions on the consent screen, and grant no more than the task
+				needs. Other MCP clients (Cursor, Windsurf, ChatGPT and the rest) take the same URL in their remote-server
+				settings.
+			</p>
+			<ul>
+				<li>
+					<code>https://mcp.cloudflare.com/mcp</code> is the Cloudflare API server. It reaches the whole
+					Cloudflare API and is the one to start with.
+				</li>
+				<li>
+					<code>https://docs.mcp.cloudflare.com/mcp</code> searches the Cloudflare documentation. It changes
+					nothing, so it is safe to leave connected.
+				</li>
+				<li>
+					<code>https://observability.mcp.cloudflare.com/mcp</code> reads Worker logs and analytics.
+					<code>https://builds.mcp.cloudflare.com/mcp</code> reads and manages Workers Builds.
+				</li>
+			</ul>
+			<p>
+				The API server acts on the account you approved, not on this project alone. Keep one
+				Cloudflare account per client, and tell the agent to create resources with
+				<code>bun run setup:cf</code> so that the ids land in <code>wrangler.toml</code> and
+				<code>check:bindings</code> can vouch for them. For CI, which cannot open a browser, create
+				an API token in the Cloudflare dashboard under My Profile, API Tokens. Scope it to one
+				account and give it only the permissions it uses. The full list of servers is in the
+				<a
+					href="https://developers.cloudflare.com/agents/model-context-protocol/mcp-servers-for-cloudflare/"
+					target="_blank"
+					rel="noopener noreferrer">Cloudflare MCP documentation</a
+				>. To have an agent run your live site rather than your Cloudflare account, see
+				<a href="#use-with-ai">Use NebulaKit with an AI</a>.
 			</p>
 		</section>
 
