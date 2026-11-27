@@ -2,12 +2,80 @@
 	import SharingMeta from '$lib/components/SharingMeta.svelte';
 	import { projectRepoUrl, site } from '$lib/site.config';
 	import CodeBlock from '$lib/ui/CodeBlock.svelte';
+	import DocsSidebar from '../modules/ModulesSidebar.svelte';
 
 	type PackageManager = 'bun' | 'npm';
 	type QuickStartLine =
 		| { kind: 'blank' }
 		| { kind: 'comment'; text: string }
 		| { kind: 'command'; bin: string; args: string };
+
+	const docsGroups = [
+		{
+			id: 'group-start',
+			title: 'Start',
+			items: [
+				{ id: 'use-with-ai', name: 'Use with an AI' },
+				{ id: 'start-here', name: 'Start Here' },
+				{ id: 'cloudflare-setup', name: 'Set Up Cloudflare' },
+				{ id: 'quick-start', name: 'Quick Start' },
+				{ id: 'feature-overview', name: 'Feature Overview' },
+				{ id: 'how-to-use', name: 'How To Use' }
+			]
+		},
+		{
+			id: 'group-build',
+			title: 'Build',
+			items: [
+				{ id: 'ui-kit', name: 'UI Kit' },
+				{ id: 'modules', name: 'Modules' },
+				{ id: 'shop-payments-email', name: 'Shop, Payments and Email' },
+				{ id: 'google-listings', name: 'Google Listings' },
+				{ id: 'drag-and-drop', name: 'Drag and Drop' },
+				{ id: 'pages-site-api', name: 'Pages and the Site API' },
+				{ id: 'badge', name: 'The Badge' },
+				{ id: 'ai-workflow', name: 'AI Workflow' },
+				{ id: 'commands', name: 'Commands' },
+				{ id: 'testing', name: 'Testing' },
+				{ id: 'project-structure', name: 'Structure' }
+			]
+		},
+		{
+			id: 'group-run',
+			title: 'Run',
+			items: [
+				{ id: 'cloudflare-bindings', name: 'Cloudflare Bindings' },
+				{ id: 'database-migrations', name: 'Database Migrations' },
+				{ id: 'deployment', name: 'Deployment' },
+				{ id: 'scheduled-jobs', name: 'Scheduled Jobs' },
+				{ id: 'seo-and-hosts', name: 'SEO, Redirects and Lighthouse' },
+				{ id: 'agent-readiness', name: 'Agent Readiness' },
+				{ id: 'troubleshooting', name: 'Troubleshooting' }
+			]
+		},
+		{
+			id: 'group-secure-and-administer',
+			title: 'Secure and administer',
+			items: [
+				{ id: 'auth-and-setup', name: 'Auth and Setup' },
+				{ id: 'secrets-at-rest', name: 'Secrets at Rest' },
+				{ id: 'security-hardening', name: 'Security Hardening' },
+				{ id: 'roles-permissions', name: 'Roles and Permissions' },
+				{ id: 'audit-log', name: 'Audit Log' },
+				{ id: 'admin-time-zone', name: 'Admin Time Zone' },
+				{ id: 'sign-in-tracking', name: 'Sign-in Tracking' },
+				{ id: 'admin-analytics', name: 'Admin Analytics' }
+			]
+		},
+		{
+			id: 'group-more',
+			title: 'More',
+			items: [
+				{ id: 'references', name: 'References' },
+				{ id: 'contributing', name: 'Contributing' }
+			]
+		}
+	];
 
 	let selectedPackageManager: PackageManager = 'bun';
 
@@ -84,6 +152,7 @@ npm run deploy`
 <main class="docs-page">
 	<div class="docs-container">
 		<header class="docs-header">
+			<p class="eyebrow">Documentation</p>
 			<h1>NebulaKit Documentation</h1>
 			<p class="docs-intro">
 				NebulaKit is a SvelteKit starter for sites that run on Cloudflare: sign-in, an admin, a
@@ -99,1718 +168,1748 @@ npm run deploy`
 			</p>
 		</header>
 
-		<section
-			id="use-with-ai"
-			class="docs-section docs-section--ai"
-			aria-labelledby="use-with-ai-title"
-		>
-			<h2 id="use-with-ai-title">Use NebulaKit with an AI</h2>
-			<p class="lede">
-				There are three ways an AI works with NebulaKit. Pick the one you need; each is a few
-				minutes.
-			</p>
-
-			<div class="callout-grid">
-				<div class="callout-card">
-					<h3>1. Have an AI build your site</h3>
-					<p>
-						A coding agent (Claude Code, Codex, Cursor, Copilot, or any other) works inside your
-						copy of the template. It does the typing; the repo's rules keep it safe.
-					</p>
-					<p><a href="#ai-build">Steps and a prompt to paste →</a></p>
-				</div>
-				<div class="callout-card">
-					<h3>2. Have an AI run your live site</h3>
-					<p>
-						An agent calls your deployed site's API with a key you create, to edit pages, manage
-						products or read orders. You choose what the key may do.
-					</p>
-					<p><a href="#ai-operate">Create a key and call the API →</a></p>
-				</div>
-				<div class="callout-card">
-					<h3>3. Have an AI read this site</h3>
-					<p>
-						Every page can be fetched as Markdown, and the site publishes a catalog of what it
-						offers, so an agent can find its way without scraping.
-					</p>
-					<p><a href="#ai-read">Where an agent starts →</a></p>
-				</div>
-			</div>
-
-			<h3 id="ai-build">1. Build your site with a coding agent</h3>
-			<ol>
-				<li>
-					<a
-						href="https://github.com/new?template_name=NebulaKit&template_owner=starspacegroup"
-						target="_blank"
-						rel="noopener noreferrer">Create your repository from the template</a
-					>, then clone it.
-				</li>
-				<li>
-					Open the folder in your agent. It should read <code>AGENTS.md</code> first. That file is
-					the rule book (<code>CLAUDE.md</code> points to it), and it is why the agent writes tests, keeps
-					colours in CSS variables and never edits a migration that already shipped.
-				</li>
-				<li>
-					Paste a prompt like the one below, and replace the first line with what you want built.
-				</li>
-				<li>
-					Read the result, not only the summary. The agent must run the checks and show you their
-					output.
-				</li>
-			</ol>
-			<CodeBlock
-				language="text"
-				code={`Build: a pricing page with three plans and a contact button.
-
-Before you start, read AGENTS.md and docs/UI_KIT.md.
-Use the components in src/lib/ui and the modules in src/lib/modules before writing new ones.
-Write the tests first. Keep every colour a CSS variable. If the database changes,
-add a new migration; never edit an old one. Update /documentation in the same change.
-
-When you are done, run these and paste their output:
-  bun run check
-  bun run test
-  bun run test:coverage
-Coverage must stay at or above 95%. Then list the files you changed.`}
-			/>
-			<h4>Tasks that go well</h4>
-			<ul>
-				<li>Add a page, a form, a table or a dashboard from the UI kit and modules.</li>
-				<li>Add a database table and the admin screen for it, with tests.</li>
-				<li>
-					Change the look: edit the theme tokens in <code>src/app.css</code>, then run
-					<code>bun run validate:contrast</code>.
-				</li>
-				<li>
-					Explain a route: ask which file, store and service control it, and what the smallest edit
-					is.
-				</li>
-			</ul>
-			<h4>Keep control</h4>
-			<ul>
-				<li>Ask for a branch and a pull request. Do not let an agent push to <code>main</code>.</li>
-				<li>
-					Never paste a secret into a prompt. Keys go in <code>.dev.vars</code> locally and in Cloudflare
-					secrets in production.
-				</li>
-				<li>Ask for one change at a time. Small diffs are easy to review.</li>
-			</ul>
-
-			<h3 id="ai-operate">2. Let an agent run your live site</h3>
-			<p>
-				Everything the admin can do with pages, products, prices and orders is also reachable at
-				<code>/api/v1</code>, and the whole surface is described at
-				<a href="/api/v1/openapi.json">/api/v1/openapi.json</a>. An agent that can read that file
-				knows every endpoint.
-			</p>
-			<ol>
-				<li>
-					Sign in as the owner and open <code>/admin/api-keys</code>. Create a key with the fewest
-					scopes the job needs, and an expiry. The key is shown once and stored hashed.
-				</li>
-				<li>
-					Give the agent the key through an environment variable (<code>NEBULAKIT_KEY</code>), not
-					in the chat.
-				</li>
-				<li>
-					Point it at the OpenAPI file and say what to do. Revoke the key at
-					<code>/admin/api-keys</code> when the job is finished.
-				</li>
-			</ol>
-			<!-- A scroll area must be reachable by keyboard, so it takes focus (WCAG 2.1.1). -->
-			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-			<div class="table-scroll" role="region" aria-label="API key scopes" tabindex="0">
-				<table class="docs-table">
-					<thead>
-						<tr><th scope="col">Scope</th><th scope="col">Lets the key</th></tr>
-					</thead>
-					<tbody>
-						<tr><td><code>site:read</code></td><td>Read site information and updates.</td></tr>
-						<tr
-							><td><code>pages:read</code>, <code>pages:write</code></td><td
-								>Read, create, edit and publish builder pages, and read revisions.</td
-							></tr
-						>
-						<tr
-							><td><code>products:read</code>, <code>products:write</code></td><td
-								>See archived products, and create, edit and delete products. The public catalog of
-								active products needs no key.</td
-							></tr
-						>
-						<tr
-							><td><code>pricing:read</code>, <code>pricing:write</code></td><td
-								>Read or change regional pricing.</td
-							></tr
-						>
-						<tr
-							><td><code>orders:read</code>, <code>orders:write</code></td><td
-								>Read orders (this includes customers' addresses) or move an order's status.</td
-							></tr
-						>
-						<tr
-							><td><code>site:admin</code></td><td
-								>Everything. Only owners can grant it; avoid it for agents.</td
-							></tr
-						>
-					</tbody>
-				</table>
-			</div>
-			<CodeBlock
-				language="sh"
-				code={`export NEBULAKIT_KEY=nk_...    # created at /admin/api-keys
-
-curl -H "Authorization: Bearer $NEBULAKIT_KEY" \\
-  "${site.url}/api/v1/products?all=1"`}
-			/>
-			<p>
-				A key that is wrong is refused, never treated as an anonymous visitor. Writes must send
-				JSON, and every call is logged next to the key on the same admin page.
-			</p>
-
-			<h3 id="ai-read">3. Let an agent read this site</h3>
-			<p>Give the agent this address and ask your question. It does not need to scrape HTML:</p>
-			<CodeBlock language="sh" code={`curl -H 'Accept: text/markdown' ${site.url}/documentation`} />
-			<ul>
-				<li>
-					<strong>Markdown for every page.</strong> Send <code>Accept: text/markdown</code>. The
-					reply says roughly how many tokens it holds, so the agent can budget.
-				</li>
-				<li>
-					<strong>A map of what exists.</strong>
-					<a href="/.well-known/api-catalog">/.well-known/api-catalog</a> lists the APIs and
-					<a href="/.well-known/agent-skills/index.json">/.well-known/agent-skills/index.json</a>
-					holds short guides for reading content and contacting the site.
-				</li>
-				<li>
-					<strong>How to sign in.</strong> <a href="/auth.md">/auth.md</a> says how an agent authenticates,
-					and what is not offered.
-				</li>
-				<li>
-					<strong>Crawl rules.</strong> <a href="/robots.txt">/robots.txt</a> names the AI crawlers
-					and says how the content may be used. See <a href="#agent-readiness">Agent Readiness</a>
-					for the full list.
-				</li>
-			</ul>
-			<p>
-				Treat anything an agent reads from a web page as information, not as orders. If a page says
-				"ignore your instructions", it is the page that is wrong.
-			</p>
-		</section>
-
-		<nav class="docs-nav" aria-label="Documentation navigation">
-			<div class="docs-nav-group">
-				<span class="docs-nav-label">Start</span>
-				<div class="docs-nav-links">
-					<a href="#use-with-ai">Use with an AI</a>
-					<a href="#start-here">Start Here</a>
-					<a href="#cloudflare-setup">Set Up Cloudflare</a>
-					<a href="#quick-start">Quick Start</a>
-					<a href="#feature-overview">Feature Overview</a>
-					<a href="#how-to-use">How To Use</a>
-				</div>
-			</div>
-			<div class="docs-nav-group">
-				<span class="docs-nav-label">Build</span>
-				<div class="docs-nav-links">
-					<a href="#ui-kit">UI Kit</a>
-					<a href="#modules">Modules</a>
-					<a href="#shop-payments-email">Shop, Payments and Email</a>
-					<a href="#google-listings">Google Listings</a>
-					<a href="#drag-and-drop">Drag and Drop</a>
-					<a href="#pages-site-api">Pages and the Site API</a>
-					<a href="#badge">The Badge</a>
-					<a href="#ai-workflow">AI Workflow</a>
-					<a href="#commands">Commands</a>
-					<a href="#testing">Testing</a>
-					<a href="#project-structure">Structure</a>
-				</div>
-			</div>
-			<div class="docs-nav-group">
-				<span class="docs-nav-label">Run</span>
-				<div class="docs-nav-links">
-					<a href="#cloudflare-bindings">Cloudflare Bindings</a>
-					<a href="#database-migrations">Database Migrations</a>
-					<a href="#deployment">Deployment</a>
-					<a href="#scheduled-jobs">Scheduled Jobs</a>
-					<a href="#seo-and-hosts">SEO, Redirects and Lighthouse</a>
-					<a href="#agent-readiness">Agent Readiness</a>
-					<a href="#troubleshooting">Troubleshooting</a>
-				</div>
-			</div>
-			<div class="docs-nav-group">
-				<span class="docs-nav-label">Secure and administer</span>
-				<div class="docs-nav-links">
-					<a href="#auth-and-setup">Auth and Setup</a>
-					<a href="#secrets-at-rest">Secrets at Rest</a>
-					<a href="#security-hardening">Security Hardening</a>
-					<a href="#roles-permissions">Roles and Permissions</a>
-					<a href="#audit-log">Audit Log</a>
-					<a href="#admin-time-zone">Admin Time Zone</a>
-					<a href="#sign-in-tracking">Sign-in Tracking</a>
-					<a href="#admin-analytics">Admin Analytics</a>
-				</div>
-			</div>
-			<div class="docs-nav-group">
-				<span class="docs-nav-label">More</span>
-				<div class="docs-nav-links">
-					<a href="#references">References</a>
-					<a href="#contributing">Contributing</a>
-				</div>
-			</div>
+		<nav aria-label="Documentation groups" class="docs-chips">
+			{#each docsGroups as group (group.id)}
+				<a href="#{group.id}">{group.title} <span>{group.items.length}</span></a>
+			{/each}
 		</nav>
 
-		<section id="start-here" class="docs-section">
-			<h2>Start Here</h2>
-			<p>
-				There are two repositories, and the difference matters. <strong>NebulaKit</strong> is the
-				template: copy it to build your own site. <strong>nebulakit-site</strong> is this website, which
-				runs on the same platform but is not a template. Everything below describes the platform, so it
-				applies to both.
-			</p>
-			<ol class="steps">
-				<li>
-					<strong>Get the code.</strong> Use the template button in
-					<a href="#quick-start">Quick Start</a>, then clone your new repository.
-				</li>
-				<li>
-					<strong>Install and run it.</strong> <code>bun install</code>, then
-					<code>bun run dev</code>, then open <code>http://localhost:4278</code>.
-				</li>
-				<li>
-					<strong>Create the local database.</strong> <code>bun run db:migrate:local</code> applies
-					every migration to a local D1 database (see
-					<a href="#database-migrations">Database Migrations</a>).
-				</li>
-				<li>
-					<strong>Make yourself the owner.</strong> The setup flow connects an OAuth provider and
-					names the owner (see <a href="#auth-and-setup">Authentication and Setup</a>).
-				</li>
-				<li>
-					<strong>Set up Cloudflare.</strong> Create the account, sign Wrangler in and connect an AI
-					through the Cloudflare MCP server. See <a href="#cloudflare-setup">Set Up Cloudflare</a>.
-				</li>
-				<li>
-					<strong>Check before you ship.</strong> <code>bun run check</code>,
-					<code>bun run test</code> and <code>bun run test:coverage</code> must all pass. Coverage may
-					not fall below 95%.
-				</li>
-				<li>
-					<strong>Deploy.</strong> See <a href="#deployment">Deployment to Cloudflare Pages</a>.
-				</li>
-			</ol>
-			<p>
-				Your site's name, colours and links live in <code>src/lib/site.config.ts</code> and
-				<code>src/app.css</code>. Nothing else needs renaming.
-			</p>
-		</section>
-
-		<section id="cloudflare-setup" class="docs-section">
-			<h2>Set Up Cloudflare</h2>
-			<p>
-				NebulaKit runs on Cloudflare: Pages serves the site, D1 holds the data, KV holds runtime
-				config, and R2 holds uploaded files. You do not need an account to run the site on your own
-				machine. You need one to deploy, and about ten minutes to set it up.
-			</p>
-			<ol class="steps">
-				<li>
-					<strong>Create the account.</strong> Sign up at
-					<a href="https://dash.cloudflare.com/sign-up" target="_blank" rel="noopener noreferrer"
-						>dash.cloudflare.com/sign-up</a
+		<div class="docs-body">
+			<DocsSidebar
+				groups={docsGroups}
+				label="Documentation"
+				navLabel="Documentation navigation"
+				toggleLabel="Jump to a section"
+				navId="docs-sidebar-nav"
+			/>
+			<div class="docs-main">
+				<div class="docs-group" id="group-start">
+					<p class="docs-group-label">Start</p>
+					<section
+						id="use-with-ai"
+						class="docs-section docs-section--ai"
+						aria-labelledby="use-with-ai-title"
 					>
-					and confirm your email. The free plan covers Pages, D1 and KV. R2 asks for a payment method
-					before you can switch it on, and the free plan allows 10 D1 databases per account.
-				</li>
-				<li>
-					<strong>Sign Wrangler in.</strong> Run <code>bunx wrangler login</code>. It opens a
-					browser window to approve access. Then run <code>bunx wrangler whoami</code> and check
-					that it names the account you mean to use. With more than one account, set
-					<code>CLOUDFLARE_ACCOUNT_ID</code> before you run anything else.
-				</li>
-				<li>
-					<strong>Create this project's resources.</strong> Run <code>bun run setup:cf</code>. It
-					creates the D1 database and the KV namespaces, writes their ids into
-					<code>wrangler.toml</code>, and runs <code>bun run check:bindings</code> to confirm the
-					result. Then run <code>bun run db:migrate</code> to create the tables. Every project needs
-					its own resources: never paste an id from another project (see
-					<a href="#cloudflare-bindings">Cloudflare Bindings</a>).
-				</li>
-				<li>
-					<strong>Set the secrets.</strong> Set <code>SESSION_SECRET</code>,
-					<code>SETUP_SECRET</code> and, optionally, <code>ENCRYPTION_KEY</code> with
-					<code>bunx wrangler pages secret put NAME</code>. The reasons and the rotation steps are
-					in
-					<a href="#secrets-at-rest">Secrets at Rest</a>.
-				</li>
-				<li>
-					<strong>Deploy.</strong> Connect the repository to Pages as described in
-					<a href="#deployment">Deployment to Cloudflare Pages</a>.
-				</li>
-			</ol>
+						<h2 id="use-with-ai-title">Use NebulaKit with an AI</h2>
+						<p class="lede">
+							There are three ways an AI works with NebulaKit. Pick the one you need; each is a few
+							minutes.
+						</p>
 
-			<h3 id="cloudflare-mcp">Connect an AI through the Cloudflare MCP server</h3>
-			<p>
-				Cloudflare runs hosted MCP servers, so a coding agent can read your account and change it
-				for you: create the database, check a binding, read the logs of a failed deploy. You sign in
-				once in the browser, and no key goes into the repository. In Claude Code:
-			</p>
-			<pre><code
-					>claude mcp add --transport http cloudflare-api https://mcp.cloudflare.com/mcp
-claude mcp add --transport http cloudflare-docs https://docs.mcp.cloudflare.com/mcp</code
-				></pre>
-			<p>
-				Then run <code>/mcp</code> inside Claude Code, pick the server, and approve the Cloudflare sign-in.
-				Choose the account and the permissions on the consent screen, and grant no more than the task
-				needs. Other MCP clients (Cursor, Windsurf, ChatGPT and the rest) take the same URL in their remote-server
-				settings.
-			</p>
-			<ul>
-				<li>
-					<code>https://mcp.cloudflare.com/mcp</code> is the Cloudflare API server. It reaches the whole
-					Cloudflare API and is the one to start with.
-				</li>
-				<li>
-					<code>https://docs.mcp.cloudflare.com/mcp</code> searches the Cloudflare documentation. It changes
-					nothing, so it is safe to leave connected.
-				</li>
-				<li>
-					<code>https://observability.mcp.cloudflare.com/mcp</code> reads Worker logs and analytics.
-					<code>https://builds.mcp.cloudflare.com/mcp</code> reads and manages Workers Builds.
-				</li>
-			</ul>
-			<p>
-				The API server acts on the account you approved, not on this project alone. Keep one
-				Cloudflare account per client, and tell the agent to create resources with
-				<code>bun run setup:cf</code> so that the ids land in <code>wrangler.toml</code> and
-				<code>check:bindings</code> can vouch for them. For CI, which cannot open a browser, create
-				an API token in the Cloudflare dashboard under My Profile, API Tokens. Scope it to one
-				account and give it only the permissions it uses. The full list of servers is in the
-				<a
-					href="https://developers.cloudflare.com/agents/model-context-protocol/mcp-servers-for-cloudflare/"
-					target="_blank"
-					rel="noopener noreferrer">Cloudflare MCP documentation</a
-				>. To have an agent run your live site rather than your Cloudflare account, see
-				<a href="#use-with-ai">Use NebulaKit with an AI</a>.
-			</p>
-		</section>
-
-		<section id="quick-start" class="docs-section">
-			<h2>Quick Start</h2>
-
-			<div class="template-button-container">
-				<a
-					href="https://github.com/new?template_name=NebulaKit&template_owner=starspacegroup"
-					class="template-button"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
-						<path
-							d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
-						/>
-					</svg>
-					Use this template on GitHub
-				</a>
-			</div>
-
-			<p class="template-hint">
-				Then clone your repository, run the commands below, and open http://localhost:4278.
-			</p>
-
-			<p class="quickstart-recommendation">
-				<a href="https://bun.sh" target="_blank" rel="noopener noreferrer">Bun</a> is the recommended
-				default for this repo. Switch to npm commands if your environment requires it.
-			</p>
-
-			<div class="quickstart-shell">
-				<div class="quickstart-toolbar">
-					<div class="quickstart-tags" aria-label="Quick start status">
-						<span class="quickstart-tag quickstart-tag--recommended">Recommended: Bun</span>
-						<span class="quickstart-tag">Showing: {selectedPackageManager}</span>
-					</div>
-					<div class="quickstart-switcher" role="group" aria-label="Quick start package manager">
-						<button
-							type="button"
-							class="switch-button"
-							class:active={selectedPackageManager === 'bun'}
-							aria-pressed={selectedPackageManager === 'bun'}
-							on:click={() => (selectedPackageManager = 'bun')}
-						>
-							Bun
-						</button>
-						<button
-							type="button"
-							class="switch-button"
-							class:active={selectedPackageManager === 'npm'}
-							aria-pressed={selectedPackageManager === 'npm'}
-							on:click={() => (selectedPackageManager = 'npm')}
-						>
-							npm
-						</button>
-					</div>
-				</div>
-
-				<div class="quickstart-window" data-manager={selectedPackageManager}>
-					<div class="quickstart-window-header">
-						<div class="window-controls" aria-hidden="true">
-							<span class="window-dot"></span>
-							<span class="window-dot"></span>
-							<span class="window-dot"></span>
+						<div class="callout-grid">
+							<div class="callout-card">
+								<h3>1. Have an AI build your site</h3>
+								<p>
+									A coding agent (Claude Code, Codex, Cursor, Copilot, or any other) works inside
+									your copy of the template. It does the typing; the repo's rules keep it safe.
+								</p>
+								<p><a href="#ai-build">Steps and a prompt to paste →</a></p>
+							</div>
+							<div class="callout-card">
+								<h3>2. Have an AI run your live site</h3>
+								<p>
+									An agent calls your deployed site's API with a key you create, to edit pages,
+									manage products or read orders. You choose what the key may do.
+								</p>
+								<p><a href="#ai-operate">Create a key and call the API →</a></p>
+							</div>
+							<div class="callout-card">
+								<h3>3. Have an AI read this site</h3>
+								<p>
+									Every page can be fetched as Markdown, and the site publishes a catalog of what it
+									offers, so an agent can find its way without scraping.
+								</p>
+								<p><a href="#ai-read">Where an agent starts →</a></p>
+							</div>
 						</div>
-						<p class="quickstart-window-title">terminal {selectedPackageManager}</p>
-					</div>
-					<pre class="quickstart-code"><code
-							>{#each highlightedQuickStartLines as line}
-								{#if line.kind === 'blank'}
-									<span class="quickstart-line quickstart-line--blank"></span>
-								{:else if line.kind === 'comment'}
-									<span class="quickstart-line quickstart-line--comment"
-										><span class="token-comment"># {line.text}</span></span
+
+						<h3 id="ai-build">1. Build your site with a coding agent</h3>
+						<ol>
+							<li>
+								<a
+									href="https://github.com/new?template_name=NebulaKit&template_owner=starspacegroup"
+									target="_blank"
+									rel="noopener noreferrer">Create your repository from the template</a
+								>, then clone it.
+							</li>
+							<li>
+								Open the folder in your agent. It should read <code>AGENTS.md</code> first. That
+								file is the rule book (<code>CLAUDE.md</code> points to it), and it is why the agent writes
+								tests, keeps colours in CSS variables and never edits a migration that already shipped.
+							</li>
+							<li>
+								Paste a prompt like the one below, and replace the first line with what you want
+								built.
+							</li>
+							<li>
+								Read the result, not only the summary. The agent must run the checks and show you
+								their output.
+							</li>
+						</ol>
+						<CodeBlock
+							language="text"
+							code={`Build: a pricing page with three plans and a contact button.
+
+	Before you start, read AGENTS.md and docs/UI_KIT.md.
+	Use the components in src/lib/ui and the modules in src/lib/modules before writing new ones.
+	Write the tests first. Keep every colour a CSS variable. If the database changes,
+	add a new migration; never edit an old one. Update /documentation in the same change.
+
+	When you are done, run these and paste their output:
+	  bun run check
+	  bun run test
+	  bun run test:coverage
+	Coverage must stay at or above 95%. Then list the files you changed.`}
+						/>
+						<h4>Tasks that go well</h4>
+						<ul>
+							<li>Add a page, a form, a table or a dashboard from the UI kit and modules.</li>
+							<li>Add a database table and the admin screen for it, with tests.</li>
+							<li>
+								Change the look: edit the theme tokens in <code>src/app.css</code>, then run
+								<code>bun run validate:contrast</code>.
+							</li>
+							<li>
+								Explain a route: ask which file, store and service control it, and what the smallest
+								edit is.
+							</li>
+						</ul>
+						<h4>Keep control</h4>
+						<ul>
+							<li>
+								Ask for a branch and a pull request. Do not let an agent push to <code>main</code>.
+							</li>
+							<li>
+								Never paste a secret into a prompt. Keys go in <code>.dev.vars</code> locally and in Cloudflare
+								secrets in production.
+							</li>
+							<li>Ask for one change at a time. Small diffs are easy to review.</li>
+						</ul>
+
+						<h3 id="ai-operate">2. Let an agent run your live site</h3>
+						<p>
+							Everything the admin can do with pages, products, prices and orders is also reachable
+							at
+							<code>/api/v1</code>, and the whole surface is described at
+							<a href="/api/v1/openapi.json">/api/v1/openapi.json</a>. An agent that can read that
+							file knows every endpoint.
+						</p>
+						<ol>
+							<li>
+								Sign in as the owner and open <code>/admin/api-keys</code>. Create a key with the
+								fewest scopes the job needs, and an expiry. The key is shown once and stored hashed.
+							</li>
+							<li>
+								Give the agent the key through an environment variable (<code>NEBULAKIT_KEY</code>),
+								not in the chat.
+							</li>
+							<li>
+								Point it at the OpenAPI file and say what to do. Revoke the key at
+								<code>/admin/api-keys</code> when the job is finished.
+							</li>
+						</ol>
+						<!-- A scroll area must be reachable by keyboard, so it takes focus (WCAG 2.1.1). -->
+						<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+						<div class="table-scroll" role="region" aria-label="API key scopes" tabindex="0">
+							<table class="docs-table">
+								<thead>
+									<tr><th scope="col">Scope</th><th scope="col">Lets the key</th></tr>
+								</thead>
+								<tbody>
+									<tr><td><code>site:read</code></td><td>Read site information and updates.</td></tr
 									>
-								{:else}
-									<span class="quickstart-line quickstart-line--command"
-										><span class="token-prompt">$</span>
-									<span class="token-bin">{line.bin}</span>{#if line.args}<span class="token-args"> {line.args}</span
-											>{/if}</span
+									<tr
+										><td><code>pages:read</code>, <code>pages:write</code></td><td
+											>Read, create, edit and publish builder pages, and read revisions.</td
+										></tr
 									>
-								{/if}
-							{/each}</code
-						></pre>
+									<tr
+										><td><code>products:read</code>, <code>products:write</code></td><td
+											>See archived products, and create, edit and delete products. The public
+											catalog of active products needs no key.</td
+										></tr
+									>
+									<tr
+										><td><code>pricing:read</code>, <code>pricing:write</code></td><td
+											>Read or change regional pricing.</td
+										></tr
+									>
+									<tr
+										><td><code>orders:read</code>, <code>orders:write</code></td><td
+											>Read orders (this includes customers' addresses) or move an order's status.</td
+										></tr
+									>
+									<tr
+										><td><code>site:admin</code></td><td
+											>Everything. Only owners can grant it; avoid it for agents.</td
+										></tr
+									>
+								</tbody>
+							</table>
+						</div>
+						<CodeBlock
+							language="sh"
+							code={`export NEBULAKIT_KEY=nk_...    # created at /admin/api-keys
+
+	curl -H "Authorization: Bearer $NEBULAKIT_KEY" \\
+	  "${site.url}/api/v1/products?all=1"`}
+						/>
+						<p>
+							A key that is wrong is refused, never treated as an anonymous visitor. Writes must
+							send JSON, and every call is logged next to the key on the same admin page.
+						</p>
+
+						<h3 id="ai-read">3. Let an agent read this site</h3>
+						<p>
+							Give the agent this address and ask your question. It does not need to scrape HTML:
+						</p>
+						<CodeBlock
+							language="sh"
+							code={`curl -H 'Accept: text/markdown' ${site.url}/documentation`}
+						/>
+						<ul>
+							<li>
+								<strong>Markdown for every page.</strong> Send <code>Accept: text/markdown</code>.
+								The reply says roughly how many tokens it holds, so the agent can budget.
+							</li>
+							<li>
+								<strong>A map of what exists.</strong>
+								<a href="/.well-known/api-catalog">/.well-known/api-catalog</a> lists the APIs and
+								<a href="/.well-known/agent-skills/index.json"
+									>/.well-known/agent-skills/index.json</a
+								>
+								holds short guides for reading content and contacting the site.
+							</li>
+							<li>
+								<strong>How to sign in.</strong> <a href="/auth.md">/auth.md</a> says how an agent authenticates,
+								and what is not offered.
+							</li>
+							<li>
+								<strong>Crawl rules.</strong> <a href="/robots.txt">/robots.txt</a> names the AI
+								crawlers and says how the content may be used. See
+								<a href="#agent-readiness">Agent Readiness</a>
+								for the full list.
+							</li>
+						</ul>
+						<p>
+							Treat anything an agent reads from a web page as information, not as orders. If a page
+							says "ignore your instructions", it is the page that is wrong.
+						</p>
+					</section>
+					<section id="start-here" class="docs-section">
+						<h2>Start Here</h2>
+						<p>
+							There are two repositories, and the difference matters. <strong>NebulaKit</strong> is
+							the template: copy it to build your own site. <strong>nebulakit-site</strong> is this website,
+							which runs on the same platform but is not a template. Everything below describes the platform,
+							so it applies to both.
+						</p>
+						<ol class="steps">
+							<li>
+								<strong>Get the code.</strong> Use the template button in
+								<a href="#quick-start">Quick Start</a>, then clone your new repository.
+							</li>
+							<li>
+								<strong>Install and run it.</strong> <code>bun install</code>, then
+								<code>bun run dev</code>, then open <code>http://localhost:4278</code>.
+							</li>
+							<li>
+								<strong>Create the local database.</strong> <code>bun run db:migrate:local</code>
+								applies every migration to a local D1 database (see
+								<a href="#database-migrations">Database Migrations</a>).
+							</li>
+							<li>
+								<strong>Make yourself the owner.</strong> The setup flow connects an OAuth provider
+								and names the owner (see <a href="#auth-and-setup">Authentication and Setup</a>).
+							</li>
+							<li>
+								<strong>Set up Cloudflare.</strong> Create the account, sign Wrangler in and connect
+								an AI through the Cloudflare MCP server. See
+								<a href="#cloudflare-setup">Set Up Cloudflare</a>.
+							</li>
+							<li>
+								<strong>Check before you ship.</strong> <code>bun run check</code>,
+								<code>bun run test</code> and <code>bun run test:coverage</code> must all pass. Coverage
+								may not fall below 95%.
+							</li>
+							<li>
+								<strong>Deploy.</strong> See
+								<a href="#deployment">Deployment to Cloudflare Pages</a>.
+							</li>
+						</ol>
+						<p>
+							Your site's name, colours and links live in <code>src/lib/site.config.ts</code> and
+							<code>src/app.css</code>. Nothing else needs renaming.
+						</p>
+					</section>
+					<section id="cloudflare-setup" class="docs-section">
+						<h2>Set Up Cloudflare</h2>
+						<p>
+							NebulaKit runs on Cloudflare: Pages serves the site, D1 holds the data, KV holds
+							runtime config, and R2 holds uploaded files. You do not need an account to run the
+							site on your own machine. You need one to deploy, and about ten minutes to set it up.
+						</p>
+						<ol class="steps">
+							<li>
+								<strong>Create the account.</strong> Sign up at
+								<a
+									href="https://dash.cloudflare.com/sign-up"
+									target="_blank"
+									rel="noopener noreferrer">dash.cloudflare.com/sign-up</a
+								>
+								and confirm your email. The free plan covers Pages, D1 and KV. R2 asks for a payment method
+								before you can switch it on, and the free plan allows 10 D1 databases per account.
+							</li>
+							<li>
+								<strong>Sign Wrangler in.</strong> Run <code>bunx wrangler login</code>. It opens a
+								browser window to approve access. Then run <code>bunx wrangler whoami</code> and
+								check that it names the account you mean to use. With more than one account, set
+								<code>CLOUDFLARE_ACCOUNT_ID</code> before you run anything else.
+							</li>
+							<li>
+								<strong>Create this project's resources.</strong> Run <code>bun run setup:cf</code>.
+								It creates the D1 database and the KV namespaces, writes their ids into
+								<code>wrangler.toml</code>, and runs <code>bun run check:bindings</code> to confirm
+								the result. Then run <code>bun run db:migrate</code> to create the tables. Every
+								project needs its own resources: never paste an id from another project (see
+								<a href="#cloudflare-bindings">Cloudflare Bindings</a>).
+							</li>
+							<li>
+								<strong>Set the secrets.</strong> Set <code>SESSION_SECRET</code>,
+								<code>SETUP_SECRET</code> and, optionally, <code>ENCRYPTION_KEY</code> with
+								<code>bunx wrangler pages secret put NAME</code>. The reasons and the rotation steps
+								are in
+								<a href="#secrets-at-rest">Secrets at Rest</a>.
+							</li>
+							<li>
+								<strong>Deploy.</strong> Connect the repository to Pages as described in
+								<a href="#deployment">Deployment to Cloudflare Pages</a>.
+							</li>
+						</ol>
+
+						<h3 id="cloudflare-mcp">Connect an AI through the Cloudflare MCP server</h3>
+						<p>
+							Cloudflare runs hosted MCP servers, so a coding agent can read your account and change
+							it for you: create the database, check a binding, read the logs of a failed deploy.
+							You sign in once in the browser, and no key goes into the repository. In Claude Code:
+						</p>
+						<pre><code
+								>claude mcp add --transport http cloudflare-api https://mcp.cloudflare.com/mcp
+	claude mcp add --transport http cloudflare-docs https://docs.mcp.cloudflare.com/mcp</code
+							></pre>
+						<p>
+							Then run <code>/mcp</code> inside Claude Code, pick the server, and approve the Cloudflare
+							sign-in. Choose the account and the permissions on the consent screen, and grant no more
+							than the task needs. Other MCP clients (Cursor, Windsurf, ChatGPT and the rest) take the
+							same URL in their remote-server settings.
+						</p>
+						<ul>
+							<li>
+								<code>https://mcp.cloudflare.com/mcp</code> is the Cloudflare API server. It reaches the
+								whole Cloudflare API and is the one to start with.
+							</li>
+							<li>
+								<code>https://docs.mcp.cloudflare.com/mcp</code> searches the Cloudflare documentation.
+								It changes nothing, so it is safe to leave connected.
+							</li>
+							<li>
+								<code>https://observability.mcp.cloudflare.com/mcp</code> reads Worker logs and
+								analytics.
+								<code>https://builds.mcp.cloudflare.com/mcp</code> reads and manages Workers Builds.
+							</li>
+						</ul>
+						<p>
+							The API server acts on the account you approved, not on this project alone. Keep one
+							Cloudflare account per client, and tell the agent to create resources with
+							<code>bun run setup:cf</code> so that the ids land in <code>wrangler.toml</code> and
+							<code>check:bindings</code> can vouch for them. For CI, which cannot open a browser,
+							create an API token in the Cloudflare dashboard under My Profile, API Tokens. Scope it
+							to one account and give it only the permissions it uses. The full list of servers is
+							in the
+							<a
+								href="https://developers.cloudflare.com/agents/model-context-protocol/mcp-servers-for-cloudflare/"
+								target="_blank"
+								rel="noopener noreferrer">Cloudflare MCP documentation</a
+							>. To have an agent run your live site rather than your Cloudflare account, see
+							<a href="#use-with-ai">Use NebulaKit with an AI</a>.
+						</p>
+					</section>
+					<section id="quick-start" class="docs-section">
+						<h2>Quick Start</h2>
+
+						<div class="template-button-container">
+							<a
+								href="https://github.com/new?template_name=NebulaKit&template_owner=starspacegroup"
+								class="template-button"
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								<svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+									<path
+										d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+									/>
+								</svg>
+								Use this template on GitHub
+							</a>
+						</div>
+
+						<p class="template-hint">
+							Then clone your repository, run the commands below, and open http://localhost:4278.
+						</p>
+
+						<p class="quickstart-recommendation">
+							<a href="https://bun.sh" target="_blank" rel="noopener noreferrer">Bun</a> is the recommended
+							default for this repo. Switch to npm commands if your environment requires it.
+						</p>
+
+						<div class="quickstart-shell">
+							<div class="quickstart-toolbar">
+								<div class="quickstart-tags" aria-label="Quick start status">
+									<span class="quickstart-tag quickstart-tag--recommended">Recommended: Bun</span>
+									<span class="quickstart-tag">Showing: {selectedPackageManager}</span>
+								</div>
+								<div
+									class="quickstart-switcher"
+									role="group"
+									aria-label="Quick start package manager"
+								>
+									<button
+										type="button"
+										class="switch-button"
+										class:active={selectedPackageManager === 'bun'}
+										aria-pressed={selectedPackageManager === 'bun'}
+										on:click={() => (selectedPackageManager = 'bun')}
+									>
+										Bun
+									</button>
+									<button
+										type="button"
+										class="switch-button"
+										class:active={selectedPackageManager === 'npm'}
+										aria-pressed={selectedPackageManager === 'npm'}
+										on:click={() => (selectedPackageManager = 'npm')}
+									>
+										npm
+									</button>
+								</div>
+							</div>
+
+							<div class="quickstart-window" data-manager={selectedPackageManager}>
+								<div class="quickstart-window-header">
+									<div class="window-controls" aria-hidden="true">
+										<span class="window-dot"></span>
+										<span class="window-dot"></span>
+										<span class="window-dot"></span>
+									</div>
+									<p class="quickstart-window-title">terminal {selectedPackageManager}</p>
+								</div>
+								<pre class="quickstart-code"><code
+										>{#each highlightedQuickStartLines as line}
+											{#if line.kind === 'blank'}
+												<span class="quickstart-line quickstart-line--blank"></span>
+											{:else if line.kind === 'comment'}
+												<span class="quickstart-line quickstart-line--comment"
+													><span class="token-comment"># {line.text}</span></span
+												>
+											{:else}
+												<span class="quickstart-line quickstart-line--command"
+													><span class="token-prompt">$</span>
+										<span class="token-bin">{line.bin}</span>{#if line.args}<span class="token-args"> {line.args}</span
+														>{/if}</span
+												>
+											{/if}
+										{/each}</code
+									></pre>
+							</div>
+						</div>
+					</section>
+					<section id="feature-overview" class="docs-section">
+						<h2>What You Get Out of the Box</h2>
+						<p>
+							This starter already ships with the main product surfaces wired together. The fastest
+							way to understand the repo is to think of it as a Cloudflare-first app shell with
+							auth, theming, content management, and AI entry points already in place.
+						</p>
+						<div class="callout-grid">
+							<div class="callout-card">
+								<h3>Core App Shell</h3>
+								<ul>
+									<li>Keyboard-first navigation with command palette for fast route switching.</li>
+									<li>Theme system with persistent light and dark preferences.</li>
+									<li>Responsive layout, navigation, footer, and shared metadata components.</li>
+								</ul>
+							</div>
+							<div class="callout-card">
+								<h3>Account and Admin Flow</h3>
+								<ul>
+									<li>Setup-first authentication flow for owner configuration.</li>
+									<li>Login, signup, profile, reset, and admin routes are already scaffolded.</li>
+									<li>Cloudflare D1 and KV are used for setup state and application data.</li>
+								</ul>
+							</div>
+							<div class="callout-card">
+								<h3>Content and AI Surfaces</h3>
+								<ul>
+									<li>
+										CMS-style content routes and admin tooling are included for structured content.
+									</li>
+									<li>Chat route becomes your primary AI surface once a provider is configured.</li>
+									<li>
+										Command palette can expose AI-related navigation when providers are available.
+									</li>
+								</ul>
+							</div>
+							<div class="callout-card">
+								<h3>Analytics and Operations</h3>
+								<ul>
+									<li>
+										First-party, cookie-free analytics at <code>/admin/stats</code> — traffic, audience,
+										and growth, with no third-party script.
+									</li>
+									<li>
+										A Cloudflare plan-limit meter that projects whether today's traffic will exhaust
+										your request allowance.
+									</li>
+									<li>Per-admin permission so operators can see stats without owner access.</li>
+								</ul>
+							</div>
+						</div>
+					</section>
+					<section id="how-to-use" class="docs-section">
+						<h2>How To Use the App</h2>
+						<p>
+							Use the app in this order if you want the least confusing first run. That sequence
+							matches how the repo is structured and avoids most setup-related false alarms.
+						</p>
+						<ol>
+							<li>
+								Open <code>/setup</code> first on a fresh environment and configure owner credentials.
+							</li>
+							<li>Complete <code>/setup</code> before expecting sign-in or AI features to work.</li>
+							<li>
+								Sign in through <code>/auth/login</code> or create an account through
+								<code>/auth/signup</code>.
+							</li>
+							<li>
+								Open the command palette with Ctrl/Cmd + K to move between major routes quickly. On
+								a phone, tap the search icon in the navbar or choose "Search &amp; commands" in the
+								menu.
+							</li>
+							<li>
+								Use <code>/chat</code> for AI interactions, <code>/profile</code> for account
+								settings, and <code>/admin</code> for operator tasks.
+							</li>
+							<li>
+								Use the theme toggle to verify light and dark presentation while you customize
+								branding.
+							</li>
+						</ol>
+						<div class="callout-grid">
+							<div class="callout-card">
+								<h3>Common First-Run Checks</h3>
+								<ul>
+									<li>
+										If auth looks broken, re-check setup lock state and provider credentials first.
+									</li>
+									<li>
+										If chat is missing from navigation, verify AI provider configuration and route
+										access.
+									</li>
+									<li>
+										If admin tools are unavailable, confirm you are signed in as the configured
+										owner.
+									</li>
+								</ul>
+							</div>
+							<div class="callout-card">
+								<h3>Where To Extend</h3>
+								<ul>
+									<li>Modify routes under <code>src/routes</code> when changing page behavior.</li>
+									<li>Use <code>src/lib/components</code> for reusable UI and shell elements.</li>
+									<li>
+										Keep business logic in <code>src/lib/services</code> and shared helpers in
+										<code>src/lib/utils</code>.
+									</li>
+								</ul>
+							</div>
+						</div>
+					</section>
 				</div>
+
+				<div class="docs-group" id="group-build">
+					<p class="docs-group-label">Build</p>
+					<section id="ui-kit" class="docs-section">
+						<h2>UI Kit</h2>
+						<p>
+							Standard elements live in <code>src/lib/ui</code> and import from one place. Every one
+							uses the theme's CSS variables only, works in light and dark, and is usable by
+							keyboard. See them all running, with the code for each, at
+							<a href="/components">/components</a>.
+						</p>
+						<CodeBlock
+							language="ts"
+							code={`import { Button, TextInput, Select, Dialog, Tabs, Table, toast } from '$lib/ui';`}
+						/>
+						<ul>
+							<li>
+								<strong>Actions</strong> — Button (four variants, three sizes, link form, loading
+								state), ButtonGroup, Menu, DropdownMenu (checkbox and radio items), Command (a
+								filterable command palette, inline or as a <kbd>Ctrl</kbd>+<kbd>K</kbd> dialog), Toggle
+								and ToggleGroup.
+							</li>
+							<li>
+								<strong>Forms</strong> — TextInput, Textarea, Select, Checkbox, RadioGroup, Switch,
+								Slider, Combobox, Calendar, DatePicker, InputOTP, InputGroup, NumberInput, TagInput
+								and FileDrop, all wired the way Field wires them: a real label, the hint and error
+								in
+								<code>aria-describedby</code>.
+							</li>
+							<li>
+								<strong>Feedback</strong> — Alert, toasts, Badge, Progress, Spinner and Skeleton.
+							</li>
+							<li>
+								<strong>Overlays</strong> — Dialog and AlertDialog (native
+								<code>&lt;dialog&gt;</code>), Sheet (from any side, so also a drawer), Popover,
+								HoverCard, Tooltip and ContextMenu.
+							</li>
+							<li>
+								<strong>Navigation</strong> — Tabs, Accordion, Breadcrumbs, Pagination, Menubar, NavigationMenu,
+								Sidebar and Stepper.
+							</li>
+							<li>
+								<strong>Layout</strong> — Container, Stack, Separator, AspectRatio, ScrollArea, Resizable
+								and Collapsible.
+							</li>
+							<li>
+								<strong>Data display</strong> — Card, Item, Table, DataTable (search, sort, paging,
+								selection), BarChart, LineChart and DonutChart (plain SVG, each with a hidden data
+								table for screen readers), Stat, Carousel, Timeline, Avatar, AvatarGroup, Kbd,
+								CodeBlock (highlighted code with a copy button; code samples use it, never a bare
+								<code>&lt;pre&gt;</code>), Prose and EmptyState.
+							</li>
+						</ul>
+						<p>
+							That is every element shadcn/ui ships, and more. None of it needs a dependency beyond
+							Svelte, and none of it is a paid add-on: the kit is MIT-licensed with the rest of the
+							project.
+						</p>
+						<p>
+							Toasts need one <code>{'<Toaster />'}</code>, which the root layout already renders.
+							Raise one from anywhere with <code>toast.success('Saved')</code>; pass <code>0</code> as
+							the duration to keep it until it is dismissed.
+						</p>
+						<p>
+							The catalog is checked: a test fails when a component is added to <code
+								>src/lib/ui</code
+							>, or a widget is registered, without an entry in <code>src/lib/ui/catalog.ts</code>.
+							Full reference: <code>docs/UI_KIT.md</code>.
+						</p>
+					</section>
+					<section id="modules" class="docs-section">
+						<h2>Modules</h2>
+						<p>
+							Where the UI kit gives you elements, modules give you the blocks every app ends up
+							building. They live in <code>src/lib/modules</code>, are built from
+							<code>$lib/ui</code>, and are shown running, with the accessibility behaviour each one
+							keeps, at
+							<a href="/modules">/modules</a>.
+						</p>
+						<CodeBlock
+							language="ts"
+							code={`import { SignInForm, PricingTable, DataGrid, KanbanBoard } from '$lib/modules';`}
+						/>
+						<ul>
+							<li>
+								<strong>Account</strong> &mdash; sign-in, sign-up, password reset, profile, sessions,
+								two-factor.
+							</li>
+							<li>
+								<strong>Settings</strong> &mdash; appearance, notifications, API keys, webhooks, cookie
+								consent, privacy.
+							</li>
+							<li>
+								<strong>Marketing</strong> &mdash; hero, pricing, comparison, FAQ, testimonials, footer,
+								contact.
+							</li>
+							<li>
+								<strong>App shell</strong> &mdash; app shell, notification center, global search, wizard,
+								error states.
+							</li>
+							<li>
+								<strong>Data &amp; teams</strong> &mdash; data grid, kanban, comments, files, calendar,
+								tree, audit log.
+							</li>
+							<li>
+								<strong>Commerce</strong> &mdash; billing, invoices, checkout, cart, reviews, status page,
+								changelog.
+							</li>
+						</ul>
+						<p>
+							Each module takes its data and copy as props, emits events, and never fetches. All are
+							mobile first from 320px, use CSS variables only, and work by keyboard and screen
+							reader.
+						</p>
+					</section>
+					<section id="shop-payments-email" class="docs-section">
+						<h2>Shop, Payments and Email</h2>
+						<p>
+							The shop is the <code>@nebulakit/commerce</code> package in
+							<code>packages/commerce</code>
+							(products, cart pricing, checkout, orders, Stripe, Printful), versioned on its own. It stays
+							inert until configured: with no products <code>/shop</code> shows an empty catalog
+							(admins with the
+							<code>shop</code> area add them at <code>/admin/products</code>), with no Stripe key
+							orders wait for a manual payment, and with no email key nothing is sent. Apply
+							migrations
+							<code>0023</code>, <code>0024</code> and <code>0025</code> with
+							<code>bun run db:migrate:local</code>.
+						</p>
+						<div class="callout-grid">
+							<div class="callout-card">
+								<h3>Storefront</h3>
+								<p>
+									Shoppers browse <code>/shop</code> and <code>/shop/[slug]</code>, add products to
+									a cart kept in their browser, and check out at <code>/cart</code>. Prices, tax and
+									shipping are always worked out on the server from the catalog; the cart only
+									remembers what to ask for. Physical products ask for a shipping address. With
+									Stripe configured the shopper pays by card right on <code>/cart</code> (Stripe's
+									Payment Element, loaded from
+									<code>js.stripe.com</code> only on that page), or on Stripe's hosted page when
+									<code>CHECKOUT_MODE</code> is <code>hosted</code>; without it the order waits for
+									a manual payment. Orders are listed at <code>/admin/orders</code>.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>Regional pricing</h3>
+								<p>
+									<code>/admin/settings/pricing</code> (owner only) lowers prices for shoppers in
+									countries where money buys more, using a World Bank price level table shipped with
+									the kit. It is off until you turn it on, and it only ever lowers a price. Set how
+									much of the gap to pass on, the largest discount, which products it covers
+									(digital only by default) and per-country overrides, and preview any country
+									before saving. An order takes the least generous country among the one Cloudflare
+									sees and the shipping address, so a VPN alone earns nothing. The cart shows the
+									server's quoted total (<code>POST /api/v1/checkout/quote</code>) and each order
+									records the multiplier and countries used. Settings are also at
+									<code>GET/PUT /api/v1/pricing</code>, with scopes <code>pricing:read</code> and
+									<code>pricing:write</code>. Refresh the table with
+									<code>bun run update:price-index</code>.
+								</p>
+							</div>
+						</div>
+						<p>
+							Shop settings are environment variables, never request fields:
+							<code>COMMERCE_TAX_RATE_PERCENT</code>, <code>COMMERCE_PRICES_INCLUDE_TAX</code>,
+							<code>COMMERCE_FLAT_SHIPPING_CENTS</code>, <code>STRIPE_SECRET_KEY</code>,
+							<code>STRIPE_PUBLISHABLE_KEY</code> and <code>STRIPE_WEBHOOK_SECRET</code> (webhook
+							URL
+							<code>/api/v1/webhooks/stripe</code>), plus optional <code>CHECKOUT_MODE</code>
+							(<code>onpage</code>, the default, or <code>hosted</code>) and
+							<code>STRIPE_WEBHOOK_SECRET_PREVIOUS</code> while rolling the signing secret. Without
+							the publishable key, the cart sends shoppers to Stripe's hosted page. See
+							<code>docs/CHECKOUT.md</code> for test cards and <code>stripe listen</code>. On-page
+							checkout needs migrations <code>0032</code>–<code>0034</code>.
+						</p>
+						<h3 id="orders-payments-email">Payments, status and email</h3>
+						<p>
+							The Stripe webhook answers <code>503</code> until <code>STRIPE_WEBHOOK_SECRET</code>
+							is set, so Stripe keeps retrying. It handles <code>checkout.session.completed</code>
+							and
+							<code>checkout.session.async_payment_succeeded</code> (the order becomes paid),
+							<code>checkout.session.async_payment_failed</code> and
+							<code>checkout.session.expired</code> (a pending order is cancelled), and for the
+							on-page card form <code>payment_intent.succeeded</code>,
+							<code>payment_intent.canceled</code>,
+							<code>payment_intent.payment_failed</code> and <code>charge.refunded</code> (the last
+							two are recorded on the order's payment history at <code>/admin/orders</code> and
+							never change its status). Only this signed webhook marks an order paid, never the
+							shopper's return to the cart. A payment that is smaller than the order total, or in
+							another currency, leaves the order pending for a person to check. Each event is
+							applied once per event id; a paid order never goes back to unpaid.
+							<code>POST /api/v1/checkout/cancel</code> lets a shopper back out of an unpaid order: Stripe
+							closes the payment first, then the order is cancelled.
+						</p>
+						<p>
+							After paying, the shopper returns to <code>/cart?order=…</code>, which asks
+							<code>GET /api/v1/orders/[id]/status</code> every 1.5 seconds for 20 seconds. That public
+							endpoint returns the status word only, never an email, address or total, and the page says
+							plainly when payment is still being confirmed.
+						</p>
+						<p>
+							Email is optional. Set <code>RESEND_API_KEY</code> and <code>EMAIL_FROM</code> (and
+							<code>EMAIL_REPLY_TO</code> if you want one). A receipt is sent when an order becomes
+							paid and a shipping notice when it is marked shipped, each at most once per order: the
+							<code>email_log</code> table refuses a second send. Without a key nothing is sent and
+							the log records what was skipped. Email colours come from <code>emailTheme</code> in
+							<code>src/lib/site.config.ts</code>.
+						</p>
+					</section>
+					<section id="google-listings" class="docs-section">
+						<h2>Google Listings</h2>
+						<p>
+							A shop is eligible for free listings and Shopping ads in Google Merchant Center
+							without hand-made spreadsheets. Apply migration <code>0035</code> with
+							<code>bun run db:migrate:local</code>. Each product has an optional
+							<strong>Google listing</strong> section in
+							<a href="/admin/products">/admin/products</a>
+							(brand, GTIN, MPN, condition, category, sale price and window, extra images, color, size,
+							material, gender, age group, item group, weight and size, custom labels). The rules live
+							in one pure module,
+							<code>packages/commerce/src/google-listing.ts</code>.
+						</p>
+						<h3 id="google-feed">The feed</h3>
+						<p>
+							<code>/feeds/google-products.xml</code> (RSS 2.0 with the <code>g:</code> namespace)
+							and
+							<code>/feeds/google-products.tsv</code> list active products. Auctions, products
+							marked "keep out of the Google feed", and products with an error are left out, so one
+							bad product cannot cost the account its standing. Prices are the catalog price in the
+							product's own currency, for example <code>12.99 USD</code>; regional pricing is never
+							applied to what Google sees. Paste the XML address into Merchant Center as a scheduled
+							fetch. The feed is read from the Cloudflare cache for 15 minutes and pages through D1,
+							so a 2000 product catalog costs one pass of reads, not one per visit.
+						</p>
+						<h3 id="google-health">Feed health</h3>
+						<p>
+							<a href="/admin/products/google">/admin/products/google</a> shows the feed address, when
+							it was last fetched, how many products are valid, left out or carry warnings, and the first
+							problems with a link to fix each. It also holds the ship-to countries, delivery times, return
+							policy and default brand that the feed and each product page's structured data use. A section
+							left blank is not claimed anywhere.
+						</p>
+						<h3 id="google-markup">Product page markup</h3>
+						<p>
+							Every <code>/shop/[slug]</code> page emits one JSON-LD <code>Product</code> with an
+							<code>Offer</code> (price, currency, availability, condition, seller, shipping details and
+							return policy when set), inside the page's single Organization and WebSite graph. The price
+							in the markup is the price on the page, the price in the cart and the price in the feed.
+							A sale price is charged at checkout while its window is open.
+						</p>
+						<h3 id="google-sync">Merchant API sync (optional, off)</h3>
+						<p>
+							Turn on <strong>Merchant API sync</strong> in <code>/admin/products/google</code>
+							(owner only) to send changes every ten minutes through the
+							<code>google-merchant-sync</code> scheduled job (<code
+								>/api/cron/google-merchant-sync</code
+							>). The service-account key is stored encrypted in KV, never in D1. Setup, disapproval
+							reasons and what could not be verified:
+							<code>docs/GOOGLE_LISTINGS.md</code>.
+						</p>
+					</section>
+					<section id="drag-and-drop" class="docs-section">
+						<h2>Drag and Drop</h2>
+						<p>
+							The widget board is a working feature of this site, not a demo you read about. See
+							<a href="/components">the components page</a> for the widgets running on a live board.
+						</p>
+						<h3>Using it in your app</h3>
+						<p>
+							<code>&lt;WidgetBoard&gt;</code> takes a layout and a list of columns, and reports a
+							new layout through <code>on:change</code>. It stores nothing itself, so where a layout
+							is saved stays your decision.
+						</p>
+						<CodeBlock
+							language="svelte"
+							code={`<WidgetBoard bind:widgets {columns} on:change={(e) => save(e.detail.widgets)} />`}
+						/>
+						<p>
+							Registering a widget takes three edits and none of them is the board: an entry in
+							<code>src/lib/widgets/manifest.ts</code>, a line in
+							<code>src/lib/widgets/index.ts</code>, and the component itself. Six standard widgets
+							ship — stat, clock, checklist, meter, notes and links — all running at
+							<a href="/components#widgets">/components</a>. The two actions underneath the board —
+							<code>use:draggable</code>
+							and <code>use:dropzone</code> — work on any markup, so a sortable list or a nav reorder
+							needs no board at all.
+						</p>
+						<h3>Keyboard control</h3>
+						<p>
+							Every pointer gesture has a keyboard equivalent, announced through a live region.
+							Focus a drag handle, then:
+						</p>
+						<ul>
+							<li><strong>Space or Enter</strong> — pick the widget up, and put it down again.</li>
+							<li><strong>Arrow up and down</strong> — move it within its column.</li>
+							<li><strong>Arrow left and right</strong> — move it to the column either side.</li>
+							<li><strong>Escape</strong> — cancel, returning it to where it started.</li>
+						</ul>
+						<p>
+							On a touchscreen, hold a handle briefly before dragging — a swipe stays a swipe, so
+							the page still scrolls. Dragging near the top or bottom edge scrolls the page with
+							you.
+						</p>
+						<h3>The rule that will bite you</h3>
+						<p>
+							A widget's stored state must be inert. A value that changes on a timer — a price, a
+							clock, a connection count — goes out through the widget's <code>live</code> event and
+							comes back in through the board's <code>live</code> prop; it must never be written
+							into
+							<code>widget.title</code>, which is persisted. Ignoring this is how a dashboard
+							rewrites its whole layout every thirty seconds and burns a day's storage quota from
+							one open tab.
+						</p>
+						<p>
+							Full reference, including the reorder contract and the component checklist:
+							<code>docs/WIDGET_BOARD.md</code>.
+						</p>
+					</section>
+					<section id="pages-site-api" class="docs-section">
+						<h2>Pages and the Site API</h2>
+						<p>
+							Two packages live in <code>packages/</code>, each versioned on its own:
+							<code>@nebulakit/builder</code> (drag-and-drop pages stored as data) and
+							<code>@nebulakit/security</code> (API keys). Security updates are forced to every site;
+							the builder is opt-in.
+						</p>
+						<div class="callout-grid">
+							<div class="callout-card">
+								<h3>Pages</h3>
+								<p>
+									Build pages at <code>/admin/pages</code>: drag blocks from the palette onto the
+									page or into a Section or Column, reorder and nest them, edit each block's fields,
+									hide a block on phones, tablets or desktops, preview at each width, and publish.
+									Mouse, touch and keyboard all work: every drag has Add, Move up/down, Move in and
+									Move out buttons, plus Alt+Arrow keys, and Undo and Redo (Ctrl/⌘+Z) cover every
+									edit. A check list flags images without a description, skipped heading levels and
+									vague link text. Published pages are served at <code>/p/[slug]</code> and listed
+									in the sitemap; the site's own routes always win over a page. Every save that
+									changes a page keeps a revision (the newest 50), listed under History in the
+									editor and at <code>/api/v1/pages/[slug]/revisions</code>; restoring one is itself
+									saved, so it can be undone. A page is a JSON document (format version 2: a tree of
+									blocks), never code, and it is rendered without raw HTML.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>API keys</h3>
+								<p>
+									The owner manages access at <code>/admin/api-keys</code>: create a key with scopes
+									and an expiry, see when it was last used, revoke it in one click, and read the
+									call log. A key is shown once and stored hashed.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>The site API</h3>
+								<p>
+									Everything is reachable under <code>/api/v1</code>, described at
+									<code>/api/v1/openapi.json</code>. Send keys as
+									<code>Authorization: Bearer nk_…</code>. Published pages are public to read;
+									writes need a key with the right scope or an admin session that sends JSON.
+								</p>
+							</div>
+						</div>
+						<p>
+							<code>ORCHESTRATOR_KEY_SHA256</code> connects the Ammoura control room. Apply
+							migrations
+							<code>0020</code>–<code>0022</code> with <code>bun run db:migrate:local</code>.
+						</p>
+					</section>
+					<section id="badge" class="docs-section">
+						<h2>The Badge</h2>
+						<p>
+							<a href="/badge">The badge page</a> hands out "Proudly built with NebulaKit" in six forms
+							— Markdown for a README, HTML, a web component, and React, Svelte and Vue components — in
+							three wordings and on either a dark or a light ground. Pick, preview, copy.
+						</p>
+						<p>
+							An app generated from the template already wears it: the footer carries
+							<code>BuiltWithNebulaKit.svelte</code>, and <code>showBuiltWithBadge: false</code> in
+							<code>src/lib/site.config.ts</code> removes it. NebulaKit is MIT-licensed, so the badge
+							is a courtesy rather than a condition.
+						</p>
+						<h3>Endpoints</h3>
+						<p>
+							<code>/badge.svg?variant=proudly|built|powered&amp;theme=dark|light</code> is the
+							image a README embeds. <code>/badge.js</code> defines
+							<code>&lt;nebulakit-badge&gt;</code>, which renders in a shadow root and follows the
+							reader's own colour scheme. <code>/badge-mark.svg?size=64</code> is the mark alone, for
+							the cases the pill does not cover.
+						</p>
+						<p>
+							All three are served with <code>Access-Control-Allow-Origin: *</code>, because the
+							badge is embedded cross-origin by definition. None of them loads a font, a stylesheet
+							or a tracker: the mark is drawn inline and every colour is a literal, so the badge
+							renders on a page that has never heard of this site. An unknown <code>variant</code>
+							or <code>theme</code> renders the default badge rather than a 400 — a broken image in someone
+							else's README tells them nothing.
+						</p>
+					</section>
+					<section id="ai-workflow" class="docs-section">
+						<h2>Working With AI in This Repo</h2>
+						<p>
+							Treat AI as a fast pair programmer, not as a source of truth. It is useful here
+							because the repo already includes app structure, tests, and strong conventions, which
+							gives the assistant real context to work against. The quick version, with a prompt to
+							paste, is at the top of this page: <a href="#use-with-ai">Use NebulaKit with an AI</a
+							>.
+						</p>
+						<div class="callout-grid">
+							<div class="callout-card">
+								<h3>Good Prompts</h3>
+								<ul>
+									<li>Point the assistant at a concrete file, route, failing test, or command.</li>
+									<li>Ask it to write or update tests first when changing behavior.</li>
+									<li>
+										Ask for narrow fixes instead of broad rewrites unless you want architectural
+										change.
+									</li>
+								</ul>
+							</div>
+							<div class="callout-card">
+								<h3>Good Validation Habits</h3>
+								<ul>
+									<li>
+										Have the assistant explain which route, store, or service controls the behavior.
+									</li>
+									<li>Require executable validation after changes, not only a diff summary.</li>
+									<li>Always finish by running check, tests, and coverage.</li>
+								</ul>
+							</div>
+							<div class="callout-card">
+								<h3>What AI Is Best At Here</h3>
+								<ul>
+									<li>
+										Tracing a route from UI to service layer and identifying the smallest edit
+										surface.
+									</li>
+									<li>Adding tests around setup, auth, chat, or command palette behavior.</li>
+									<li>
+										Summarizing repo conventions such as Cloudflare bindings, migrations, and theme
+										rules.
+									</li>
+								</ul>
+							</div>
+						</div>
+						<p>
+							If you are using an AI coding agent, keep requests concrete: mention the page or
+							failing test, state the desired behavior, and ask for the smallest validating change
+							that solves it.
+						</p>
+					</section>
+					<section id="commands" class="docs-section">
+						<h2>Core Commands</h2>
+						<p>These scripts are defined in package.json and are the canonical local workflow.</p>
+						<div class="callout-grid">
+							<div class="callout-card">
+								<h3>Development</h3>
+								<ul>
+									<li><code>npm run dev</code> runs on host 0.0.0.0, port 4278.</li>
+									<li><code>npm run preview</code> previews the production build on port 4278.</li>
+									<li><code>npm run check</code> runs Svelte sync plus svelte-check.</li>
+								</ul>
+							</div>
+							<div class="callout-card">
+								<h3>Testing</h3>
+								<ul>
+									<li><code>npm run test</code> runs Vitest in CI mode.</li>
+									<li><code>npm run test:watch</code> runs Vitest in watch mode.</li>
+									<li><code>npm run test:e2e</code> runs Playwright tests.</li>
+									<li><code>npm run test:all</code> runs unit tests, then E2E tests.</li>
+								</ul>
+							</div>
+							<div class="callout-card">
+								<h3>Deploy and Validation</h3>
+								<ul>
+									<li><code>npm run deploy</code> builds then deploys .svelte-kit/cloudflare.</li>
+									<li><code>npm run validate:contrast</code> checks theme contrast.</li>
+									<li>
+										<code>npm run validate:all</code> runs check + test + contrast validation.
+									</li>
+								</ul>
+							</div>
+						</div>
+					</section>
+					<section id="testing" class="docs-section">
+						<h2>Testing and Quality Gates</h2>
+						<p>
+							NebulaKit follows Test-Driven Development. Write failing tests first, then
+							implementation, then refactor.
+						</p>
+						<CodeBlock
+							language="sh"
+							code={`# Run all tests
+	npm run test
+
+	# Run tests in watch mode
+	npm run test:watch
+
+	# Check coverage
+	npm run test:coverage
+
+	# Run E2E tests
+	npm run test:e2e
+
+	# Run all tests (unit + E2E)
+	npm run test:all`}
+						/>
+						<p>
+							Coverage guidance in repository docs is mixed: several files reference 90 percent,
+							while AI assistant workflow instructions enforce 95 percent as a stricter floor. For
+							new work, target 95 percent or higher to satisfy both interpretations safely.
+						</p>
+					</section>
+					<section id="project-structure" class="docs-section">
+						<h2>Project Structure</h2>
+						<CodeBlock
+							language="text"
+							code={`NebulaKit/
+	├── .github/              # Copilot and workflow instructions
+	├── src/
+	│   ├── lib/
+	│   │   ├── components/     # Reusable UI components
+	│   │   ├── services/       # Business logic
+	│   │   ├── stores/         # Svelte stores
+	│   │   ├── types/          # Shared type definitions
+	│   │   └── utils/          # Helpers
+	│   ├── routes/             # SvelteKit routes
+	│   │   ├── api/            # API endpoints
+	│   │   ├── auth/           # Authentication pages
+	│   │   ├── chat/           # Chat UI
+	│   │   ├── setup/          # First-time setup flow
+	│   │   └── documentation/  # This page
+	│   ├── app.css            # Global styles & theme
+	│   └── app.html           # HTML template
+	├── tests/                  # unit/integration/e2e tests
+	├── migrations/             # Immutable D1 migration files
+	├── docs/                   # Extended project docs
+	└── wrangler.toml           # Cloudflare bindings/config`}
+						/>
+					</section>
+				</div>
+
+				<div class="docs-group" id="group-run">
+					<p class="docs-group-label">Run</p>
+					<section id="cloudflare-bindings" class="docs-section">
+						<h2>Cloudflare Bindings</h2>
+						<p>
+							NebulaKit is configured for Cloudflare Pages with these bindings in wrangler.toml:
+						</p>
+						<ul>
+							<li><code>DB</code> as D1 database binding (database name: nebulakit-site-db).</li>
+							<li><code>KV</code> as KV namespace for runtime config and flags.</li>
+							<li><code>BUCKET</code> as R2 bucket binding.</li>
+							<li>Queue producer binding is documented but commented out by default.</li>
+						</ul>
+						<p>
+							Set app secrets in Cloudflare dashboard or Wrangler secrets for production. Avoid
+							committing raw secrets to source control.
+						</p>
+					</section>
+					<section id="database-migrations" class="docs-section">
+						<h2>Database Migrations</h2>
+						<p>
+							Migrations are ordered SQL files under <code>migrations/</code> and tracked by D1. Never
+							edit or delete existing migration files once committed to main.
+						</p>
+						<CodeBlock
+							language="sh"
+							code={`# Apply pending migrations to local D1
+	npm run db:migrate:local
+
+	# Apply pending migrations to remote D1
+	npm run db:migrate
+
+	# List migration status
+	npm run db:migrate:list`}
+						/>
+						<p>
+							When schema changes are needed, create a new file with the next sequence number (for
+							example,
+							<code>0006_add_feature_flag.sql</code>) and use ALTER TABLE or new CREATE statements.
+							<code>npm run check:migrations</code> (also a CI step) fails on a bad file name, a duplicate
+							or skipped number, or an edit to a migration already on the base branch.
+						</p>
+					</section>
+					<section id="deployment" class="docs-section">
+						<h2>Deployment to Cloudflare Pages</h2>
+						<ol>
+							<li>Push your repository to GitHub.</li>
+							<li>
+								In Cloudflare dashboard, open
+								<a
+									href="https://dash.cloudflare.com/?to=/:account/pages/new/provider/github"
+									target="_blank"
+									rel="noopener noreferrer">Pages</a
+								>
+								and connect the repository.
+							</li>
+							<li>Use build command <code>npm run build</code>.</li>
+							<li>Use output directory <code>.svelte-kit/cloudflare</code>.</li>
+							<li>Add D1, KV, and R2 bindings to the Pages project settings.</li>
+							<li>Add required environment variables and secrets.</li>
+							<li>Deploy and verify auth, setup flow, and database connectivity.</li>
+						</ol>
+						<p>
+							The local deploy script already uses <code
+								>wrangler pages deploy .svelte-kit/cloudflare</code
+							>.
+						</p>
+					</section>
+					<section id="scheduled-jobs" class="docs-section">
+						<h2>Scheduled Jobs</h2>
+						<p>
+							Cloudflare Pages cannot run Cron Triggers, so a standalone Worker in
+							<code>cron-worker/</code> wakes on a schedule and POSTs to the app's
+							<code>/api/cron/*</code> routes with <code>CRON_SECRET</code>, retrying three times
+							with exponential backoff. The app claims each job once per scheduled minute, so a
+							retry or overlapping delivery never runs it twice, and records every run.
+						</p>
+						<p>
+							<code>/admin/scheduled-jobs</code> lists each job with its last run, status and next
+							expected run, and has a <strong>Run now</strong> button for the owner.
+						</p>
+						<CodeBlock
+							language="sh"
+							code={`cd cron-worker
+	# set TARGET_URL in wrangler.toml to your site's origin
+	bunx wrangler deploy
+	bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}
+						/>
+						<p>
+							It needs migration <code>0019_scheduled_job_runs.sql</code>. Adding a job and the
+							details are in <code>docs/SCHEDULED_JOBS.md</code>.
+						</p>
+					</section>
+					<section id="seo-and-hosts" class="docs-section">
+						<h2>SEO, Redirects and Lighthouse</h2>
+						<div class="callout-grid">
+							<div class="callout-card">
+								<h3>Structured data</h3>
+								<p>
+									<code>SharingMeta</code> emits one JSON-LD <code>@graph</code> per page:
+									Organization, WebSite, WebPage, plus a BreadcrumbList, an ItemList or an Article
+									when the page passes them in its <code>structured</code> prop. Ids are built from
+									<code>site.url</code>, and a noindex page emits none. Notes in
+									<code>docs/STRUCTURED_DATA.md</code>.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>Redirects</h3>
+								<p>
+									Admins manage old-to-new addresses at <code>/admin/redirects</code> (migration
+									<code>0017_redirects.sql</code>): pick 301, 302, 307 or 308 and see how many times
+									each one was used. A redirect is looked up only when the site would otherwise
+									answer "not found", so it never hides a live page and costs healthy pages nothing.
+									The new address is a path on this site or an https address on an allowed host: the
+									site's own, plus any you list in <code>REDIRECT_ALLOWED_HOSTS</code> (comma-separated).
+									Loops and off-site targets are refused when you save, and again when a visitor is redirected.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>Canonical host</h3>
+								<p>
+									The session cookie belongs to one host, so a visitor signed in on the bare domain
+									would look signed out on <code>www</code>. The site sends <code>www.</code> + the
+									host in
+									<code>site.url</code> to that host (301 for reads, 308 for anything else), except
+									webhook and cron paths. It never redirects on localhost, <code>*.pages.dev</code>,
+									previews or tunnels. Every host that is not the one in <code>site.url</code> is
+									served with <code>X-Robots-Tag: noindex</code>, so a preview never competes with
+									production in search.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>Security contact</h3>
+								<p>
+									<code>/.well-known/security.txt</code> (RFC 9116) tells researchers where to send
+									a vulnerability report. Set <code>SECURITY_CONTACT</code> to an email address or
+									an https URL (comma-separated for several) and the file is served, with an
+									<code>Expires</code> date recomputed on every request, 180 days ahead. Until then the
+									path answers 404.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>Lighthouse, two ways</h3>
+								<p>
+									The scores on the home page come from <code>bun run lighthouse</code>, which runs
+									Lighthouse locally and commits the reports. <code>/admin/lighthouse</code> is the
+									live counterpart: it audits the public pages in the sitemap through Google's
+									PageSpeed Insights API (migration <code>0018_lighthouse_audits.sql</code>), lists
+									them worst first with the audits that failed, and has a <strong>Run now</strong>
+									button. PageSpeed can only reach a public URL, so <code>site.url</code> has to be
+									real.
+									<code>PAGESPEED_API_KEY</code> is optional and only raises the rate limit. Notes
+									in
+									<code>docs/LIGHTHOUSE_MONITORING.md</code>.
+								</p>
+							</div>
+						</div>
+					</section>
+					<section id="agent-readiness" class="docs-section">
+						<h2>Agent Readiness</h2>
+						<p>
+							This site publishes a machine-readable discovery layer so search crawlers and AI
+							agents can find it, read it efficiently, and understand how to interact with it.
+							Everything below is live and needs no configuration.
+						</p>
+						<ul>
+							<li>
+								<a href="/robots.txt">/robots.txt</a> — crawl rules, explicit entries for AI crawlers
+								(GPTBot, ClaudeBot, PerplexityBot and others), and Content Signals declaring how the content
+								may be used.
+							</li>
+							<li>
+								<a href="/sitemap.xml">/sitemap.xml</a> — every public page plus all published CMS content,
+								regenerated on request so newly published items appear immediately.
+							</li>
+							<li>
+								Landing pages under <code>/who</code>, <code>/where</code>, <code>/what</code>,
+								<code>/when</code> and <code>/why</code> — hand-written SEO pages from
+								<code>src/lib/landing/content/</code>. This site has not published any yet, so those
+								routes return 404 and the sitemap lists none. Start one with
+								<code>bun run landing new &lt;family&gt; &lt;slug&gt;</code> and check it with
+								<code>bun run landing report</code>; see <code>docs/SEO_LANDING_PAGES.md</code>.
+							</li>
+							<li>
+								<a href="/.well-known/api-catalog">/.well-known/api-catalog</a> — an RFC 9727 catalog
+								of this deployment's APIs.
+							</li>
+							<li>
+								<a href="/.well-known/agent-skills/index.json"
+									>/.well-known/agent-skills/index.json</a
+								>
+								— short guides teaching an agent how to read content and contact the site, each with a
+								SHA-256 digest.
+							</li>
+							<li>
+								<a href="/auth.md">/auth.md</a> — how agents authenticate (and what is not offered).
+							</li>
+							<li>
+								<a href="/api/health">/api/health</a> — service health, used as the catalog's status link.
+							</li>
+						</ul>
+
+						<h3>Reading pages as Markdown</h3>
+						<p>
+							Any page can be fetched as Markdown instead of HTML by sending an
+							<code>Accept: text/markdown</code> header. Browsers are unaffected — HTML remains the
+							default. Responses include an <code>x-markdown-tokens</code> estimate so an agent can budget
+							context before reading.
+						</p>
+						<CodeBlock language="sh" code={`curl -H 'Accept: text/markdown' ${site.url}/`} />
+
+						<h3>In-browser tools (WebMCP)</h3>
+						<p>
+							When opened by a WebMCP-capable agent, this site registers tools for searching
+							content, listing pages, reading a page as Markdown, navigating, and switching theme.
+							They are read-and-navigate only, restricted to this site's own origin, and run with
+							the visitor's existing permissions.
+						</p>
+
+						<h3>Content usage policy</h3>
+						<p>
+							The shipped default is fully permissive — <code
+								>search=yes, ai-input=yes, ai-train=yes</code
+							>
+							— which suits an open template. If you build a site with proprietary content, change
+							<code>CONTENT_SIGNAL</code> in <code>src/lib/agent-discovery.ts</code> before launching;
+							every robots.txt group picks the change up automatically.
+						</p>
+						<p>
+							DNS-based discovery (DNS-AID) is the one piece that must be added by hand, since DNS
+							records live with your provider rather than in this repo. See
+							<code>docs/AGENT_READINESS.md</code> for the exact records and the DNSSEC requirement.
+						</p>
+					</section>
+					<section id="troubleshooting" class="docs-section">
+						<h2>Troubleshooting</h2>
+						<ul>
+							<li>
+								If setup API reports KV unavailable, create KV namespaces and update wrangler.toml
+								binding IDs.
+							</li>
+							<li>
+								If login fails after setup, confirm OAuth callback URL and ensure GitHub credentials
+								are valid.
+							</li>
+							<li>
+								If migrations fail, run <code>npm run db:migrate:list</code> and check migration numbering.
+							</li>
+							<li>
+								If command palette entries are missing, verify AI provider status and authentication
+								state.
+							</li>
+						</ul>
+					</section>
+				</div>
+
+				<div class="docs-group" id="group-secure-and-administer">
+					<p class="docs-group-label">Secure and administer</p>
+					<section id="auth-and-setup" class="docs-section">
+						<h2>Authentication and Setup Flow</h2>
+						<p>
+							Sign-in is GitHub or Discord OAuth, or email and password, with a setup-first
+							workflow. The cookie holds an opaque session token; only its SHA-256 digest is stored
+							in D1, so a leaked table gives no usable cookie. Set <code>SESSION_SECRET</code> (it
+							signs the OAuth state cookie) and <code>SETUP_SECRET</code> (the bootstrap password
+							for <code>/setup</code>) as Worker secrets. The main routes are <code>/setup</code>,
+							<code>/auth/login</code>, and
+							<code>/reset</code>.
+						</p>
+						<div class="callout-grid">
+							<div class="callout-card">
+								<h3>1. Configure</h3>
+								<p>
+									Open <code>/setup</code> and submit GitHub OAuth credentials plus admin GitHub username.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>2. Lock Setup</h3>
+								<p>
+									After the admin logs in the first time, setup is locked to prevent accidental
+									reconfiguration.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>3. Reset When Needed</h3>
+								<p>
+									<code>/reset</code> clears setup-related KV keys and session cookie. Admins can disable
+									reset route access.
+								</p>
+							</div>
+						</div>
+					</section>
+					<section id="secrets-at-rest" class="docs-section">
+						<h2>Secrets at Rest</h2>
+						<p>
+							AI provider keys and OAuth client secrets saved from the admin screens are encrypted
+							(AES-256-GCM, bound to their record) before they are written to KV, and the admin UI
+							only shows that a key is configured plus its last four characters. Set the
+							<code>ENCRYPTION_KEY</code> secret (<code>bun run generate:encryption-key</code>) so
+							the key lives outside KV; without it the app generates one and keeps it in KV, which
+							encrypts the values but does not defend against someone who can read the whole
+							namespace. To rotate, move the old value to <code>ENCRYPTION_KEY_PREVIOUS</code>;
+							values are re-encrypted when read. Plaintext keys saved by earlier versions are
+							migrated on first read.
+						</p>
+					</section>
+					<section id="security-hardening" class="docs-section">
+						<h2>Security Hardening</h2>
+						<p>
+							Every response carries HSTS, <code>X-Content-Type-Options: nosniff</code>, a frame
+							policy and a referrer policy, and the Content-Security-Policy forbids
+							<code>object</code>
+							embeds, a foreign <code>base</code> and framing by other sites. Static files get the
+							same headers from
+							<code>_headers</code>. Password sign-in is throttled per address and per email. After
+							signing in, <code>?next=</code> returns you to a same-site path and never to another
+							host. The Markdown variant of a page is never cached, and <code>/media</code> answers
+							byte ranges so video plays in Safari. See <code>docs/SECURITY.md</code>.
+						</p>
+					</section>
+					<section id="roles-permissions" class="docs-section">
+						<h2>Roles and Permissions</h2>
+						<p>
+							Access is a ladder, <strong>owner &gt; superadmin &gt; admin &gt; user</strong>, plus
+							a list of named areas each admin may open. One rule does the work: you can only act on
+							someone strictly below you, and you can only hand out a role strictly below your own.
+							An admin cannot promote, demote or delete a peer, a superadmin or the owner, and
+							nobody can promote themselves.
+						</p>
+						<div class="callout-grid">
+							<div class="callout-card">
+								<h3>The owner is configuration</h3>
+								<p>
+									The owner is set by <code>GITHUB_OWNER_ID</code> (or setup), never by the
+									<code>users.role</code> column, so no request can assign or remove it. Superadmins
+									hold every area, including <code>pii</code>, and cannot be limited.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>Areas for admins</h3>
+								<p>
+									<code>cms</code>, <code>pages</code>, <code>users</code> (view the list),
+									<code>users-manage</code> (change roles and delete, below their own role),
+									<code>stats</code>, <code>pii</code>, <code>api-keys</code>, <code>contact</code>,
+									<code>lighthouse</code> and <code>shop</code>. Settings, auth keys, AI keys, the
+									analytics connection, setup and reset stay with the owner and superadmins. Only
+									the owner or a superadmin can change an admin's areas.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>Managing access</h3>
+								<p>
+									On <code>/admin/users</code> choose <strong>Manage access</strong> on a row to set the
+									role and tick the areas. The sidebar only shows links the signed-in admin can use, but
+									every load and API also checks the permission itself. Role and areas are re-read from
+									the database on every request, so a change applies on the next click.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>Upgrading</h3>
+								<p>
+									Migration <code>0015</code> adds <code>users.role</code> and
+									<code>user_permissions</code>. Existing admins keep every area they could reach
+									before (and <code>can_view_stats</code> becomes the <code>stats</code>
+									permission); nobody is promoted and owner-only areas are not handed out.
+									<code>is_admin</code>
+									and
+									<code>can_view_stats</code> stay in sync. To add an area, add it to
+									<code>src/lib/access/permissions.ts</code>, guard its routes with
+									<code>requirePermission</code>, and give its nav entry a <code>permission</code>.
+								</p>
+							</div>
+						</div>
+					</section>
+					<section id="audit-log" class="docs-section">
+						<h2>Audit Log</h2>
+						<p>
+							<a href="/admin/audit">/admin/audit</a> (owners and superadmins) lists who changed what:
+							user role changes, deletes and merges, content publish and delete, settings and key changes,
+							API key create and revoke. It records changes only, never page views, and never a secret
+							value: a key or setting change notes that it changed, and any detail field named like a
+							token, secret, password or key is redacted. Filter by actor and action, search, and open
+							a row for its detail.
+						</p>
+						<p>
+							Rows are kept 365 days; a scheduled job prunes older ones (<code>pruneAudit</code> in
+							<code>src/lib/server/audit.ts</code>, run daily as the <code>prune-audit</code> job).
+							Apply migration <code>0016</code> (shared with sign-in tracking) with
+							<code>bun run db:migrate:local</code>. Details:
+							<code>docs/AUDIT_LOG.md</code>.
+						</p>
+					</section>
+					<section id="admin-time-zone" class="docs-section">
+						<h2>Admin Time Zone</h2>
+						<p>
+							Every date and time in the admin area, and the days and hours on the Dashboard charts,
+							are shown in one zone. By default (<code>auto</code>) that is the browser's own zone,
+							read with
+							<code>Intl.DateTimeFormat().resolvedOptions().timeZone</code> without asking, and
+							handed to the server in a <code>tz</code> cookie so server rendering matches. Each
+							user can set their own zone on their <a href="/profile#time-zone">profile</a>, which
+							wins over everything else. The owner can pin a fixed IANA zone on the
+							<a href="/admin">admin dashboard</a>; that beats the browser. With neither, the zone
+							is UTC. The zone is named in the sidebar and on the Dashboard header.
+						</p>
+						<p>
+							Counters are stored per UTC hour and per UTC day, so the Stats page re-buckets what it
+							can and says so: the 24-hour chart keeps UTC hours labelled in your zone, longer
+							windows are rebuilt from the hourly totals into days of your zone, and the breakdown
+							tables and the platform usage meter stay on UTC days. Apply migration <code>0030</code
+							>
+							and
+							<code>0031</code>
+							with
+							<code>bun run db:migrate:local</code>. Public pages are not affected. Details:
+							<code>docs/ADMIN_TIMEZONE.md</code>.
+						</p>
+					</section>
+					<section id="sign-in-tracking" class="docs-section">
+						<h2>Sign-in Tracking</h2>
+						<p>
+							The owner can see who is signed in and where each sign-in came from at
+							<a href="/admin/sign-ins">/admin/sign-ins</a>, and sign any session out. Recording is
+							<strong>off by default</strong>, because it is the one place the site stores an IP
+							address; the rest of the site stays cookie-free and IP-free. The owner switches it on
+							on that page, under a plain-language disclosure.
+						</p>
+						<p>
+							While on, each sign-in attempt, failures included, stores the method, whether it
+							worked, the IP address (shown masked unless the owner reveals personal data), a rough
+							device label such as “Chrome on macOS” (never the raw browser string), the country,
+							and when a live session was last used. Passwords and typed email addresses are never
+							stored, visitors who are not signing in are never recorded, and attempts are deleted
+							after 90 days. Recording can never block a sign-in. If you turn it on, say so in your
+							privacy policy. Details:
+							<code>docs/SIGN_IN_TRACKING.md</code>.
+						</p>
+					</section>
+					<section id="admin-analytics" class="docs-section">
+						<h2>Admin Analytics</h2>
+						<p>
+							<code>/admin/stats</code> is the built-in analytics surface: traffic over a 1, 7, 30, or
+							90-day window, views by route, the most-read CMS items, referrers, countries, an audience
+							breakdown, and user and content growth over time. It is first-party — there is no third-party
+							script, no account, and no API key to provision.
+						</p>
+						<p>
+							Everything collected is a daily aggregate counter in D1. There are
+							<strong>no cookies, no identifiers, and no IP addresses</strong> anywhere in the feature.
+							The User-Agent is read to classify the request and then discarded, so only coarse buckets
+							(operating system, browser, device, language, viewport) are ever stored, and country comes
+							from the Cloudflare edge rather than from an IP lookup. Because nothing per-visitor is retained,
+							this needs no consent banner.
+						</p>
+						<div class="callout-grid">
+							<div class="callout-card">
+								<h3>Turning It On</h3>
+								<ol>
+									<li>
+										Apply migrations <code>0007</code> through <code>0009</code>, plus
+										<code>0012</code> for the Top content table, with
+										<code>db:migrate:local</code> (or <code>db:migrate</code> for remote).
+									</li>
+									<li>
+										Collection starts on the next request. Traffic and audience panels fill in as
+										visits arrive.
+									</li>
+									<li>
+										Country stays <code>(unknown)</code> in local development — it is supplied by the
+										Cloudflare edge.
+									</li>
+									<li>
+										<strong>Top content</strong> appears once a published CMS item is read. It is the
+										only counter whose row count grows with your catalogue rather than with a fixed list,
+										so on a large catalogue watch it — the retention cron is what keeps it in hand.
+									</li>
+								</ol>
+							</div>
+							<div class="callout-card">
+								<h3>Granting Access</h3>
+								<p>
+									The owner always sees Stats. Any other admin needs the <code>can_view_stats</code> flag,
+									which defaults to off so existing admins do not gain access on upgrade:
+								</p>
+								<CodeBlock
+									language="sql"
+									code={`UPDATE users SET can_view_stats = 1 WHERE email = 'someone@example.com';`}
+								/>
+								<p>
+									The permission is re-read from the database on every request, so revoking it takes
+									effect without waiting for a sign-out.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>Retention</h3>
+								<p>
+									The counter tables grow one row per day per dimension unless pruned. Set
+									<code>CRON_SECRET</code> and have any scheduler POST to the retention endpoint; rows
+									older than 400 days are removed.
+								</p>
+								<CodeBlock
+									language="sh"
+									code={`curl -X POST https://your-app/api/cron/prune-view-stats \\
+	  -H "Authorization: Bearer $CRON_SECRET"`}
+								/>
+							</div>
+							<div class="callout-card">
+								<h3>Platform Usage Meter</h3>
+								<p>
+									The same page tracks <em>billable</em> Function invocations — a larger set than
+									page views, since bots, <code>/api/*</code> calls, 404s, and non-GET requests all count
+									against your plan. It projects whether today will exhaust the free 100,000-request daily
+									allowance before the UTC reset.
+								</p>
+								<p>
+									Treat it as an early warning and a floor, not a bill: the Cloudflare dashboard
+									remains authoritative.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>Reading Stats From a Dashboard</h3>
+								<p>
+									An external dashboard can read the same numbers as JSON. The owner issues a
+									<strong>stats token</strong> under "Dashboard access" on
+									<code>/admin/analytics</code>; it is shown once, and only its hash is stored. The
+									dashboard then sends it as a bearer token:
+								</p>
+								<CodeBlock
+									language="sh"
+									code={`curl https://your-app/api/stats/summary?window=7 \\
+	  -H "Authorization: Bearer nks_…"`}
+								/>
+								<p>
+									The response is read-only and aggregate-only — exactly what <code
+										>/admin/stats</code
+									> shows. Rotate replaces the token; Revoke cuts the dashboard off on its next read.
+									A site that has never issued one answers 401 to every request.
+								</p>
+							</div>
+							<div class="callout-card">
+								<h3>Connecting Google Analytics</h3>
+								<p>
+									Optional, and off until you turn it on. The owner opens
+									<code>/admin/analytics</code>, pastes either the GA4 Measurement ID (<code
+										>G-ABCD123456</code
+									>) or the whole <code>gtag.js</code> snippet — the ID is read out of it — and saves.
+									A toggle pauses the tag without discarding the ID, and Disconnect removes it entirely.
+								</p>
+								<p>
+									The tag loads on public pages only. <code>/admin</code>, <code>/api</code>, and
+									<code>/setup</code> are excluded, so your own admin traffic stays out of the numbers,
+									and page views are sent on every client-side navigation rather than by gtag's automatic
+									tracking, which would count only the first page of a visit.
+								</p>
+								<p>
+									This is additive: the built-in stats keep working, and reports are read in
+									Google's own console. Google Analytics sets cookies and collects per-visitor data,
+									which is a different privacy posture from the built-in counters — review your
+									privacy policy and add a consent banner where your jurisdiction requires one. Only
+									the owner can change the connection.
+								</p>
+							</div>
+						</div>
+					</section>
+				</div>
+
+				<div class="docs-group" id="group-more">
+					<p class="docs-group-label">More</p>
+					<section id="references" class="docs-section">
+						<h2>References</h2>
+						<ul>
+							<li>
+								<a
+									href="https://github.com/starspacegroup/NebulaKit"
+									target="_blank"
+									rel="noopener noreferrer">GitHub repository</a
+								>
+							</li>
+							<li>
+								<a
+									href="https://github.com/starspacegroup/NebulaKit/blob/main/README.md"
+									target="_blank"
+									rel="noopener noreferrer">README</a
+								>
+							</li>
+							<li>
+								<a
+									href="https://github.com/starspacegroup/NebulaKit/blob/main/CONTRIBUTING.md"
+									target="_blank"
+									rel="noopener noreferrer">Contributing Guide</a
+								>
+							</li>
+							<li>
+								<a
+									href="https://github.com/starspacegroup/NebulaKit/blob/main/docs/THEME_SYSTEM.md"
+									target="_blank"
+									rel="noopener noreferrer">Theme System</a
+								>
+							</li>
+							<li>
+								<a
+									href="https://developers.cloudflare.com/pages/framework-guides/deploy-a-svelte-kit-site/"
+									target="_blank"
+									rel="noopener noreferrer">Cloudflare Pages plus SvelteKit Guide</a
+								>
+							</li>
+						</ul>
+					</section>
+					<section id="contributing" class="docs-section">
+						<h2>Contributing</h2>
+						<p>
+							Use TDD, keep changes small and reviewable, and run tests plus checks before opening a
+							pull request.
+						</p>
+						<ul>
+							<li>Write tests before implementation changes.</li>
+							<li>Run npm run check, npm run test, and npm run test:coverage.</li>
+							<li>Prefer Cloudflare-native services and minimal external dependencies.</li>
+							<li>Do not edit past migration files; create a new one instead.</li>
+						</ul>
+					</section>
+				</div>
+
+				<footer class="docs-footer">
+					<p>
+						If NebulaKit helps your workflow, consider giving the project a star on <a
+							href={projectRepoUrl}
+							target="_blank"
+							rel="noopener noreferrer">GitHub</a
+						>!
+					</p>
+				</footer>
 			</div>
-		</section>
-
-		<section id="feature-overview" class="docs-section">
-			<h2>What You Get Out of the Box</h2>
-			<p>
-				This starter already ships with the main product surfaces wired together. The fastest way to
-				understand the repo is to think of it as a Cloudflare-first app shell with auth, theming,
-				content management, and AI entry points already in place.
-			</p>
-			<div class="callout-grid">
-				<div class="callout-card">
-					<h3>Core App Shell</h3>
-					<ul>
-						<li>Keyboard-first navigation with command palette for fast route switching.</li>
-						<li>Theme system with persistent light and dark preferences.</li>
-						<li>Responsive layout, navigation, footer, and shared metadata components.</li>
-					</ul>
-				</div>
-				<div class="callout-card">
-					<h3>Account and Admin Flow</h3>
-					<ul>
-						<li>Setup-first authentication flow for owner configuration.</li>
-						<li>Login, signup, profile, reset, and admin routes are already scaffolded.</li>
-						<li>Cloudflare D1 and KV are used for setup state and application data.</li>
-					</ul>
-				</div>
-				<div class="callout-card">
-					<h3>Content and AI Surfaces</h3>
-					<ul>
-						<li>CMS-style content routes and admin tooling are included for structured content.</li>
-						<li>Chat route becomes your primary AI surface once a provider is configured.</li>
-						<li>Command palette can expose AI-related navigation when providers are available.</li>
-					</ul>
-				</div>
-				<div class="callout-card">
-					<h3>Analytics and Operations</h3>
-					<ul>
-						<li>
-							First-party, cookie-free analytics at <code>/admin/stats</code> — traffic, audience, and
-							growth, with no third-party script.
-						</li>
-						<li>
-							A Cloudflare plan-limit meter that projects whether today's traffic will exhaust your
-							request allowance.
-						</li>
-						<li>Per-admin permission so operators can see stats without owner access.</li>
-					</ul>
-				</div>
-			</div>
-		</section>
-
-		<section id="how-to-use" class="docs-section">
-			<h2>How To Use the App</h2>
-			<p>
-				Use the app in this order if you want the least confusing first run. That sequence matches
-				how the repo is structured and avoids most setup-related false alarms.
-			</p>
-			<ol>
-				<li>
-					Open <code>/setup</code> first on a fresh environment and configure owner credentials.
-				</li>
-				<li>Complete <code>/setup</code> before expecting sign-in or AI features to work.</li>
-				<li>
-					Sign in through <code>/auth/login</code> or create an account through
-					<code>/auth/signup</code>.
-				</li>
-				<li>
-					Open the command palette with Ctrl/Cmd + K to move between major routes quickly. On a
-					phone, tap the search icon in the navbar or choose "Search &amp; commands" in the menu.
-				</li>
-				<li>
-					Use <code>/chat</code> for AI interactions, <code>/profile</code> for account settings,
-					and <code>/admin</code> for operator tasks.
-				</li>
-				<li>
-					Use the theme toggle to verify light and dark presentation while you customize branding.
-				</li>
-			</ol>
-			<div class="callout-grid">
-				<div class="callout-card">
-					<h3>Common First-Run Checks</h3>
-					<ul>
-						<li>If auth looks broken, re-check setup lock state and provider credentials first.</li>
-						<li>
-							If chat is missing from navigation, verify AI provider configuration and route access.
-						</li>
-						<li>
-							If admin tools are unavailable, confirm you are signed in as the configured owner.
-						</li>
-					</ul>
-				</div>
-				<div class="callout-card">
-					<h3>Where To Extend</h3>
-					<ul>
-						<li>Modify routes under <code>src/routes</code> when changing page behavior.</li>
-						<li>Use <code>src/lib/components</code> for reusable UI and shell elements.</li>
-						<li>
-							Keep business logic in <code>src/lib/services</code> and shared helpers in
-							<code>src/lib/utils</code>.
-						</li>
-					</ul>
-				</div>
-			</div>
-		</section>
-
-		<section id="ui-kit" class="docs-section">
-			<h2>UI Kit</h2>
-			<p>
-				Standard elements live in <code>src/lib/ui</code> and import from one place. Every one uses
-				the theme's CSS variables only, works in light and dark, and is usable by keyboard. See them
-				all running, with the code for each, at <a href="/components">/components</a>.
-			</p>
-			<CodeBlock
-				language="ts"
-				code={`import { Button, TextInput, Select, Dialog, Tabs, Table, toast } from '$lib/ui';`}
-			/>
-			<ul>
-				<li>
-					<strong>Actions</strong> — Button (four variants, three sizes, link form, loading state),
-					ButtonGroup, Menu, DropdownMenu (checkbox and radio items), Command (a filterable command
-					palette, inline or as a <kbd>Ctrl</kbd>+<kbd>K</kbd> dialog), Toggle and ToggleGroup.
-				</li>
-				<li>
-					<strong>Forms</strong> — TextInput, Textarea, Select, Checkbox, RadioGroup, Switch,
-					Slider, Combobox, Calendar, DatePicker, InputOTP, InputGroup, NumberInput, TagInput and
-					FileDrop, all wired the way Field wires them: a real label, the hint and error in
-					<code>aria-describedby</code>.
-				</li>
-				<li>
-					<strong>Feedback</strong> — Alert, toasts, Badge, Progress, Spinner and Skeleton.
-				</li>
-				<li>
-					<strong>Overlays</strong> — Dialog and AlertDialog (native <code>&lt;dialog&gt;</code>),
-					Sheet (from any side, so also a drawer), Popover, HoverCard, Tooltip and ContextMenu.
-				</li>
-				<li>
-					<strong>Navigation</strong> — Tabs, Accordion, Breadcrumbs, Pagination, Menubar, NavigationMenu,
-					Sidebar and Stepper.
-				</li>
-				<li>
-					<strong>Layout</strong> — Container, Stack, Separator, AspectRatio, ScrollArea, Resizable and
-					Collapsible.
-				</li>
-				<li>
-					<strong>Data display</strong> — Card, Item, Table, DataTable (search, sort, paging,
-					selection), BarChart, LineChart and DonutChart (plain SVG, each with a hidden data table
-					for screen readers), Stat, Carousel, Timeline, Avatar, AvatarGroup, Kbd, CodeBlock
-					(highlighted code with a copy button; code samples use it, never a bare
-					<code>&lt;pre&gt;</code>), Prose and EmptyState.
-				</li>
-			</ul>
-			<p>
-				That is every element shadcn/ui ships, and more. None of it needs a dependency beyond
-				Svelte, and none of it is a paid add-on: the kit is MIT-licensed with the rest of the
-				project.
-			</p>
-			<p>
-				Toasts need one <code>{'<Toaster />'}</code>, which the root layout already renders. Raise
-				one from anywhere with <code>toast.success('Saved')</code>; pass <code>0</code> as the duration
-				to keep it until it is dismissed.
-			</p>
-			<p>
-				The catalog is checked: a test fails when a component is added to <code>src/lib/ui</code>,
-				or a widget is registered, without an entry in <code>src/lib/ui/catalog.ts</code>. Full
-				reference: <code>docs/UI_KIT.md</code>.
-			</p>
-		</section>
-
-		<section id="modules" class="docs-section">
-			<h2>Modules</h2>
-			<p>
-				Where the UI kit gives you elements, modules give you the blocks every app ends up building.
-				They live in <code>src/lib/modules</code>, are built from <code>$lib/ui</code>, and are
-				shown running, with the accessibility behaviour each one keeps, at
-				<a href="/modules">/modules</a>.
-			</p>
-			<CodeBlock
-				language="ts"
-				code={`import { SignInForm, PricingTable, DataGrid, KanbanBoard } from '$lib/modules';`}
-			/>
-			<ul>
-				<li>
-					<strong>Account</strong> &mdash; sign-in, sign-up, password reset, profile, sessions, two-factor.
-				</li>
-				<li>
-					<strong>Settings</strong> &mdash; appearance, notifications, API keys, webhooks, cookie consent,
-					privacy.
-				</li>
-				<li>
-					<strong>Marketing</strong> &mdash; hero, pricing, comparison, FAQ, testimonials, footer, contact.
-				</li>
-				<li>
-					<strong>App shell</strong> &mdash; app shell, notification center, global search, wizard, error
-					states.
-				</li>
-				<li>
-					<strong>Data &amp; teams</strong> &mdash; data grid, kanban, comments, files, calendar, tree,
-					audit log.
-				</li>
-				<li>
-					<strong>Commerce</strong> &mdash; billing, invoices, checkout, cart, reviews, status page, changelog.
-				</li>
-			</ul>
-			<p>
-				Each module takes its data and copy as props, emits events, and never fetches. All are
-				mobile first from 320px, use CSS variables only, and work by keyboard and screen reader.
-			</p>
-		</section>
-
-		<section id="shop-payments-email" class="docs-section">
-			<h2>Shop, Payments and Email</h2>
-			<p>
-				The shop is the <code>@nebulakit/commerce</code> package in <code>packages/commerce</code>
-				(products, cart pricing, checkout, orders, Stripe, Printful), versioned on its own. It stays inert
-				until configured: with no products <code>/shop</code> shows an empty catalog (admins with
-				the
-				<code>shop</code> area add them at <code>/admin/products</code>), with no Stripe key orders
-				wait for a manual payment, and with no email key nothing is sent. Apply migrations
-				<code>0023</code>, <code>0024</code> and <code>0025</code> with
-				<code>bun run db:migrate:local</code>.
-			</p>
-			<div class="callout-grid">
-				<div class="callout-card">
-					<h3>Storefront</h3>
-					<p>
-						Shoppers browse <code>/shop</code> and <code>/shop/[slug]</code>, add products to a cart
-						kept in their browser, and check out at <code>/cart</code>. Prices, tax and shipping are
-						always worked out on the server from the catalog; the cart only remembers what to ask
-						for. Physical products ask for a shipping address. With Stripe configured the shopper
-						pays by card right on <code>/cart</code> (Stripe's Payment Element, loaded from
-						<code>js.stripe.com</code> only on that page), or on Stripe's hosted page when
-						<code>CHECKOUT_MODE</code> is <code>hosted</code>; without it the order waits for a
-						manual payment. Orders are listed at <code>/admin/orders</code>.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>Regional pricing</h3>
-					<p>
-						<code>/admin/settings/pricing</code> (owner only) lowers prices for shoppers in
-						countries where money buys more, using a World Bank price level table shipped with the
-						kit. It is off until you turn it on, and it only ever lowers a price. Set how much of
-						the gap to pass on, the largest discount, which products it covers (digital only by
-						default) and per-country overrides, and preview any country before saving. An order
-						takes the least generous country among the one Cloudflare sees and the shipping address,
-						so a VPN alone earns nothing. The cart shows the server's quoted total (<code
-							>POST /api/v1/checkout/quote</code
-						>) and each order records the multiplier and countries used. Settings are also at
-						<code>GET/PUT /api/v1/pricing</code>, with scopes <code>pricing:read</code> and
-						<code>pricing:write</code>. Refresh the table with
-						<code>bun run update:price-index</code>.
-					</p>
-				</div>
-			</div>
-			<p>
-				Shop settings are environment variables, never request fields:
-				<code>COMMERCE_TAX_RATE_PERCENT</code>, <code>COMMERCE_PRICES_INCLUDE_TAX</code>,
-				<code>COMMERCE_FLAT_SHIPPING_CENTS</code>, <code>STRIPE_SECRET_KEY</code>,
-				<code>STRIPE_PUBLISHABLE_KEY</code> and <code>STRIPE_WEBHOOK_SECRET</code> (webhook URL
-				<code>/api/v1/webhooks/stripe</code>), plus optional <code>CHECKOUT_MODE</code>
-				(<code>onpage</code>, the default, or <code>hosted</code>) and
-				<code>STRIPE_WEBHOOK_SECRET_PREVIOUS</code> while rolling the signing secret. Without the
-				publishable key, the cart sends shoppers to Stripe's hosted page. See
-				<code>docs/CHECKOUT.md</code> for test cards and <code>stripe listen</code>. On-page
-				checkout needs migrations <code>0032</code>–<code>0034</code>.
-			</p>
-			<h3 id="orders-payments-email">Payments, status and email</h3>
-			<p>
-				The Stripe webhook answers <code>503</code> until <code>STRIPE_WEBHOOK_SECRET</code> is set,
-				so Stripe keeps retrying. It handles <code>checkout.session.completed</code> and
-				<code>checkout.session.async_payment_succeeded</code> (the order becomes paid),
-				<code>checkout.session.async_payment_failed</code> and
-				<code>checkout.session.expired</code> (a pending order is cancelled), and for the on-page
-				card form <code>payment_intent.succeeded</code>, <code>payment_intent.canceled</code>,
-				<code>payment_intent.payment_failed</code> and <code>charge.refunded</code> (the last two
-				are recorded on the order's payment history at <code>/admin/orders</code> and never change
-				its status). Only this signed webhook marks an order paid, never the shopper's return to the
-				cart. A payment that is smaller than the order total, or in another currency, leaves the
-				order pending for a person to check. Each event is applied once per event id; a paid order
-				never goes back to unpaid. <code>POST /api/v1/checkout/cancel</code> lets a shopper back out of
-				an unpaid order: Stripe closes the payment first, then the order is cancelled.
-			</p>
-			<p>
-				After paying, the shopper returns to <code>/cart?order=…</code>, which asks
-				<code>GET /api/v1/orders/[id]/status</code> every 1.5 seconds for 20 seconds. That public endpoint
-				returns the status word only, never an email, address or total, and the page says plainly when
-				payment is still being confirmed.
-			</p>
-			<p>
-				Email is optional. Set <code>RESEND_API_KEY</code> and <code>EMAIL_FROM</code> (and
-				<code>EMAIL_REPLY_TO</code> if you want one). A receipt is sent when an order becomes paid
-				and a shipping notice when it is marked shipped, each at most once per order: the
-				<code>email_log</code> table refuses a second send. Without a key nothing is sent and the
-				log records what was skipped. Email colours come from <code>emailTheme</code> in
-				<code>src/lib/site.config.ts</code>.
-			</p>
-		</section>
-
-		<section id="google-listings" class="docs-section">
-			<h2>Google Listings</h2>
-			<p>
-				A shop is eligible for free listings and Shopping ads in Google Merchant Center without
-				hand-made spreadsheets. Apply migration <code>0035</code> with
-				<code>bun run db:migrate:local</code>. Each product has an optional
-				<strong>Google listing</strong> section in <a href="/admin/products">/admin/products</a>
-				(brand, GTIN, MPN, condition, category, sale price and window, extra images, color, size, material,
-				gender, age group, item group, weight and size, custom labels). The rules live in one pure module,
-				<code>packages/commerce/src/google-listing.ts</code>.
-			</p>
-			<h3 id="google-feed">The feed</h3>
-			<p>
-				<code>/feeds/google-products.xml</code> (RSS 2.0 with the <code>g:</code> namespace) and
-				<code>/feeds/google-products.tsv</code> list active products. Auctions, products marked
-				"keep out of the Google feed", and products with an error are left out, so one bad product
-				cannot cost the account its standing. Prices are the catalog price in the product's own
-				currency, for example <code>12.99 USD</code>; regional pricing is never applied to what
-				Google sees. Paste the XML address into Merchant Center as a scheduled fetch. The feed is
-				read from the Cloudflare cache for 15 minutes and pages through D1, so a 2000 product
-				catalog costs one pass of reads, not one per visit.
-			</p>
-			<h3 id="google-health">Feed health</h3>
-			<p>
-				<a href="/admin/products/google">/admin/products/google</a> shows the feed address, when it was
-				last fetched, how many products are valid, left out or carry warnings, and the first problems
-				with a link to fix each. It also holds the ship-to countries, delivery times, return policy and
-				default brand that the feed and each product page's structured data use. A section left blank
-				is not claimed anywhere.
-			</p>
-			<h3 id="google-markup">Product page markup</h3>
-			<p>
-				Every <code>/shop/[slug]</code> page emits one JSON-LD <code>Product</code> with an
-				<code>Offer</code> (price, currency, availability, condition, seller, shipping details and return
-				policy when set), inside the page's single Organization and WebSite graph. The price in the markup
-				is the price on the page, the price in the cart and the price in the feed. A sale price is charged
-				at checkout while its window is open.
-			</p>
-			<h3 id="google-sync">Merchant API sync (optional, off)</h3>
-			<p>
-				Turn on <strong>Merchant API sync</strong> in <code>/admin/products/google</code> (owner
-				only) to send changes every ten minutes through the
-				<code>google-merchant-sync</code> scheduled job (<code>/api/cron/google-merchant-sync</code
-				>). The service-account key is stored encrypted in KV, never in D1. Setup, disapproval
-				reasons and what could not be verified:
-				<code>docs/GOOGLE_LISTINGS.md</code>.
-			</p>
-		</section>
-
-		<section id="drag-and-drop" class="docs-section">
-			<h2>Drag and Drop</h2>
-			<p>
-				The widget board is a working feature of this site, not a demo you read about. See
-				<a href="/components">the components page</a> for the widgets running on a live board.
-			</p>
-			<h3>Using it in your app</h3>
-			<p>
-				<code>&lt;WidgetBoard&gt;</code> takes a layout and a list of columns, and reports a new
-				layout through <code>on:change</code>. It stores nothing itself, so where a layout is saved
-				stays your decision.
-			</p>
-			<CodeBlock
-				language="svelte"
-				code={`<WidgetBoard bind:widgets {columns} on:change={(e) => save(e.detail.widgets)} />`}
-			/>
-			<p>
-				Registering a widget takes three edits and none of them is the board: an entry in
-				<code>src/lib/widgets/manifest.ts</code>, a line in
-				<code>src/lib/widgets/index.ts</code>, and the component itself. Six standard widgets ship —
-				stat, clock, checklist, meter, notes and links — all running at
-				<a href="/components#widgets">/components</a>. The two actions underneath the board —
-				<code>use:draggable</code>
-				and <code>use:dropzone</code> — work on any markup, so a sortable list or a nav reorder needs
-				no board at all.
-			</p>
-			<h3>Keyboard control</h3>
-			<p>
-				Every pointer gesture has a keyboard equivalent, announced through a live region. Focus a
-				drag handle, then:
-			</p>
-			<ul>
-				<li><strong>Space or Enter</strong> — pick the widget up, and put it down again.</li>
-				<li><strong>Arrow up and down</strong> — move it within its column.</li>
-				<li><strong>Arrow left and right</strong> — move it to the column either side.</li>
-				<li><strong>Escape</strong> — cancel, returning it to where it started.</li>
-			</ul>
-			<p>
-				On a touchscreen, hold a handle briefly before dragging — a swipe stays a swipe, so the page
-				still scrolls. Dragging near the top or bottom edge scrolls the page with you.
-			</p>
-			<h3>The rule that will bite you</h3>
-			<p>
-				A widget's stored state must be inert. A value that changes on a timer — a price, a clock, a
-				connection count — goes out through the widget's <code>live</code> event and comes back in
-				through the board's <code>live</code> prop; it must never be written into
-				<code>widget.title</code>, which is persisted. Ignoring this is how a dashboard rewrites its
-				whole layout every thirty seconds and burns a day's storage quota from one open tab.
-			</p>
-			<p>
-				Full reference, including the reorder contract and the component checklist:
-				<code>docs/WIDGET_BOARD.md</code>.
-			</p>
-		</section>
-
-		<section id="badge" class="docs-section">
-			<h2>The Badge</h2>
-			<p>
-				<a href="/badge">The badge page</a> hands out "Proudly built with NebulaKit" in six forms — Markdown
-				for a README, HTML, a web component, and React, Svelte and Vue components — in three wordings
-				and on either a dark or a light ground. Pick, preview, copy.
-			</p>
-			<p>
-				An app generated from the template already wears it: the footer carries
-				<code>BuiltWithNebulaKit.svelte</code>, and <code>showBuiltWithBadge: false</code> in
-				<code>src/lib/site.config.ts</code> removes it. NebulaKit is MIT-licensed, so the badge is a courtesy
-				rather than a condition.
-			</p>
-			<h3>Endpoints</h3>
-			<p>
-				<code>/badge.svg?variant=proudly|built|powered&amp;theme=dark|light</code> is the image a
-				README embeds. <code>/badge.js</code> defines
-				<code>&lt;nebulakit-badge&gt;</code>, which renders in a shadow root and follows the
-				reader's own colour scheme. <code>/badge-mark.svg?size=64</code> is the mark alone, for the cases
-				the pill does not cover.
-			</p>
-			<p>
-				All three are served with <code>Access-Control-Allow-Origin: *</code>, because the badge is
-				embedded cross-origin by definition. None of them loads a font, a stylesheet or a tracker:
-				the mark is drawn inline and every colour is a literal, so the badge renders on a page that
-				has never heard of this site. An unknown <code>variant</code> or <code>theme</code> renders the
-				default badge rather than a 400 — a broken image in someone else's README tells them nothing.
-			</p>
-		</section>
-
-		<section id="ai-workflow" class="docs-section">
-			<h2>Working With AI in This Repo</h2>
-			<p>
-				Treat AI as a fast pair programmer, not as a source of truth. It is useful here because the
-				repo already includes app structure, tests, and strong conventions, which gives the
-				assistant real context to work against. The quick version, with a prompt to paste, is at the
-				top of this page: <a href="#use-with-ai">Use NebulaKit with an AI</a>.
-			</p>
-			<div class="callout-grid">
-				<div class="callout-card">
-					<h3>Good Prompts</h3>
-					<ul>
-						<li>Point the assistant at a concrete file, route, failing test, or command.</li>
-						<li>Ask it to write or update tests first when changing behavior.</li>
-						<li>
-							Ask for narrow fixes instead of broad rewrites unless you want architectural change.
-						</li>
-					</ul>
-				</div>
-				<div class="callout-card">
-					<h3>Good Validation Habits</h3>
-					<ul>
-						<li>
-							Have the assistant explain which route, store, or service controls the behavior.
-						</li>
-						<li>Require executable validation after changes, not only a diff summary.</li>
-						<li>Always finish by running check, tests, and coverage.</li>
-					</ul>
-				</div>
-				<div class="callout-card">
-					<h3>What AI Is Best At Here</h3>
-					<ul>
-						<li>
-							Tracing a route from UI to service layer and identifying the smallest edit surface.
-						</li>
-						<li>Adding tests around setup, auth, chat, or command palette behavior.</li>
-						<li>
-							Summarizing repo conventions such as Cloudflare bindings, migrations, and theme rules.
-						</li>
-					</ul>
-				</div>
-			</div>
-			<p>
-				If you are using an AI coding agent, keep requests concrete: mention the page or failing
-				test, state the desired behavior, and ask for the smallest validating change that solves it.
-			</p>
-		</section>
-
-		<section id="commands" class="docs-section">
-			<h2>Core Commands</h2>
-			<p>These scripts are defined in package.json and are the canonical local workflow.</p>
-			<div class="callout-grid">
-				<div class="callout-card">
-					<h3>Development</h3>
-					<ul>
-						<li><code>npm run dev</code> runs on host 0.0.0.0, port 4278.</li>
-						<li><code>npm run preview</code> previews the production build on port 4278.</li>
-						<li><code>npm run check</code> runs Svelte sync plus svelte-check.</li>
-					</ul>
-				</div>
-				<div class="callout-card">
-					<h3>Testing</h3>
-					<ul>
-						<li><code>npm run test</code> runs Vitest in CI mode.</li>
-						<li><code>npm run test:watch</code> runs Vitest in watch mode.</li>
-						<li><code>npm run test:e2e</code> runs Playwright tests.</li>
-						<li><code>npm run test:all</code> runs unit tests, then E2E tests.</li>
-					</ul>
-				</div>
-				<div class="callout-card">
-					<h3>Deploy and Validation</h3>
-					<ul>
-						<li><code>npm run deploy</code> builds then deploys .svelte-kit/cloudflare.</li>
-						<li><code>npm run validate:contrast</code> checks theme contrast.</li>
-						<li><code>npm run validate:all</code> runs check + test + contrast validation.</li>
-					</ul>
-				</div>
-			</div>
-		</section>
-
-		<section id="cloudflare-bindings" class="docs-section">
-			<h2>Cloudflare Bindings</h2>
-			<p>NebulaKit is configured for Cloudflare Pages with these bindings in wrangler.toml:</p>
-			<ul>
-				<li><code>DB</code> as D1 database binding (database name: nebulakit-site-db).</li>
-				<li><code>KV</code> as KV namespace for runtime config and flags.</li>
-				<li><code>BUCKET</code> as R2 bucket binding.</li>
-				<li>Queue producer binding is documented but commented out by default.</li>
-			</ul>
-			<p>
-				Set app secrets in Cloudflare dashboard or Wrangler secrets for production. Avoid committing
-				raw secrets to source control.
-			</p>
-		</section>
-
-		<section id="database-migrations" class="docs-section">
-			<h2>Database Migrations</h2>
-			<p>
-				Migrations are ordered SQL files under <code>migrations/</code> and tracked by D1. Never edit
-				or delete existing migration files once committed to main.
-			</p>
-			<CodeBlock
-				language="sh"
-				code={`# Apply pending migrations to local D1
-npm run db:migrate:local
-
-# Apply pending migrations to remote D1
-npm run db:migrate
-
-# List migration status
-npm run db:migrate:list`}
-			/>
-			<p>
-				When schema changes are needed, create a new file with the next sequence number (for
-				example,
-				<code>0006_add_feature_flag.sql</code>) and use ALTER TABLE or new CREATE statements.
-				<code>npm run check:migrations</code> (also a CI step) fails on a bad file name, a duplicate or
-				skipped number, or an edit to a migration already on the base branch.
-			</p>
-		</section>
-
-		<section id="auth-and-setup" class="docs-section">
-			<h2>Authentication and Setup Flow</h2>
-			<p>
-				Sign-in is GitHub or Discord OAuth, or email and password, with a setup-first workflow. The
-				cookie holds an opaque session token; only its SHA-256 digest is stored in D1, so a leaked
-				table gives no usable cookie. Set <code>SESSION_SECRET</code> (it signs the OAuth state
-				cookie) and <code>SETUP_SECRET</code> (the bootstrap password for <code>/setup</code>) as
-				Worker secrets. The main routes are <code>/setup</code>, <code>/auth/login</code>, and
-				<code>/reset</code>.
-			</p>
-			<div class="callout-grid">
-				<div class="callout-card">
-					<h3>1. Configure</h3>
-					<p>
-						Open <code>/setup</code> and submit GitHub OAuth credentials plus admin GitHub username.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>2. Lock Setup</h3>
-					<p>
-						After the admin logs in the first time, setup is locked to prevent accidental
-						reconfiguration.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>3. Reset When Needed</h3>
-					<p>
-						<code>/reset</code> clears setup-related KV keys and session cookie. Admins can disable reset
-						route access.
-					</p>
-				</div>
-			</div>
-		</section>
-
-		<section id="secrets-at-rest" class="docs-section">
-			<h2>Secrets at Rest</h2>
-			<p>
-				AI provider keys and OAuth client secrets saved from the admin screens are encrypted
-				(AES-256-GCM, bound to their record) before they are written to KV, and the admin UI only
-				shows that a key is configured plus its last four characters. Set the
-				<code>ENCRYPTION_KEY</code> secret (<code>bun run generate:encryption-key</code>) so the key
-				lives outside KV; without it the app generates one and keeps it in KV, which encrypts the
-				values but does not defend against someone who can read the whole namespace. To rotate, move
-				the old value to <code>ENCRYPTION_KEY_PREVIOUS</code>; values are re-encrypted when read.
-				Plaintext keys saved by earlier versions are migrated on first read.
-			</p>
-		</section>
-
-		<section id="security-hardening" class="docs-section">
-			<h2>Security Hardening</h2>
-			<p>
-				Every response carries HSTS, <code>X-Content-Type-Options: nosniff</code>, a frame policy
-				and a referrer policy, and the Content-Security-Policy forbids <code>object</code> embeds, a
-				foreign <code>base</code> and framing by other sites. Static files get the same headers from
-				<code>_headers</code>. Password sign-in is throttled per address and per email. After
-				signing in, <code>?next=</code> returns you to a same-site path and never to another host.
-				The Markdown variant of a page is never cached, and <code>/media</code> answers byte ranges
-				so video plays in Safari. See <code>docs/SECURITY.md</code>.
-			</p>
-		</section>
-
-		<section id="admin-analytics" class="docs-section">
-			<h2>Admin Analytics</h2>
-			<p>
-				<code>/admin/stats</code> is the built-in analytics surface: traffic over a 1, 7, 30, or 90-day
-				window, views by route, the most-read CMS items, referrers, countries, an audience breakdown,
-				and user and content growth over time. It is first-party — there is no third-party script, no
-				account, and no API key to provision.
-			</p>
-			<p>
-				Everything collected is a daily aggregate counter in D1. There are
-				<strong>no cookies, no identifiers, and no IP addresses</strong> anywhere in the feature. The
-				User-Agent is read to classify the request and then discarded, so only coarse buckets (operating
-				system, browser, device, language, viewport) are ever stored, and country comes from the Cloudflare
-				edge rather than from an IP lookup. Because nothing per-visitor is retained, this needs no consent
-				banner.
-			</p>
-			<div class="callout-grid">
-				<div class="callout-card">
-					<h3>Turning It On</h3>
-					<ol>
-						<li>
-							Apply migrations <code>0007</code> through <code>0009</code>, plus
-							<code>0012</code> for the Top content table, with
-							<code>db:migrate:local</code> (or <code>db:migrate</code> for remote).
-						</li>
-						<li>
-							Collection starts on the next request. Traffic and audience panels fill in as visits
-							arrive.
-						</li>
-						<li>
-							Country stays <code>(unknown)</code> in local development — it is supplied by the Cloudflare
-							edge.
-						</li>
-						<li>
-							<strong>Top content</strong> appears once a published CMS item is read. It is the only counter
-							whose row count grows with your catalogue rather than with a fixed list, so on a large catalogue
-							watch it — the retention cron is what keeps it in hand.
-						</li>
-					</ol>
-				</div>
-				<div class="callout-card">
-					<h3>Granting Access</h3>
-					<p>
-						The owner always sees Stats. Any other admin needs the <code>can_view_stats</code> flag, which
-						defaults to off so existing admins do not gain access on upgrade:
-					</p>
-					<CodeBlock
-						language="sql"
-						code={`UPDATE users SET can_view_stats = 1 WHERE email = 'someone@example.com';`}
-					/>
-					<p>
-						The permission is re-read from the database on every request, so revoking it takes
-						effect without waiting for a sign-out.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>Retention</h3>
-					<p>
-						The counter tables grow one row per day per dimension unless pruned. Set
-						<code>CRON_SECRET</code> and have any scheduler POST to the retention endpoint; rows older
-						than 400 days are removed.
-					</p>
-					<CodeBlock
-						language="sh"
-						code={`curl -X POST https://your-app/api/cron/prune-view-stats \\
-  -H "Authorization: Bearer $CRON_SECRET"`}
-					/>
-				</div>
-				<div class="callout-card">
-					<h3>Platform Usage Meter</h3>
-					<p>
-						The same page tracks <em>billable</em> Function invocations — a larger set than page
-						views, since bots, <code>/api/*</code> calls, 404s, and non-GET requests all count against
-						your plan. It projects whether today will exhaust the free 100,000-request daily allowance
-						before the UTC reset.
-					</p>
-					<p>
-						Treat it as an early warning and a floor, not a bill: the Cloudflare dashboard remains
-						authoritative.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>Reading Stats From a Dashboard</h3>
-					<p>
-						An external dashboard can read the same numbers as JSON. The owner issues a
-						<strong>stats token</strong> under "Dashboard access" on
-						<code>/admin/analytics</code>; it is shown once, and only its hash is stored. The
-						dashboard then sends it as a bearer token:
-					</p>
-					<CodeBlock
-						language="sh"
-						code={`curl https://your-app/api/stats/summary?window=7 \\
-  -H "Authorization: Bearer nks_…"`}
-					/>
-					<p>
-						The response is read-only and aggregate-only — exactly what <code>/admin/stats</code> shows.
-						Rotate replaces the token; Revoke cuts the dashboard off on its next read. A site that has
-						never issued one answers 401 to every request.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>Connecting Google Analytics</h3>
-					<p>
-						Optional, and off until you turn it on. The owner opens
-						<code>/admin/analytics</code>, pastes either the GA4 Measurement ID (<code
-							>G-ABCD123456</code
-						>) or the whole <code>gtag.js</code> snippet — the ID is read out of it — and saves. A toggle
-						pauses the tag without discarding the ID, and Disconnect removes it entirely.
-					</p>
-					<p>
-						The tag loads on public pages only. <code>/admin</code>, <code>/api</code>, and
-						<code>/setup</code> are excluded, so your own admin traffic stays out of the numbers, and
-						page views are sent on every client-side navigation rather than by gtag's automatic tracking,
-						which would count only the first page of a visit.
-					</p>
-					<p>
-						This is additive: the built-in stats keep working, and reports are read in Google's own
-						console. Google Analytics sets cookies and collects per-visitor data, which is a
-						different privacy posture from the built-in counters — review your privacy policy and
-						add a consent banner where your jurisdiction requires one. Only the owner can change the
-						connection.
-					</p>
-				</div>
-			</div>
-		</section>
-
-		<section id="roles-permissions" class="docs-section">
-			<h2>Roles and Permissions</h2>
-			<p>
-				Access is a ladder, <strong>owner &gt; superadmin &gt; admin &gt; user</strong>, plus a list
-				of named areas each admin may open. One rule does the work: you can only act on someone
-				strictly below you, and you can only hand out a role strictly below your own. An admin
-				cannot promote, demote or delete a peer, a superadmin or the owner, and nobody can promote
-				themselves.
-			</p>
-			<div class="callout-grid">
-				<div class="callout-card">
-					<h3>The owner is configuration</h3>
-					<p>
-						The owner is set by <code>GITHUB_OWNER_ID</code> (or setup), never by the
-						<code>users.role</code> column, so no request can assign or remove it. Superadmins hold
-						every area, including <code>pii</code>, and cannot be limited.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>Areas for admins</h3>
-					<p>
-						<code>cms</code>, <code>pages</code>, <code>users</code> (view the list),
-						<code>users-manage</code> (change roles and delete, below their own role),
-						<code>stats</code>, <code>pii</code>, <code>api-keys</code>, <code>contact</code>,
-						<code>lighthouse</code> and <code>shop</code>. Settings, auth keys, AI keys, the
-						analytics connection, setup and reset stay with the owner and superadmins. Only the
-						owner or a superadmin can change an admin's areas.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>Managing access</h3>
-					<p>
-						On <code>/admin/users</code> choose <strong>Manage access</strong> on a row to set the role
-						and tick the areas. The sidebar only shows links the signed-in admin can use, but every load
-						and API also checks the permission itself. Role and areas are re-read from the database on
-						every request, so a change applies on the next click.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>Upgrading</h3>
-					<p>
-						Migration <code>0015</code> adds <code>users.role</code> and
-						<code>user_permissions</code>. Existing admins keep every area they could reach before
-						(and <code>can_view_stats</code> becomes the <code>stats</code> permission); nobody is
-						promoted and owner-only areas are not handed out. <code>is_admin</code> and
-						<code>can_view_stats</code> stay in sync. To add an area, add it to
-						<code>src/lib/access/permissions.ts</code>, guard its routes with
-						<code>requirePermission</code>, and give its nav entry a <code>permission</code>.
-					</p>
-				</div>
-			</div>
-		</section>
-
-		<section id="audit-log" class="docs-section">
-			<h2>Audit Log</h2>
-			<p>
-				<a href="/admin/audit">/admin/audit</a> (owners and superadmins) lists who changed what: user
-				role changes, deletes and merges, content publish and delete, settings and key changes, API key
-				create and revoke. It records changes only, never page views, and never a secret value: a key
-				or setting change notes that it changed, and any detail field named like a token, secret, password
-				or key is redacted. Filter by actor and action, search, and open a row for its detail.
-			</p>
-			<p>
-				Rows are kept 365 days; a scheduled job prunes older ones (<code>pruneAudit</code> in
-				<code>src/lib/server/audit.ts</code>, run daily as the <code>prune-audit</code> job). Apply
-				migration <code>0016</code> (shared with sign-in tracking) with
-				<code>bun run db:migrate:local</code>. Details:
-				<code>docs/AUDIT_LOG.md</code>.
-			</p>
-		</section>
-
-		<section id="admin-time-zone" class="docs-section">
-			<h2>Admin Time Zone</h2>
-			<p>
-				Every date and time in the admin area, and the days and hours on the Dashboard charts, are
-				shown in one zone. By default (<code>auto</code>) that is the browser's own zone, read with
-				<code>Intl.DateTimeFormat().resolvedOptions().timeZone</code> without asking, and handed to
-				the server in a <code>tz</code> cookie so server rendering matches. Each user can set their
-				own zone on their <a href="/profile#time-zone">profile</a>, which wins over everything else.
-				The owner can pin a fixed IANA zone on the <a href="/admin">admin dashboard</a>; that beats
-				the browser. With neither, the zone is UTC. The zone is named in the sidebar and on the
-				Dashboard header.
-			</p>
-			<p>
-				Counters are stored per UTC hour and per UTC day, so the Stats page re-buckets what it can
-				and says so: the 24-hour chart keeps UTC hours labelled in your zone, longer windows are
-				rebuilt from the hourly totals into days of your zone, and the breakdown tables and the
-				platform usage meter stay on UTC days. Apply migration <code>0030</code> and
-				<code>0031</code>
-				with
-				<code>bun run db:migrate:local</code>. Public pages are not affected. Details:
-				<code>docs/ADMIN_TIMEZONE.md</code>.
-			</p>
-		</section>
-
-		<section id="sign-in-tracking" class="docs-section">
-			<h2>Sign-in Tracking</h2>
-			<p>
-				The owner can see who is signed in and where each sign-in came from at
-				<a href="/admin/sign-ins">/admin/sign-ins</a>, and sign any session out. Recording is
-				<strong>off by default</strong>, because it is the one place the site stores an IP address;
-				the rest of the site stays cookie-free and IP-free. The owner switches it on on that page,
-				under a plain-language disclosure.
-			</p>
-			<p>
-				While on, each sign-in attempt, failures included, stores the method, whether it worked, the
-				IP address (shown masked unless the owner reveals personal data), a rough device label such
-				as “Chrome on macOS” (never the raw browser string), the country, and when a live session
-				was last used. Passwords and typed email addresses are never stored, visitors who are not
-				signing in are never recorded, and attempts are deleted after 90 days. Recording can never
-				block a sign-in. If you turn it on, say so in your privacy policy. Details:
-				<code>docs/SIGN_IN_TRACKING.md</code>.
-			</p>
-		</section>
-
-		<section id="testing" class="docs-section">
-			<h2>Testing and Quality Gates</h2>
-			<p>
-				NebulaKit follows Test-Driven Development. Write failing tests first, then implementation,
-				then refactor.
-			</p>
-			<CodeBlock
-				language="sh"
-				code={`# Run all tests
-npm run test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Check coverage
-npm run test:coverage
-
-# Run E2E tests
-npm run test:e2e
-
-# Run all tests (unit + E2E)
-npm run test:all`}
-			/>
-			<p>
-				Coverage guidance in repository docs is mixed: several files reference 90 percent, while AI
-				assistant workflow instructions enforce 95 percent as a stricter floor. For new work, target
-				95 percent or higher to satisfy both interpretations safely.
-			</p>
-		</section>
-
-		<section id="project-structure" class="docs-section">
-			<h2>Project Structure</h2>
-			<CodeBlock
-				language="text"
-				code={`NebulaKit/
-├── .github/              # Copilot and workflow instructions
-├── src/
-│   ├── lib/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── services/       # Business logic
-│   │   ├── stores/         # Svelte stores
-│   │   ├── types/          # Shared type definitions
-│   │   └── utils/          # Helpers
-│   ├── routes/             # SvelteKit routes
-│   │   ├── api/            # API endpoints
-│   │   ├── auth/           # Authentication pages
-│   │   ├── chat/           # Chat UI
-│   │   ├── setup/          # First-time setup flow
-│   │   └── documentation/  # This page
-│   ├── app.css            # Global styles & theme
-│   └── app.html           # HTML template
-├── tests/                  # unit/integration/e2e tests
-├── migrations/             # Immutable D1 migration files
-├── docs/                   # Extended project docs
-└── wrangler.toml           # Cloudflare bindings/config`}
-			/>
-		</section>
-
-		<section id="deployment" class="docs-section">
-			<h2>Deployment to Cloudflare Pages</h2>
-			<ol>
-				<li>Push your repository to GitHub.</li>
-				<li>
-					In Cloudflare dashboard, open
-					<a
-						href="https://dash.cloudflare.com/?to=/:account/pages/new/provider/github"
-						target="_blank"
-						rel="noopener noreferrer">Pages</a
-					>
-					and connect the repository.
-				</li>
-				<li>Use build command <code>npm run build</code>.</li>
-				<li>Use output directory <code>.svelte-kit/cloudflare</code>.</li>
-				<li>Add D1, KV, and R2 bindings to the Pages project settings.</li>
-				<li>Add required environment variables and secrets.</li>
-				<li>Deploy and verify auth, setup flow, and database connectivity.</li>
-			</ol>
-			<p>
-				The local deploy script already uses <code
-					>wrangler pages deploy .svelte-kit/cloudflare</code
-				>.
-			</p>
-		</section>
-
-		<section id="troubleshooting" class="docs-section">
-			<h2>Troubleshooting</h2>
-			<ul>
-				<li>
-					If setup API reports KV unavailable, create KV namespaces and update wrangler.toml binding
-					IDs.
-				</li>
-				<li>
-					If login fails after setup, confirm OAuth callback URL and ensure GitHub credentials are
-					valid.
-				</li>
-				<li>
-					If migrations fail, run <code>npm run db:migrate:list</code> and check migration numbering.
-				</li>
-				<li>
-					If command palette entries are missing, verify AI provider status and authentication
-					state.
-				</li>
-			</ul>
-		</section>
-
-		<section id="seo-and-hosts" class="docs-section">
-			<h2>SEO, Redirects and Lighthouse</h2>
-			<div class="callout-grid">
-				<div class="callout-card">
-					<h3>Structured data</h3>
-					<p>
-						<code>SharingMeta</code> emits one JSON-LD <code>@graph</code> per page: Organization,
-						WebSite, WebPage, plus a BreadcrumbList, an ItemList or an Article when the page passes
-						them in its <code>structured</code> prop. Ids are built from <code>site.url</code>, and
-						a noindex page emits none. Notes in <code>docs/STRUCTURED_DATA.md</code>.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>Redirects</h3>
-					<p>
-						Admins manage old-to-new addresses at <code>/admin/redirects</code> (migration
-						<code>0017_redirects.sql</code>): pick 301, 302, 307 or 308 and see how many times each
-						one was used. A redirect is looked up only when the site would otherwise answer "not
-						found", so it never hides a live page and costs healthy pages nothing. The new address
-						is a path on this site or an https address on an allowed host: the site's own, plus any
-						you list in <code>REDIRECT_ALLOWED_HOSTS</code> (comma-separated). Loops and off-site targets
-						are refused when you save, and again when a visitor is redirected.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>Canonical host</h3>
-					<p>
-						The session cookie belongs to one host, so a visitor signed in on the bare domain would
-						look signed out on <code>www</code>. The site sends <code>www.</code> + the host in
-						<code>site.url</code> to that host (301 for reads, 308 for anything else), except
-						webhook and cron paths. It never redirects on localhost, <code>*.pages.dev</code>,
-						previews or tunnels. Every host that is not the one in <code>site.url</code> is served
-						with <code>X-Robots-Tag: noindex</code>, so a preview never competes with production in
-						search.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>Security contact</h3>
-					<p>
-						<code>/.well-known/security.txt</code> (RFC 9116) tells researchers where to send a
-						vulnerability report. Set <code>SECURITY_CONTACT</code> to an email address or an https
-						URL (comma-separated for several) and the file is served, with an
-						<code>Expires</code> date recomputed on every request, 180 days ahead. Until then the path
-						answers 404.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>Lighthouse, two ways</h3>
-					<p>
-						The scores on the home page come from <code>bun run lighthouse</code>, which runs
-						Lighthouse locally and commits the reports. <code>/admin/lighthouse</code> is the live
-						counterpart: it audits the public pages in the sitemap through Google's PageSpeed
-						Insights API (migration <code>0018_lighthouse_audits.sql</code>), lists them worst first
-						with the audits that failed, and has a <strong>Run now</strong> button. PageSpeed can
-						only reach a public URL, so <code>site.url</code> has to be real.
-						<code>PAGESPEED_API_KEY</code> is optional and only raises the rate limit. Notes in
-						<code>docs/LIGHTHOUSE_MONITORING.md</code>.
-					</p>
-				</div>
-			</div>
-		</section>
-
-		<section id="scheduled-jobs" class="docs-section">
-			<h2>Scheduled Jobs</h2>
-			<p>
-				Cloudflare Pages cannot run Cron Triggers, so a standalone Worker in
-				<code>cron-worker/</code> wakes on a schedule and POSTs to the app's
-				<code>/api/cron/*</code> routes with <code>CRON_SECRET</code>, retrying three times with
-				exponential backoff. The app claims each job once per scheduled minute, so a retry or
-				overlapping delivery never runs it twice, and records every run.
-			</p>
-			<p>
-				<code>/admin/scheduled-jobs</code> lists each job with its last run, status and next
-				expected run, and has a <strong>Run now</strong> button for the owner.
-			</p>
-			<CodeBlock
-				language="sh"
-				code={`cd cron-worker
-# set TARGET_URL in wrangler.toml to your site's origin
-bunx wrangler deploy
-bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}
-			/>
-			<p>
-				It needs migration <code>0019_scheduled_job_runs.sql</code>. Adding a job and the details
-				are in <code>docs/SCHEDULED_JOBS.md</code>.
-			</p>
-		</section>
-
-		<section id="pages-site-api" class="docs-section">
-			<h2>Pages and the Site API</h2>
-			<p>
-				Two packages live in <code>packages/</code>, each versioned on its own:
-				<code>@nebulakit/builder</code> (drag-and-drop pages stored as data) and
-				<code>@nebulakit/security</code> (API keys). Security updates are forced to every site; the builder
-				is opt-in.
-			</p>
-			<div class="callout-grid">
-				<div class="callout-card">
-					<h3>Pages</h3>
-					<p>
-						Build pages at <code>/admin/pages</code>: drag blocks from the palette onto the page or
-						into a Section or Column, reorder and nest them, edit each block's fields, hide a block
-						on phones, tablets or desktops, preview at each width, and publish. Mouse, touch and
-						keyboard all work: every drag has Add, Move up/down, Move in and Move out buttons, plus
-						Alt+Arrow keys, and Undo and Redo (Ctrl/⌘+Z) cover every edit. A check list flags images
-						without a description, skipped heading levels and vague link text. Published pages are
-						served at <code>/p/[slug]</code> and listed in the sitemap; the site's own routes always
-						win over a page. Every save that changes a page keeps a revision (the newest 50), listed
-						under History in the editor and at <code>/api/v1/pages/[slug]/revisions</code>;
-						restoring one is itself saved, so it can be undone. A page is a JSON document (format
-						version 2: a tree of blocks), never code, and it is rendered without raw HTML.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>API keys</h3>
-					<p>
-						The owner manages access at <code>/admin/api-keys</code>: create a key with scopes and
-						an expiry, see when it was last used, revoke it in one click, and read the call log. A
-						key is shown once and stored hashed.
-					</p>
-				</div>
-				<div class="callout-card">
-					<h3>The site API</h3>
-					<p>
-						Everything is reachable under <code>/api/v1</code>, described at
-						<code>/api/v1/openapi.json</code>. Send keys as <code>Authorization: Bearer nk_…</code>.
-						Published pages are public to read; writes need a key with the right scope or an admin
-						session that sends JSON.
-					</p>
-				</div>
-			</div>
-			<p>
-				<code>ORCHESTRATOR_KEY_SHA256</code> connects the Ammoura control room. Apply migrations
-				<code>0020</code>–<code>0022</code> with <code>bun run db:migrate:local</code>.
-			</p>
-		</section>
-
-		<section id="agent-readiness" class="docs-section">
-			<h2>Agent Readiness</h2>
-			<p>
-				This site publishes a machine-readable discovery layer so search crawlers and AI agents can
-				find it, read it efficiently, and understand how to interact with it. Everything below is
-				live and needs no configuration.
-			</p>
-			<ul>
-				<li>
-					<a href="/robots.txt">/robots.txt</a> — crawl rules, explicit entries for AI crawlers (GPTBot,
-					ClaudeBot, PerplexityBot and others), and Content Signals declaring how the content may be used.
-				</li>
-				<li>
-					<a href="/sitemap.xml">/sitemap.xml</a> — every public page plus all published CMS content,
-					regenerated on request so newly published items appear immediately.
-				</li>
-				<li>
-					Landing pages under <code>/who</code>, <code>/where</code>, <code>/what</code>,
-					<code>/when</code> and <code>/why</code> — hand-written SEO pages from
-					<code>src/lib/landing/content/</code>. This site has not published any yet, so those
-					routes return 404 and the sitemap lists none. Start one with
-					<code>bun run landing new &lt;family&gt; &lt;slug&gt;</code> and check it with
-					<code>bun run landing report</code>; see <code>docs/SEO_LANDING_PAGES.md</code>.
-				</li>
-				<li>
-					<a href="/.well-known/api-catalog">/.well-known/api-catalog</a> — an RFC 9727 catalog of this
-					deployment's APIs.
-				</li>
-				<li>
-					<a href="/.well-known/agent-skills/index.json">/.well-known/agent-skills/index.json</a>
-					— short guides teaching an agent how to read content and contact the site, each with a SHA-256
-					digest.
-				</li>
-				<li>
-					<a href="/auth.md">/auth.md</a> — how agents authenticate (and what is not offered).
-				</li>
-				<li>
-					<a href="/api/health">/api/health</a> — service health, used as the catalog's status link.
-				</li>
-			</ul>
-
-			<h3>Reading pages as Markdown</h3>
-			<p>
-				Any page can be fetched as Markdown instead of HTML by sending an
-				<code>Accept: text/markdown</code> header. Browsers are unaffected — HTML remains the
-				default. Responses include an <code>x-markdown-tokens</code> estimate so an agent can budget context
-				before reading.
-			</p>
-			<CodeBlock language="sh" code={`curl -H 'Accept: text/markdown' ${site.url}/`} />
-
-			<h3>In-browser tools (WebMCP)</h3>
-			<p>
-				When opened by a WebMCP-capable agent, this site registers tools for searching content,
-				listing pages, reading a page as Markdown, navigating, and switching theme. They are
-				read-and-navigate only, restricted to this site's own origin, and run with the visitor's
-				existing permissions.
-			</p>
-
-			<h3>Content usage policy</h3>
-			<p>
-				The shipped default is fully permissive — <code>search=yes, ai-input=yes, ai-train=yes</code
-				>
-				— which suits an open template. If you build a site with proprietary content, change
-				<code>CONTENT_SIGNAL</code> in <code>src/lib/agent-discovery.ts</code> before launching; every
-				robots.txt group picks the change up automatically.
-			</p>
-			<p>
-				DNS-based discovery (DNS-AID) is the one piece that must be added by hand, since DNS records
-				live with your provider rather than in this repo. See
-				<code>docs/AGENT_READINESS.md</code> for the exact records and the DNSSEC requirement.
-			</p>
-		</section>
-
-		<section id="references" class="docs-section">
-			<h2>References</h2>
-			<ul>
-				<li>
-					<a
-						href="https://github.com/starspacegroup/NebulaKit"
-						target="_blank"
-						rel="noopener noreferrer">GitHub repository</a
-					>
-				</li>
-				<li>
-					<a
-						href="https://github.com/starspacegroup/NebulaKit/blob/main/README.md"
-						target="_blank"
-						rel="noopener noreferrer">README</a
-					>
-				</li>
-				<li>
-					<a
-						href="https://github.com/starspacegroup/NebulaKit/blob/main/CONTRIBUTING.md"
-						target="_blank"
-						rel="noopener noreferrer">Contributing Guide</a
-					>
-				</li>
-				<li>
-					<a
-						href="https://github.com/starspacegroup/NebulaKit/blob/main/docs/THEME_SYSTEM.md"
-						target="_blank"
-						rel="noopener noreferrer">Theme System</a
-					>
-				</li>
-				<li>
-					<a
-						href="https://developers.cloudflare.com/pages/framework-guides/deploy-a-svelte-kit-site/"
-						target="_blank"
-						rel="noopener noreferrer">Cloudflare Pages plus SvelteKit Guide</a
-					>
-				</li>
-			</ul>
-		</section>
-
-		<section id="contributing" class="docs-section">
-			<h2>Contributing</h2>
-			<p>
-				Use TDD, keep changes small and reviewable, and run tests plus checks before opening a pull
-				request.
-			</p>
-			<ul>
-				<li>Write tests before implementation changes.</li>
-				<li>Run npm run check, npm run test, and npm run test:coverage.</li>
-				<li>Prefer Cloudflare-native services and minimal external dependencies.</li>
-				<li>Do not edit past migration files; create a new one instead.</li>
-			</ul>
-		</section>
-
-		<footer class="docs-footer">
-			<p>
-				If NebulaKit helps your workflow, consider giving the project a star on <a
-					href={projectRepoUrl}
-					target="_blank"
-					rel="noopener noreferrer">GitHub</a
-				>!
-			</p>
-		</footer>
+		</div>
 	</div>
 </main>
 
@@ -1827,10 +1926,17 @@ bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}
 	}
 
 	.docs-header {
-		text-align: center;
-		margin-bottom: var(--spacing-2xl);
-		padding-bottom: var(--spacing-xl);
-		border-bottom: 1px solid var(--color-border);
+		max-width: 48rem;
+		margin-bottom: var(--spacing-xl);
+	}
+
+	.eyebrow {
+		margin: 0 0 var(--spacing-sm);
+		color: var(--color-primary);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
 	}
 
 	.docs-header h1 {
@@ -1845,60 +1951,80 @@ bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}
 		font-size: 1.125rem;
 		color: var(--color-text-secondary);
 		max-width: 680px;
-		margin: 0 auto;
-	}
-
-	.docs-nav {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--spacing-sm);
-		justify-content: center;
-		margin-bottom: var(--spacing-2xl);
-		padding: var(--spacing-md);
-		background-color: var(--color-surface);
-		border-radius: var(--radius-lg);
-	}
-
-	.docs-nav {
-		flex-direction: column;
-		align-items: stretch;
-		justify-content: flex-start;
-	}
-
-	.docs-nav-group {
-		display: grid;
-		gap: var(--spacing-xs);
-	}
-
-	.docs-nav-links {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--spacing-xs) var(--spacing-sm);
-	}
-
-	.docs-nav-label {
-		margin: 0;
-		color: var(--color-text);
-		font-size: 0.75rem;
-		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-	}
-
-	@media (min-width: 48rem) {
-		.docs-nav-group {
-			grid-template-columns: 11rem 1fr;
-			align-items: baseline;
-		}
+		margin: 0 0 var(--spacing-md);
 	}
 
 	.docs-intro--paths {
 		display: flex;
 		flex-wrap: wrap;
-		justify-content: center;
 		gap: var(--spacing-xs) var(--spacing-lg);
-		margin-top: var(--spacing-md);
 		font-size: 1rem;
+	}
+
+	/* The group chips, as on /modules: one per group, with how many sections it holds. */
+	.docs-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-sm);
+		margin-bottom: var(--spacing-2xl);
+	}
+
+	.docs-chips a {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		min-height: 2.75rem;
+		padding: 0.375rem 0.875rem;
+		border: 1px solid var(--color-border);
+		border-radius: 999px;
+		color: var(--color-text);
+		font-size: 0.875rem;
+		text-decoration: none;
+	}
+
+	.docs-chips a:hover {
+		border-color: var(--color-primary);
+	}
+
+	.docs-chips a:focus-visible {
+		outline: 2px solid var(--color-primary);
+		outline-offset: 2px;
+	}
+
+	.docs-chips span {
+		color: var(--color-text-secondary);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.docs-body {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.docs-main {
+		min-width: 0;
+	}
+
+	@media (min-width: 64rem) {
+		.docs-body {
+			grid-template-columns: 16rem minmax(0, 1fr);
+			gap: var(--spacing-xl);
+		}
+	}
+
+	.docs-group {
+		scroll-margin-top: 5rem;
+	}
+
+	.docs-group-label {
+		margin: 0 0 var(--spacing-lg);
+		padding-bottom: var(--spacing-sm);
+		border-bottom: 1px solid var(--color-border);
+		color: var(--color-text-secondary);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
 	}
 
 	.docs-intro--paths a {
@@ -1957,19 +2083,6 @@ bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}
 
 	.steps li {
 		margin-bottom: var(--spacing-sm);
-	}
-
-	.docs-nav a {
-		padding: var(--spacing-sm) var(--spacing-md);
-		color: var(--color-text-secondary);
-		text-decoration: none;
-		border-radius: var(--radius-md);
-		transition: all var(--transition-fast);
-	}
-
-	.docs-nav a:hover {
-		color: var(--color-primary);
-		background-color: var(--color-surface-hover);
 	}
 
 	.docs-section {
