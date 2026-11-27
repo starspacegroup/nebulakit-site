@@ -166,8 +166,7 @@ describe('Footer', () => {
 	it('should render the NebulaKit badge beside the *Space badge', () => {
 		render(Footer);
 		const badge = screen.getByRole('link', { name: /built with nebulakit/i });
-		expect(badge).toHaveAttribute('href', 'https://nebulakit.starspace.group');
-		expect(badge).toHaveAttribute('rel', 'noopener noreferrer');
+		expect(badge).toHaveAttribute('href', '/badge');
 		expect(badge.querySelector('img')).toHaveAttribute('src', '/badge-mark.svg');
 	});
 });

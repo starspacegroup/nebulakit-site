@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { site, projectRepoUrl } from '$lib/site.config';
 	import Logo from './Logo.svelte';
-	import { BADGE_BRAND, BADGE_HREF, BADGE_VARIANTS } from '$lib/badge';
+	import { BADGE_BRAND, BADGE_VARIANTS } from '$lib/badge';
 
 	const currentYear = new Date().getFullYear();
 </script>
@@ -43,12 +43,7 @@
 					<span>Built at</span>
 					<b>*Space</b>
 				</a>
-				<a
-					class="starspace-badge"
-					href={BADGE_HREF}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
+				<a class="starspace-badge" href="/badge">
 					<img src="/badge-mark.svg" alt="" width="16" height="16" />
 					<span>{BADGE_VARIANTS.built}</span>
 					<b>{BADGE_BRAND}</b>
