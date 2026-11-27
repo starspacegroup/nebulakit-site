@@ -7,6 +7,7 @@
 	import { onMount } from 'svelte';
 	import lighthouse from '$lib/lighthouse-results.json';
 	import ScoreRing from '$lib/components/ScoreRing.svelte';
+	import { moduleCatalog } from '$lib/modules/catalog';
 	import { builtWith } from '$lib/built-with';
 	import { adminShots } from '$lib/admin-shots';
 	import HeroField from '$lib/components/HeroField.svelte';
@@ -604,6 +605,31 @@
 		</div>
 	</div>
 </div>
+
+<!-- The module library, straight under the hero. It is the part of the kit people can
+     try without installing anything, so it gets a row of its own rather than a card
+     in the grid further down. -->
+<section class="modules-band" aria-labelledby="modules-band-title">
+	<div class="modules-band-inner">
+		<div class="modules-band-copy">
+			<p class="modules-band-eyebrow">Module library</p>
+			<h2 class="modules-band-title" id="modules-band-title">
+				{moduleCatalog.length} ready-made modules, running right now
+			</h2>
+			<p class="modules-band-text">
+				Sign-in, settings, pricing, data grids, kanban, billing and more. Each one runs on fake data
+				in your browser, with the code underneath. Free and MIT-licensed.
+			</p>
+		</div>
+		<div class="modules-band-actions">
+			<a class="cta cta-primary modules-band-cta" href="/modules">
+				Browse the modules
+				<span aria-hidden="true">→</span>
+			</a>
+			<a class="modules-band-more" href="/components">Or the component kit</a>
+		</div>
+	</div>
+</section>
 
 <!-- Features Section -->
 <section class="features">
@@ -2551,6 +2577,83 @@
 	}
 
 	/* Features Section */
+	/* Module library band, directly under the hero. */
+	.modules-band {
+		padding: var(--spacing-xl) var(--spacing-md);
+		border-block: 1px solid var(--color-border);
+		background: var(--color-surface);
+	}
+
+	.modules-band-inner {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-lg);
+		max-width: var(--layout-page-max-width);
+		margin: 0 auto;
+	}
+
+	.modules-band-eyebrow {
+		margin: 0 0 var(--spacing-xs);
+		color: var(--color-primary);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.modules-band-title {
+		margin: 0 0 var(--spacing-sm);
+		font-size: clamp(1.5rem, 4vw, 2.25rem);
+		line-height: 1.15;
+		letter-spacing: -0.02em;
+		color: var(--color-text);
+	}
+
+	.modules-band-text {
+		max-width: 40rem;
+		margin: 0;
+		color: var(--color-text-secondary);
+		font-size: 1.0625rem;
+		line-height: 1.6;
+	}
+
+	.modules-band-actions {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--spacing-sm);
+	}
+
+	.modules-band-cta {
+		min-height: 3.25rem;
+		padding-inline: var(--spacing-xl);
+		font-size: 1.125rem;
+	}
+
+	.modules-band-more {
+		color: var(--color-primary);
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+
+	@media (min-width: 52rem) {
+		.modules-band {
+			padding-inline: var(--spacing-xl);
+		}
+
+		.modules-band-inner {
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+			gap: var(--spacing-2xl);
+		}
+
+		.modules-band-actions {
+			align-items: center;
+			flex-shrink: 0;
+		}
+	}
+
 	.features {
 		position: relative;
 		padding: var(--spacing-6xl) 0;
@@ -3262,7 +3365,6 @@
 		color: var(--color-text);
 		font-variant-numeric: tabular-nums;
 	}
-
 
 	/* Side by side once the dials have room; stacked below that. */
 	@media (min-width: 60rem) {

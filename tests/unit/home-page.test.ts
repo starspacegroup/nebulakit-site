@@ -136,9 +136,9 @@ describe('Home Page Hero', () => {
 	it('says off by default for the features that are off by default', () => {
 		const { container } = render(Page);
 		const text = (title: string) =>
-			[...container.querySelectorAll('.feature-card')]
-				.find((c) => c.querySelector('.feature-title')?.textContent?.trim() === title)
-				?.textContent ?? '';
+			[...container.querySelectorAll('.feature-card')].find(
+				(c) => c.querySelector('.feature-title')?.textContent?.trim() === title
+			)?.textContent ?? '';
 		expect(text('Regional Pricing')).toMatch(/off by default/i);
 		expect(text('Audit Log and Sign-in Tracking')).toMatch(/off by default/i);
 	});
@@ -430,5 +430,16 @@ describe('Home Page Lighthouse section accessibility', () => {
 			const visible = (link.textContent ?? '').replace(/\s+/g, ' ').trim();
 			expect(link.getAttribute('aria-label')?.startsWith(visible), visible).toBe(true);
 		}
+	});
+
+	it('puts a big link to the module library straight under the hero', () => {
+		render(Page);
+		const link = screen.getByRole('link', { name: /browse the modules/i });
+		expect(link).toHaveAttribute('href', '/modules');
+		const band = link.closest('section');
+		const features = document.querySelector('section.features');
+		expect(
+			band && features && band.compareDocumentPosition(features) & Node.DOCUMENT_POSITION_FOLLOWING
+		).toBeTruthy();
 	});
 });
