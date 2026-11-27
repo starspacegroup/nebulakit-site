@@ -22,6 +22,13 @@
 	description={data.description.slice(0, 160) || `Bid on ${a.title}.`}
 	image={data.imageUrl ?? ''}
 	imageAlt={a.title}
+	structured={{
+		pageType: 'ItemPage',
+		breadcrumb: [
+			{ name: 'Auctions', path: '/auctions' },
+			{ name: a.title, path: `/auctions/${a.slug}` }
+		]
+	}}
 />
 
 <article class="auction">
