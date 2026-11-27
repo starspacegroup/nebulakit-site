@@ -12,7 +12,15 @@
 		}) + ' UTC';
 </script>
 
-<SharingMeta title="Auctions" description="Bid on what is up for auction on this site." />
+<SharingMeta
+	title="Auctions"
+	description="Bid on what is up for auction on this site."
+	structured={{
+		pageType: 'CollectionPage',
+		breadcrumb: [{ name: 'Auctions', path: '/auctions' }],
+		items: data.open.map((a) => ({ name: a.title, url: `/auctions/${a.slug}` }))
+	}}
+/>
 
 <section class="auctions">
 	<header>
