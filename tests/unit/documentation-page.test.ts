@@ -20,13 +20,9 @@ describe('Documentation Page', () => {
 				.getByRole('heading', { name: /^Use NebulaKit with an AI$/i })
 				.closest('section') as HTMLElement;
 
-		it('is the first section on the page, before the navigation', () => {
+		it('is the first section on the page', () => {
 			const sections = Array.from(document.querySelectorAll('section.docs-section'));
 			expect(sections[0].id).toBe('use-with-ai');
-			const nav = screen.getByRole('navigation', { name: /documentation navigation/i });
-			expect(
-				sections[0].compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING
-			).toBeTruthy();
 		});
 
 		it('covers building with a coding agent, running a live site and reading the site', () => {
@@ -450,7 +446,7 @@ describe('Documentation Page', () => {
 		const section = screen.getByRole('heading', { name: /^Audit Log$/ }).closest('section');
 		expect(section).toBeTruthy();
 		const text = section?.textContent ?? '';
-		expect(text).toMatch(/never a secret value/i);
+		expect(text).toMatch(/never a secret\s+value/i);
 		expect(text).toMatch(/never page views/i);
 		expect(text).toMatch(/prune-audit/);
 		expect(text).toMatch(/365 days/);
@@ -651,5 +647,20 @@ describe('Documentation Page', () => {
 			'href',
 			'https://github.com/starspacegroup/NebulaKit'
 		);
+	});
+
+	it('is laid out like /modules: a sidebar, group chips and grouped sections', () => {
+		render(Page);
+		const chips = screen.getByRole('navigation', { name: /documentation groups/i });
+		expect(within(chips).getAllByRole('link')).toHaveLength(5);
+		for (const group of Array.from(document.querySelectorAll('.docs-group'))) {
+			expect(group.id).toMatch(/^group-/);
+			expect(group.querySelector('section.docs-section')).toBeTruthy();
+		}
+		// Every section lives in a group, so none is missing from the sidebar.
+		const nav = screen.getByRole('navigation', { name: /documentation navigation/i });
+		for (const section of Array.from(document.querySelectorAll('section.docs-section'))) {
+			expect(nav.querySelector(`a[href="#${section.id}"]`), section.id).toBeTruthy();
+		}
 	});
 });
