@@ -1752,28 +1752,28 @@ bunx wrangler secret put CRON_SECRET   # same value as on the Pages project`}
 			<ul>
 				<li>
 					<a
-						href="https://github.com/starspacegroup/nebulakit-site"
+						href="https://github.com/starspacegroup/NebulaKit"
 						target="_blank"
 						rel="noopener noreferrer">GitHub repository</a
 					>
 				</li>
 				<li>
 					<a
-						href="https://github.com/starspacegroup/nebulakit-site/blob/main/README.md"
+						href="https://github.com/starspacegroup/NebulaKit/blob/main/README.md"
 						target="_blank"
 						rel="noopener noreferrer">README</a
 					>
 				</li>
 				<li>
 					<a
-						href="https://github.com/starspacegroup/nebulakit-site/blob/main/CONTRIBUTING.md"
+						href="https://github.com/starspacegroup/NebulaKit/blob/main/CONTRIBUTING.md"
 						target="_blank"
 						rel="noopener noreferrer">Contributing Guide</a
 					>
 				</li>
 				<li>
 					<a
-						href="https://github.com/starspacegroup/nebulakit-site/blob/main/docs/THEME_SYSTEM.md"
+						href="https://github.com/starspacegroup/NebulaKit/blob/main/docs/THEME_SYSTEM.md"
 						target="_blank"
 						rel="noopener noreferrer">Theme System</a
 					>
