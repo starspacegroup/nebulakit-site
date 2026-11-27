@@ -23,6 +23,7 @@ import {
 	CONTENT_SIGNAL,
 	CRAWLER_ALLOW,
 	CRAWLER_DISALLOW,
+	MERCHANT_OPEN_PATHS,
 	SITEMAP_EXCLUDED_ROUTES,
 	SITEMAP_ROUTES,
 	absoluteUrl,
@@ -101,10 +102,11 @@ describe('robots.txt', () => {
 
 	it('keeps private surfaces disallowed for every group', async () => {
 		const text = await (await robotsGet(event('/robots.txt'))).text();
-		// One Disallow per path per group (wildcard + the AI group).
+		// One Disallow per path per group (wildcard, the AI group, and Google's merchant
+		// fetchers, which alone may read /media/ for product images).
 		for (const path of CRAWLER_DISALLOW) {
 			const occurrences = text.split(`Disallow: ${path}\n`).length - 1;
-			expect(occurrences).toBe(2);
+			expect(occurrences).toBe(MERCHANT_OPEN_PATHS.includes(path) ? 2 : 3);
 		}
 	});
 

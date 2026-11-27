@@ -10,6 +10,11 @@
 	import { onMount } from 'svelte';
 
 	export let groups: { id: string; title: string; items: { id: string; name: string }[] }[] = [];
+	/** Names for the landmarks and the phone toggle; /documentation reuses this sidebar. */
+	export let label = 'Module navigation';
+	export let navLabel = 'Modules';
+	export let toggleLabel = 'Jump to a module';
+	export let navId = 'modules-sidebar-nav';
 
 	let open = false;
 	let active = '';
@@ -48,22 +53,22 @@
 	});
 </script>
 
-<aside class="sidebar" aria-label="Module navigation">
+<aside class="sidebar" aria-label={label}>
 	<button
 		type="button"
 		class="sidebar__toggle"
 		aria-expanded={open}
-		aria-controls="modules-sidebar-nav"
+		aria-controls={navId}
 		on:click={() => (open = !open)}
 	>
-		Jump to a module
+		{toggleLabel}
 		<span aria-hidden="true">{open ? '−' : '+'}</span>
 	</button>
 	<nav
-		id="modules-sidebar-nav"
+		id={navId}
 		class="sidebar__nav"
 		class:sidebar__nav--open={open}
-		aria-label="Modules"
+		aria-label={navLabel}
 		bind:this={panel}
 	>
 		{#each groups as group (group.id)}

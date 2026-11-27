@@ -5,6 +5,7 @@
   create/edit modals, and delete confirmation.
 -->
 <script lang="ts">
+	import { formatDate as formatZonedDate, NO_DATE } from '$lib/utils/timezone';
 	import { invalidateAll } from '$app/navigation';
 	import TaskListField from '$lib/components/TaskListField.svelte';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
@@ -302,15 +303,8 @@
 
 	function formatDate(dateStr: string | null): string {
 		if (!dateStr) return '—';
-		try {
-			return new Date(dateStr).toLocaleDateString('en-US', {
-				year: 'numeric',
-				month: 'short',
-				day: 'numeric'
-			});
-		} catch {
-			return dateStr;
-		}
+		const shown = formatZonedDate(dateStr, data.timeZone);
+		return shown === NO_DATE ? dateStr : shown;
 	}
 
 	function toggleTag(tagId: string) {
@@ -665,8 +659,7 @@
 										id="field-{field.name}"
 										bind:value={formFields[field.name]}
 										placeholder={field.placeholder || ''}
-										rows="3"
-									></textarea>
+										rows="3"></textarea>
 								{:else if field.type === 'richtext'}
 									<RichTextEditor
 										bind:value={formFields[field.name]}
@@ -722,8 +715,7 @@
 										bind:value={formFields[field.name]}
 										placeholder={'{"key": "value"}'}
 										rows="5"
-										class="json-field"
-									></textarea>
+										class="json-field"></textarea>
 								{:else if field.type === 'tasklist'}
 									<TaskListField bind:value={formFields[field.name]} />
 								{:else}
@@ -800,8 +792,7 @@
 										id="seo-description"
 										bind:value={formSeoDescription}
 										placeholder="Brief description for search engine results"
-										rows="2"
-									></textarea>
+										rows="2"></textarea>
 								</div>
 								<div class="form-group">
 									<label for="seo-image">SEO Image URL</label>

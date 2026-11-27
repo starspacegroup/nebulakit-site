@@ -20,13 +20,9 @@ describe('Documentation Page', () => {
 				.getByRole('heading', { name: /^Use NebulaKit with an AI$/i })
 				.closest('section') as HTMLElement;
 
-		it('is the first section on the page, before the navigation', () => {
+		it('is the first section on the page', () => {
 			const sections = Array.from(document.querySelectorAll('section.docs-section'));
 			expect(sections[0].id).toBe('use-with-ai');
-			const nav = screen.getByRole('navigation', { name: /documentation navigation/i });
-			expect(
-				sections[0].compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING
-			).toBeTruthy();
 		});
 
 		it('covers building with a coding agent, running a live site and reading the site', () => {
@@ -263,15 +259,15 @@ describe('Documentation Page', () => {
 
 		expect(screen.getByRole('link', { name: /README/i })).toHaveAttribute(
 			'href',
-			'https://github.com/starspacegroup/nebulakit-site/blob/main/README.md'
+			'https://github.com/starspacegroup/NebulaKit/blob/main/README.md'
 		);
 		expect(screen.getByRole('link', { name: /Contributing Guide/i })).toHaveAttribute(
 			'href',
-			'https://github.com/starspacegroup/nebulakit-site/blob/main/CONTRIBUTING.md'
+			'https://github.com/starspacegroup/NebulaKit/blob/main/CONTRIBUTING.md'
 		);
 		expect(screen.getByRole('link', { name: /GitHub repository/i })).toHaveAttribute(
 			'href',
-			'https://github.com/starspacegroup/nebulakit-site'
+			'https://github.com/starspacegroup/NebulaKit'
 		);
 	});
 
@@ -401,6 +397,7 @@ describe('Documentation Page', () => {
 			}
 			expect(section.textContent).toMatch(/Layout/);
 			expect(section.textContent).toMatch(/MIT-licensed/);
+			expect(section.textContent).toMatch(/CodeBlock\s+\(highlighted code/);
 		});
 
 		it('is in the nav, and the board section names the standard widgets', () => {
@@ -445,12 +442,22 @@ describe('Documentation Page', () => {
 		expect(scoped.getAllByText(/requirePermission/).length).toBeGreaterThan(0);
 	});
 
+	it('documents the admin time zone, its cookie and what cannot be re-bucketed', () => {
+		render(Page);
+		expect(screen.getByRole('heading', { name: /Admin Time Zone/i })).toBeInTheDocument();
+		const text = document.body.textContent ?? '';
+		expect(text).toMatch(/tz<\/code>|tz cookie|`tz`|tz\s+cookie/);
+		expect(text).toMatch(/UTC days/);
+		expect(text).toMatch(/their\s+own\s+zone/);
+		expect(text).toMatch(/docs\/ADMIN_TIMEZONE\.md/);
+	});
+
 	it('documents the audit log, its privacy limits and its retention job', () => {
 		render(Page);
 		const section = screen.getByRole('heading', { name: /^Audit Log$/ }).closest('section');
 		expect(section).toBeTruthy();
 		const text = section?.textContent ?? '';
-		expect(text).toMatch(/never a secret value/i);
+		expect(text).toMatch(/never a secret\s+value/i);
 		expect(text).toMatch(/never page views/i);
 		expect(text).toMatch(/prune-audit/);
 		expect(text).toMatch(/365 days/);
@@ -571,7 +578,13 @@ describe('Documentation Page', () => {
 			'STRIPE_WEBHOOK_SECRET',
 			'GET /api/v1/orders/[id]/status',
 			'RESEND_API_KEY',
-			'checkout.session.async_payment_failed'
+			'checkout.session.async_payment_failed',
+			'STRIPE_PUBLISHABLE_KEY',
+			'CHECKOUT_MODE',
+			'payment_intent.succeeded',
+			'charge.refunded',
+			'POST /api/v1/checkout/cancel',
+			'/admin/orders'
 		]) {
 			expect(scoped.getAllByText(text).length).toBeGreaterThan(0);
 		}
@@ -603,5 +616,108 @@ describe('Documentation Page', () => {
 		expect(screen.getByText(/bun run landing report/)).toBeInTheDocument();
 		expect(screen.getByText(/has not published any yet/)).toBeInTheDocument();
 		expect(screen.queryByRole('link', { name: '/who' })).not.toBeInTheDocument();
+	});
+	describe('Set Up Cloudflare section', () => {
+		it('walks through the account, Wrangler login, resources, secrets and deploy', () => {
+			render(Page);
+			const section = screen
+				.getByRole('heading', { name: /^Set Up Cloudflare$/i })
+				.closest('section');
+			expect(section?.id).toBe('cloudflare-setup');
+			for (const text of [
+				'dash.cloudflare.com/sign-up',
+				'wrangler login',
+				'wrangler whoami',
+				'bun run setup:cf',
+				'bun run db:migrate',
+				'SESSION_SECRET'
+			]) {
+				expect(section?.textContent, text).toContain(text);
+			}
+		});
+
+		it('shows how to connect the Cloudflare MCP server', () => {
+			render(Page);
+			const section = document.getElementById('cloudflare-setup');
+			expect(section?.textContent).toContain(
+				'claude mcp add --transport http cloudflare-api https://mcp.cloudflare.com/mcp'
+			);
+			expect(section?.textContent).toContain('https://docs.mcp.cloudflare.com/mcp');
+		});
+
+		it('comes right after Start Here and is in the navigation', () => {
+			render(Page);
+			const ids = Array.from(document.querySelectorAll('section.docs-section')).map((s) => s.id);
+			expect(ids.indexOf('cloudflare-setup')).toBe(ids.indexOf('start-here') + 1);
+			const nav = screen.getByRole('navigation', { name: /documentation navigation/i });
+			expect(within(nav).getByRole('link', { name: /set up cloudflare/i })).toHaveAttribute(
+				'href',
+				'#cloudflare-setup'
+			);
+		});
+	});
+
+	it('sends the footer star link to the template repo, not the marketing site', () => {
+		render(Page);
+		const footer = document.querySelector('.docs-footer');
+		expect(footer?.querySelector('a')).toHaveAttribute(
+			'href',
+			'https://github.com/starspacegroup/NebulaKit'
+		);
+	});
+
+	it('is laid out like /modules: a sidebar, group chips and grouped sections', () => {
+		render(Page);
+		const chips = screen.getByRole('navigation', { name: /documentation groups/i });
+		expect(within(chips).getAllByRole('link')).toHaveLength(5);
+		for (const group of Array.from(document.querySelectorAll('.docs-group'))) {
+			expect(group.id).toMatch(/^group-/);
+			expect(group.querySelector('section.docs-section')).toBeTruthy();
+		}
+		// Every section lives in a group, so none is missing from the sidebar.
+		const nav = screen.getByRole('navigation', { name: /documentation navigation/i });
+		for (const section of Array.from(document.querySelectorAll('section.docs-section'))) {
+			expect(nav.querySelector(`a[href="#${section.id}"]`), section.id).toBeTruthy();
+		}
+	});
+});
+
+// AGENTS.md §7 — the feed routes, the Google admin page, migration 0035 and the sync job are
+// user-visible, so the documentation has to say where each lives and what is off by default.
+describe('Documentation Page: Google listings', () => {
+	it('documents the feeds, the health page, the markup and the optional sync', () => {
+		render(Page);
+		const scoped = within(
+			screen
+				.getByRole('heading', { name: 'Google Listings', level: 2 })
+				.closest('section') as HTMLElement
+		);
+		for (const text of [
+			'/feeds/google-products.xml',
+			'/feeds/google-products.tsv',
+			'/admin/products/google',
+			'/api/cron/google-merchant-sync',
+			'google-merchant-sync',
+			'docs/GOOGLE_LISTINGS.md',
+			'packages/commerce/src/google-listing.ts',
+			'0035'
+		]) {
+			expect(scoped.getAllByText(text).length, text).toBeGreaterThan(0);
+		}
+		expect(scoped.getByText(/never in D1/i)).toBeInTheDocument();
+		expect(
+			scoped.getByRole('heading', { name: /Merchant API sync \(optional, off\)/ })
+		).toBeInTheDocument();
+		expect(
+			scoped.getByText(/the price on the page, the price in the cart and the price in the feed/i)
+		).toBeInTheDocument();
+	});
+
+	it('links to the section from the contents', () => {
+		render(Page);
+		expect(screen.getByRole('link', { name: 'Google Listings' })).toHaveAttribute(
+			'href',
+			'#google-listings'
+		);
 	});
 });

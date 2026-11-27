@@ -66,6 +66,11 @@ export default defineConfig({
 					}
 				: {}
 	},
+	build: {
+		// Modern browsers only: a lower target makes esbuild down-level syntax and
+		// Lighthouse flags the result as "legacy JavaScript".
+		target: 'es2022'
+	},
 	optimizeDeps: {
 		// Pre-bundle Svelte runtime deps at startup so they're ready on first request.
 		// Without this, Vite optimizes lazily and the first page load through a cloudflared

@@ -147,4 +147,13 @@
 		flex-direction: column;
 		padding-bottom: var(--spacing-2xl);
 	}
+
+	/* main is a column flexbox, and a page root with margin: 0 auto loses its
+	   stretch there and shrinks to its widest line, so one long code line made
+	   the whole page wider than the phone. Full width, capped by the page's own
+	   max-width, centred by its own auto margins. */
+	main > :global(*) {
+		width: 100%;
+		min-width: 0;
+	}
 </style>

@@ -1,5 +1,7 @@
 <script lang="ts">
 	import SharingMeta from '$lib/components/SharingMeta.svelte';
+	import TimeZoneSetting from '$lib/components/admin/TimeZoneSetting.svelte';
+	import { TIME_ZONE_SOURCE_LABELS } from '$lib/utils/timezone';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
@@ -46,6 +48,13 @@
 <div class="admin-home">
 	<h1>Admin Dashboard</h1>
 	<p>Select a section from the sidebar to manage your settings.</p>
+
+	<TimeZoneSetting
+		setting={data.timeZoneSetting}
+		label={data.timeZoneLabel}
+		sourceText={TIME_ZONE_SOURCE_LABELS[data.timeZoneSource]}
+		canEdit={!!(data.user?.isOwner || data.user?.isSuperAdmin)}
+	/>
 
 	<div class="setup-info">
 		<h2>Configuration Summary</h2>
@@ -398,13 +407,13 @@
 
 	.status-success {
 		background-color: rgba(34, 197, 94, 0.1);
-		color: rgb(34, 197, 94);
+		color: var(--color-success);
 		border: 1px solid rgba(34, 197, 94, 0.3);
 	}
 
 	.status-warning {
 		background-color: rgba(234, 179, 8, 0.1);
-		color: rgb(234, 179, 8);
+		color: var(--color-warning-text);
 		border: 1px solid rgba(234, 179, 8, 0.3);
 	}
 
