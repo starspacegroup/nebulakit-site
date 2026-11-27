@@ -1711,39 +1711,6 @@
 				</p>
 			</div>
 		</div>
-
-		<p class="lh-badge-offer">
-			<a class="lh-badge-link" href="/badge">
-				<!-- The live endpoint, not a copy of it: this is the same image a
-				     README gets, so a broken badge is visible here first. -->
-				<img
-					src="/badge-lighthouse.svg?variant=categories&theme=dark"
-					alt="Lighthouse badge: 100 in all four categories"
-					width="300"
-					height="28"
-					loading="lazy"
-				/>
-			</a>
-			<span>Built on NebulaKit? <a href="/badge">Take the badge.</a></span>
-		</p>
-
-		<p class="lh-footnote">
-			<!-- Name the tool and link it. The whole section is an appeal to an
-			     outside measurement, so the reader should be one click from what
-			     is doing the measuring rather than taking our word for it. -->
-			<a
-				class="lh-tool-link"
-				href="https://developer.chrome.com/docs/lighthouse/overview"
-				target="_blank"
-				rel="noopener noreferrer">Lighthouse</a
-			>
-			{lighthouse.lighthouseVersion}, {lighthouse.formFactor} preset, median of {lighthouse.runsPerPage}
-			runs per page, on
-			<time datetime={lighthouse.generatedAt}>{lighthouse.generatedAt}</time>. Login and signup are
-			not listed: robots.txt keeps the auth flow out of search on purpose, and Lighthouse scores a
-			crawl block as an SEO failure. Reproduce the whole run with
-			<code>bun run lighthouse</code>.
-		</p>
 	</div>
 </section>
 
@@ -3296,63 +3263,6 @@
 		font-variant-numeric: tabular-nums;
 	}
 
-	.lh-badge-offer {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
-		gap: var(--spacing-sm) var(--spacing-md);
-		max-width: 70rem;
-		margin: var(--spacing-xl) auto 0;
-		text-align: center;
-		font-size: 0.9375rem;
-		color: var(--color-text-secondary);
-	}
-
-	.lh-badge-link {
-		display: inline-flex;
-		line-height: 0;
-		border-radius: 999px;
-	}
-
-	/* The badge states its own size, so the height is pinned and the width lets
-	   it scale down rather than overflow a phone. */
-	.lh-badge-offer img {
-		height: 28px;
-		width: auto;
-		max-width: 100%;
-	}
-
-	.lh-badge-offer a {
-		color: var(--color-primary);
-	}
-
-	/* Underlined: inside a sentence, colour alone does not mark a link
-	   (Lighthouse link-in-text-block). */
-	.lh-tool-link,
-	.lh-badge-offer span a {
-		color: var(--color-primary);
-		text-decoration: underline;
-		text-underline-offset: 2px;
-	}
-
-	.lh-footnote {
-		max-width: 70rem;
-		margin: var(--spacing-lg) auto 0;
-		font-size: 0.8125rem;
-		line-height: 1.6;
-		text-align: center;
-		text-wrap: balance;
-		color: var(--color-text-secondary);
-	}
-
-	.lh-footnote code {
-		white-space: nowrap;
-		padding: 0.1em 0.35em;
-		border-radius: var(--radius-sm);
-		background: var(--color-surface-hover);
-		font-size: 0.9em;
-	}
 
 	/* Side by side once the dials have room; stacked below that. */
 	@media (min-width: 60rem) {
