@@ -6,6 +6,7 @@
  *   2. Published CMS content — content-type list pages plus every published
  *      item — read from D1 at request time, so publishing a post updates the
  *      sitemap with no build step and no cron job.
+ *   Builder pages, active products and open auctions are read the same way.
  *
  * URLs are built from the request origin because the sitemap protocol requires
  * every entry to share the sitemap's own host. That also means this file is
@@ -18,7 +19,7 @@
 import { SITEMAP_ROUTES, absoluteUrl, escapeXml } from '$lib/agent-discovery';
 import { listPublishedContentForSitemap } from '$lib/services/cms';
 import { listPages } from '@nebulakit/builder';
-import { listProducts } from '@nebulakit/commerce';
+import { listAuctions, listProducts } from '@nebulakit/commerce';
 import type { RequestHandler } from './$types';
 
 /** A single `<url>` entry before serialization. */
@@ -132,6 +133,18 @@ export const GET: RequestHandler = async ({ url, platform }) => {
 			}
 		} catch (error) {
 			console.error('sitemap: failed to read products', error);
+		}
+		try {
+			// Auctions open for bidding (/auctions/mug). Ended ones are not listed.
+			for (const auction of await listAuctions(db, { status: 'open', limit: 500 })) {
+				entries.push({
+					loc: absoluteUrl(origin, `/auctions/${auction.slug}`),
+					changefreq: 'hourly',
+					priority: 0.6
+				});
+			}
+		} catch (error) {
+			console.error('sitemap: failed to read auctions', error);
 		}
 	}
 
