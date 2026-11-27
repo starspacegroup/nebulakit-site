@@ -31,6 +31,19 @@
 	description={data.product.description.slice(0, 160)}
 	image={data.product.imageUrl ?? ''}
 	imageAlt={data.product.name}
+	structured={{
+		pageType: 'ItemPage',
+		breadcrumb: [
+			{ name: 'Shop', path: '/shop' },
+			{ name: data.product.name, path: `/shop/${data.product.slug}` }
+		],
+		product: {
+			name: data.product.name,
+			description: data.product.description,
+			priceCents: data.product.priceCents,
+			currency: data.product.currency
+		}
+	}}
 />
 
 <article class="product">

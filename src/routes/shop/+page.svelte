@@ -5,7 +5,15 @@
 	let { data }: { data: PageData } = $props();
 </script>
 
-<SharingMeta title="Shop" description="Everything for sale on this site." />
+<SharingMeta
+	title="Shop"
+	description="Everything for sale on this site."
+	structured={{
+		pageType: 'CollectionPage',
+		breadcrumb: [{ name: 'Shop', path: '/shop' }],
+		items: data.products.map((p) => ({ name: p.name, url: `/shop/${p.slug}` }))
+	}}
+/>
 
 <section class="shop">
 	<header>

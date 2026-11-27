@@ -20,9 +20,9 @@ Then, when the page supplies them:
 | `image`                | `ImageObject`, referenced as the page's primary image           |
 
 Wired today: `/[contentType]` (CollectionPage + ItemList), `/[contentType]/[slug]` (BlogPosting for
-the `blog` type, Article otherwise, tags as keywords). Every other page gets the default graph
-(Organization, WebSite, WebPage). The shop and builder pages are not on this site; the product
-builder is kept so they can be wired in the same way if they arrive.
+the `blog` type, Article otherwise, tags as keywords), `/shop` (CollectionPage + ItemList) and
+`/shop/[slug]` (ItemPage + Product + Offer). Every other page gets the default graph
+(Organization, WebSite, WebPage). Builder pages (`/p/[slug]`) and auctions are not wired yet.
 
 ## Rules
 
