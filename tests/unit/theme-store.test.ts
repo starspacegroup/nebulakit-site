@@ -1,6 +1,17 @@
 import { get } from 'svelte/store';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+// One module mock for the whole file. A vi.mock() written inside a test is hoisted
+// to the top anyway, so the per-test factories never chose the value: whichever
+// registered last won, and in a full CI run the browser tests saw `browser: false`.
+// Each test sets `env.browser` before it imports the store instead.
+const env = vi.hoisted(() => ({ browser: false }));
+vi.mock('$app/environment', () => ({
+	get browser() {
+		return env.browser;
+	}
+}));
+
 /**
  * Tests for Theme Store
  * TDD: Tests for theme preference and system theme management
@@ -18,13 +29,10 @@ describe('Theme Store', () => {
 
 	describe('resolvedTheme', () => {
 		it('should use system theme when preference is system', async () => {
-			vi.mock('$app/environment', () => ({
-				browser: false
-			}));
+			env.browser = false;
 
-			const { resolvedTheme, themePreference, systemTheme } = await import(
-				'../../src/lib/stores/theme'
-			);
+			const { resolvedTheme, themePreference, systemTheme } =
+				await import('../../src/lib/stores/theme');
 
 			// Set up stores
 			themePreference.set('system');
@@ -34,13 +42,10 @@ describe('Theme Store', () => {
 		});
 
 		it('should use explicit preference when set to light', async () => {
-			vi.mock('$app/environment', () => ({
-				browser: false
-			}));
+			env.browser = false;
 
-			const { resolvedTheme, themePreference, systemTheme } = await import(
-				'../../src/lib/stores/theme'
-			);
+			const { resolvedTheme, themePreference, systemTheme } =
+				await import('../../src/lib/stores/theme');
 
 			systemTheme.set('dark');
 			themePreference.set('light');
@@ -49,13 +54,10 @@ describe('Theme Store', () => {
 		});
 
 		it('should use explicit preference when set to dark', async () => {
-			vi.mock('$app/environment', () => ({
-				browser: false
-			}));
+			env.browser = false;
 
-			const { resolvedTheme, themePreference, systemTheme } = await import(
-				'../../src/lib/stores/theme'
-			);
+			const { resolvedTheme, themePreference, systemTheme } =
+				await import('../../src/lib/stores/theme');
 
 			systemTheme.set('light');
 			themePreference.set('dark');
@@ -64,9 +66,7 @@ describe('Theme Store', () => {
 		});
 
 		it('should switch from dark to light when preference changes', async () => {
-			vi.mock('$app/environment', () => ({
-				browser: false
-			}));
+			env.browser = false;
 
 			const { resolvedTheme, themePreference } = await import('../../src/lib/stores/theme');
 
@@ -80,9 +80,7 @@ describe('Theme Store', () => {
 
 	describe('ThemePreference type', () => {
 		it('should accept valid theme preferences', async () => {
-			vi.mock('$app/environment', () => ({
-				browser: false
-			}));
+			env.browser = false;
 
 			const { themePreference } = await import('../../src/lib/stores/theme');
 
@@ -100,9 +98,7 @@ describe('Theme Store', () => {
 
 	describe('systemTheme', () => {
 		it('should be a writable store', async () => {
-			vi.mock('$app/environment', () => ({
-				browser: false
-			}));
+			env.browser = false;
 
 			const { systemTheme } = await import('../../src/lib/stores/theme');
 
@@ -116,13 +112,10 @@ describe('Theme Store', () => {
 
 	describe('themeStore legacy export', () => {
 		it('should be an alias for resolvedTheme', async () => {
-			vi.mock('$app/environment', () => ({
-				browser: false
-			}));
+			env.browser = false;
 
-			const { themeStore, resolvedTheme, themePreference } = await import(
-				'../../src/lib/stores/theme'
-			);
+			const { themeStore, resolvedTheme, themePreference } =
+				await import('../../src/lib/stores/theme');
 
 			themePreference.set('dark');
 
@@ -146,9 +139,7 @@ describe('Theme Store', () => {
 			vi.stubGlobal('localStorage', mockLocalStorage);
 			vi.stubGlobal('matchMedia', mockMatchMedia);
 
-			vi.mock('$app/environment', () => ({
-				browser: true
-			}));
+			env.browser = true;
 
 			const { themePreference } = await import('../../src/lib/stores/theme');
 
@@ -170,9 +161,7 @@ describe('Theme Store', () => {
 			vi.stubGlobal('localStorage', mockLocalStorage);
 			vi.stubGlobal('matchMedia', mockMatchMedia);
 
-			vi.mock('$app/environment', () => ({
-				browser: true
-			}));
+			env.browser = true;
 
 			const { systemTheme } = await import('../../src/lib/stores/theme');
 
@@ -193,9 +182,7 @@ describe('Theme Store', () => {
 			vi.stubGlobal('localStorage', mockLocalStorage);
 			vi.stubGlobal('matchMedia', mockMatchMedia);
 
-			vi.mock('$app/environment', () => ({
-				browser: true
-			}));
+			env.browser = true;
 
 			const { systemTheme } = await import('../../src/lib/stores/theme');
 
@@ -215,9 +202,7 @@ describe('Theme Store', () => {
 			vi.stubGlobal('localStorage', mockLocalStorage);
 			vi.stubGlobal('matchMedia', mockMatchMedia);
 
-			vi.mock('$app/environment', () => ({
-				browser: true
-			}));
+			env.browser = true;
 
 			const { themePreference } = await import('../../src/lib/stores/theme');
 
@@ -237,9 +222,7 @@ describe('Theme Store', () => {
 			vi.stubGlobal('localStorage', mockLocalStorage);
 			vi.stubGlobal('matchMedia', mockMatchMedia);
 
-			vi.mock('$app/environment', () => ({
-				browser: true
-			}));
+			env.browser = true;
 
 			const { themePreference } = await import('../../src/lib/stores/theme');
 
@@ -259,9 +242,7 @@ describe('Theme Store', () => {
 			vi.stubGlobal('localStorage', mockLocalStorage);
 			vi.stubGlobal('matchMedia', mockMatchMedia);
 
-			vi.mock('$app/environment', () => ({
-				browser: true
-			}));
+			env.browser = true;
 
 			const { themePreference } = await import('../../src/lib/stores/theme');
 
@@ -282,9 +263,7 @@ describe('Theme Store', () => {
 			vi.stubGlobal('localStorage', mockLocalStorage);
 			vi.stubGlobal('matchMedia', mockMatchMedia);
 
-			vi.mock('$app/environment', () => ({
-				browser: true
-			}));
+			env.browser = true;
 
 			const { themePreference } = await import('../../src/lib/stores/theme');
 
@@ -307,9 +286,7 @@ describe('Theme Store', () => {
 			vi.stubGlobal('localStorage', mockLocalStorage);
 			vi.stubGlobal('matchMedia', mockMatchMedia);
 
-			vi.mock('$app/environment', () => ({
-				browser: true
-			}));
+			env.browser = true;
 
 			await import('../../src/lib/stores/theme');
 
@@ -338,9 +315,7 @@ describe('Theme Store', () => {
 			vi.stubGlobal('localStorage', mockLocalStorage);
 			vi.stubGlobal('matchMedia', mockMatchMedia);
 
-			vi.mock('$app/environment', () => ({
-				browser: true
-			}));
+			env.browser = true;
 
 			const { systemTheme } = await import('../../src/lib/stores/theme');
 
