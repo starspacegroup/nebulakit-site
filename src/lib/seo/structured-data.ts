@@ -328,8 +328,12 @@ export type SharingGraphInput = {
 	modifiedTime?: string;
 	author?: string;
 	noindex?: boolean;
-	/** Extras a page passes through: breadcrumb, items, product, article tweaks. */
-	extra?: Partial<Omit<PageGraphInput, 'path' | 'title'>> | null;
+	/**
+	 * Extras a page passes through: breadcrumb, items, product, article tweaks.
+	 * A `title` here replaces the page title in the graph only, for pages whose
+	 * display title carries a suffix the item itself does not have.
+	 */
+	extra?: Partial<Omit<PageGraphInput, 'path'>> | null;
 };
 
 /**

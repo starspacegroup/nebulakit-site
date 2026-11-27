@@ -86,7 +86,9 @@ describe('auctions structured data', () => {
 			}
 		});
 		const nodes = graph();
-		expect(nodes.some((n) => n['@type'] === 'ItemPage')).toBe(true);
+		const item = nodes.find((n) => n['@type'] === 'ItemPage');
+		expect(item).toBeDefined();
+		expect(item?.name).toBe('Mug');
 		const crumbs = nodes.find((n) => n['@type'] === 'BreadcrumbList');
 		expect(JSON.stringify(crumbs)).toContain('/auctions/mug');
 	});

@@ -23,6 +23,7 @@
 	image={data.imageUrl ?? ''}
 	imageAlt={a.title}
 	structured={{
+		title: a.title,
 		pageType: 'ItemPage',
 		breadcrumb: [
 			{ name: 'Auctions', path: '/auctions' },
