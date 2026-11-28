@@ -182,6 +182,23 @@ describe('sitemap.xml', () => {
 		expect(body).not.toContain('/auctions/old-mug');
 	});
 
+	it('leaves out an auction whose end time has passed but is not yet closed', async () => {
+		const db = createSqliteD1();
+		const product = await createProduct(db, { slug: 'mug', name: 'Mug', priceCents: 5000 });
+		const hour = 3600_000;
+		await createAuction(db, {
+			slug: 'lapsed-mug',
+			productId: product.id,
+			startingCents: 1000,
+			startsAt: new Date(Date.now() - 3 * hour).toISOString(),
+			endsAt: new Date(Date.now() - hour).toISOString()
+		});
+		const body = await (
+			await sitemapGet(event('/sitemap.xml', { platform: { env: { DB: db } } }))
+		).text();
+		expect(body).not.toContain('/auctions/lapsed-mug');
+	});
+
 	it('includes published CMS items and their type list pages', async () => {
 		const db = createDb([
 			{ type_slug: 'blog', item_slug: 'hello-world', lastmod: '2026-07-28 11:00:00' },
