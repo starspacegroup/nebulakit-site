@@ -51,4 +51,13 @@ describe('security headers', () => {
 			.map((line) => line.trim().split(/:\s*/, 2) as [string, string]);
 		expect(Object.fromEntries(lines)).toEqual(SECURITY_HEADERS);
 	});
+
+	it('_headers gives the unhashed static images a cache lifetime', () => {
+		const file = readFileSync('_headers', 'utf8');
+		for (const path of ['/starspace-mark.png', '/favicon.svg', '/built-with/*']) {
+			expect(file).toMatch(
+				new RegExp(`\\n${path.replace('*', '\\*')}\\n  Cache-Control: public, max-age=604800\\n`)
+			);
+		}
+	});
 });
