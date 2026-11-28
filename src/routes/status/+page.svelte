@@ -384,4 +384,7 @@
 	.foot {
 		font-size: 0.875rem;
 	}
+	.foot a {
+		text-decoration: underline;
+	}
 </style>
