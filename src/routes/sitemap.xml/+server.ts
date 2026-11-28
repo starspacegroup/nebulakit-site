@@ -135,8 +135,12 @@ export const GET: RequestHandler = async ({ url, platform }) => {
 			console.error('sitemap: failed to read products', error);
 		}
 		try {
-			// Auctions open for bidding (/auctions/mug). Ended ones are not listed.
+			// Auctions open for bidding (/auctions/mug). Ended ones are not listed:
+			// the status can still read "open" after the end time, until the
+			// auction is closed, so the end time is checked as well.
+			const now = Date.now();
 			for (const auction of await listAuctions(db, { status: 'open', limit: 500 })) {
+				if (!(Date.parse(auction.endsAt) > now)) continue;
 				entries.push({
 					loc: absoluteUrl(origin, `/auctions/${auction.slug}`),
 					changefreq: 'hourly',
